@@ -1,0 +1,5 @@
+ipython 
+ipdb 
+flask 
+flask-sqlalchemy
+lxml
