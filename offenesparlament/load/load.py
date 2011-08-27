@@ -2,7 +2,7 @@ import sys
 import logging
 from datetime import datetime
 
-from webstore.client import URL as WebStore
+from webstore.client import WebstoreClientException, URL as WebStore
 
 from offenesparlament.core import db
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
@@ -81,6 +81,7 @@ def load_persons(ws):
 
         person.slug = data.get('slug')
         person.fingerprint = data.get('fingerprint')
+        log.info("      -> %s" % person.fingerprint)
         person.source_url = data.get('source_url')
         person.mdb_id = data.get('mdb_id')
         person.vorname = data.get('vorname')
@@ -146,6 +147,7 @@ def load_rollen(ws, person, data):
         rolle.fraktion = rdata.get('fraktion')
         rolle.gewaehlt = rdata.get('gewaehlt')
         rolle.rolle = rdata.get('rolle')
+        rolle.ressort = rdata.get('ressort')
         rolle.land = rdata.get('land')
         rolle.austritt = date(rdata.get('austritt'))
 
@@ -231,8 +233,6 @@ def load_ablauf(ws, data):
         referenz.seiten = ddata.get('seiten')
         referenz.text = ddata.get('text')
 
-        
-
     for position in ws['position'].traverse(
             ablauf_source_url=ablauf.source_url):
         load_position(position, ablauf, ws)
@@ -272,14 +272,18 @@ def load_position(data, ablauf, ws):
                 key=zdata.get('gremium_key')).first()
         zuweisung.position = position
         db.session.add(zuweisung)
+    
+    try:
+        for bdata in ws['beschluss'].traverse(fundstelle=position.fundstelle,
+                urheber=position.urheber, ablauf_source_url=ablauf.source_url):
+            beschluss = Beschluss()
+            beschluss.seite = bdata['seite']
+            beschluss.tenor = bdata['tenor']
+            beschluss.dokument_text = bdata['dokument_text']
+            db.session.add(beschluss)
+    except WebstoreClientException:
+        pass
 
-    for bdata in ws['beschluss'].traverse(fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_source_url=ablauf.source_url):
-        beschluss = Beschluss()
-        beschluss.seite = bdata['seite']
-        beschluss.tenor = bdata['tenor']
-        beschluss.dokument_text = bdata['dokument_text']
-        db.session.add(beschluss)
 
     for bdata in ws['beitrag'].traverse(fundstelle=position.fundstelle,
             urheber=position.urheber, ablauf_source_url=ablauf.source_url):
@@ -309,14 +313,16 @@ def load_dokument(data, ws):
         dokument.hrsg = data.get('hrsg')
         dokument.typ = data.get('typ')
         dokument.nummer = data.get('nummer')
-    dokument.link = data.get('link')
+    if data.get('link'):
+        dokument.link = data.get('link')
     db.session.add(dokument)
+    db.session.flush()
     return dokument
 
 def load(ws):
     load_gremien(ws)
     #load_news(ws)
-    #load_persons(ws)
+    load_persons(ws)
     load_ablaeufe(ws)
 
 if __name__ == '__main__':

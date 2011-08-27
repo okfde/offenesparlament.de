@@ -134,6 +134,7 @@ class Rolle(db.Model):
     fraktion = db.Column(db.Unicode)
     gewaehlt = db.Column(db.Unicode)
     rolle = db.Column(db.Unicode)
+    ressort = db.Column(db.Unicode)
     land = db.Column(db.Unicode)
     austritt = db.Column(db.DateTime)
     
@@ -270,7 +271,6 @@ class Position(db.Model):
     typ = db.Column(db.Unicode())
     
     ablauf_id = db.Column(db.Integer, db.ForeignKey('ablauf.id'))
-    dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
     
     zuweisungen = db.relationship('Zuweisung', backref='position', 
             lazy='dynamic')
