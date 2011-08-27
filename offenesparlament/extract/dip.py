@@ -264,6 +264,8 @@ def scrape_activity(ablauf, elem, db):
         typ, quelle = p['urheber'].split(',', 1)
         p['quelle'] = re.sub("^.*Urheber.*:", "", quelle).strip()
         p['typ'] = typ.strip()
+    else:
+        p['typ'] = p['urheber']
     
     for zelem in elem.findall("ZUWEISUNG"):
         z = pos_keys.copy()
@@ -271,13 +273,14 @@ def scrape_activity(ablauf, elem, db):
         z['federfuehrung'] = zelem.find("FEDERFUEHRUNG") is not None
         z['gremium_key'] = DIP_GREMIUM_TO_KEY.get(z['text'])
         db['zuweisung'].writerow(z)
-    
+        
+    Beschluss = db['beschluss']
     for belem in elem.findall("BESCHLUSS"):
         b = pos_keys.copy()
         b['seite'] = belem.findtext("BESCHLUSSSEITE")
         b['dokument_text'] = belem.findtext("BEZUGSDOKUMENT")
         b['tenor'] = belem.findtext("BESCHLUSSTENOR")
-        db['beschluss'].writerow(b)
+        Beschluss.writerow(b)
     
     dokument = dokument_by_url(p['fundstelle_url']) or \
         dokument_by_name(p['fundstelle'])

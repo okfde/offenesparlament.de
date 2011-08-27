@@ -13,7 +13,9 @@ class NewsItem(db.Model):
     image_url = db.Column(db.Unicode)
     image_copyright = db.Column(db.Unicode)
     image_changed_at = db.Column(db.DateTime)
-    
+
+    gremium_id = db.Column(db.Integer, db.ForeignKey('gremium.id'))
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
@@ -52,6 +54,8 @@ class Gremium(db.Model):
     
     zuweisungen = db.relationship('Zuweisung', backref='gremium', 
             lazy='dynamic')
+    news = db.relationship('NewsItem', backref='gremium',
+                           lazy='dynamic')
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
@@ -61,6 +65,8 @@ class Person(db.Model):
     __tablename__ = 'person'
 
     id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.Unicode)
+    fingerprint = db.Column(db.Unicode)
     source_url = db.Column(db.Unicode)
     mdb_id = db.Column(db.Integer)
     vorname = db.Column(db.Unicode)
