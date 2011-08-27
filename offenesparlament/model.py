@@ -46,7 +46,7 @@ class Gremium(db.Model):
     key = db.Column(db.Unicode)
     type = db.Column(db.Unicode)
     aufgabe = db.Column(db.Unicode)
-    date = db.Column(db.DateTime)
+    #date = db.Column(db.DateTime)
     image_url = db.Column(db.Unicode)
     image_copyright = db.Column(db.Unicode)
     
@@ -245,8 +245,8 @@ class Beschluss(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     dokument_text = db.Column(db.Unicode())
-    tenor = db.Column(db.Boolean())
-    seite = db.Column(db.Boolean())
+    tenor = db.Column(db.Unicode())
+    seite = db.Column(db.Unicode())
     
     dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))

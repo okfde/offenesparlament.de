@@ -1,24 +1,19 @@
 # -*- coding: UTF-8 -*-
-from offenesparlament.core import db
-from offenesparlament.model import Ablauf, Schlagwort
-from offenesparlament.model import Dokument, Referenz
-from offenesparlament.model import Position, Zuweisung
-from offenesparlament.model import Gremium, Beschluss
-from offenesparlament.model import Beitrag, Person, Rolle
 import logging
-import re, string
+import re, sys
 import urllib2, urllib
 import cookielib
 from datetime import datetime
-from hashlib import sha1
 from threading import Lock 
 from lxml import etree
-from pprint import pprint
 from itertools import count
 from urlparse import urlparse, urljoin, parse_qs
 from StringIO import StringIO
 
+from webstore.client import URL as WebStore
+
 log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.NOTSET)
 
 MAKE_SESSION_URL = "http://dipbt.bundestag.de/dip21.web/bt"
 BASE_URL = "http://dipbt.bundestag.de/dip21.web/searchProcedures/simple_search.do?method=Suchen&offset=%s&anzahl=100"
@@ -133,7 +128,7 @@ def get_dip_with_cookie(url, method='GET', data={}):
     class _Request(urllib2.Request):
         def get_method(self): 
             return method
-    
+
     lock.acquire()
     try:
         def _req(url, jar, data={}):
@@ -156,18 +151,8 @@ def get_dip_with_cookie(url, method='GET', data={}):
 
 def _get_dokument(hrsg, typ, nummer, link=None):
     nummer = nummer.lstrip("0")
-    q = Dokument.query.filter_by(hrsg=hrsg)
-    q = q.filter_by(typ=typ).filter_by(nummer=nummer)
-    dokument = q.first()
-    if dokument is None:
-        dokument = Dokument()
-    dokument.hrsg = hrsg
-    dokument.typ = typ
-    dokument.nummer = nummer
-    if link is not None:
-        dokument.link = link
-    db.session.add(dokument)
-    return dokument
+    return {'link': link, 'hrsg': hrsg, 
+            'typ': typ, 'nummer': nummer}
 
 def dokument_by_id(hrsg, typ, nummer, link=None):
     if '/' in nummer:
@@ -223,7 +208,6 @@ def dokument_by_name(name):
     return _get_dokument(hrsg, typ, nummer, link=link)
 
 
-
 # EU Links
 COM_LINK = re.compile('.*Kom.\s\((\d{1,4})\)\s(\d{1,6}).*')
 SEC_LINK = re.compile('.*Sek.\s\((\d{1,4})\)\s(\d{1,6}).*')
@@ -232,218 +216,165 @@ EUR_LEX_RECH = "http://eur-lex.europa.eu/Result.do?T1=%s&T2=%s&T3=%s&RechType=RE
 LEX_URI = "http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=%s:%s:%s:FIN:DE:%s"
 CONS = "http://register.consilium.europa.eu/servlet/driver?lang=DE&typ=Advanced&cmsid=639&ff_COTE_DOCUMENT=%s&fc=REGAISDE&md=100&rc=1&nr=1&page=Detail"
 def expand_dok_nr(ablauf):
-    if ablauf.eu_dok_nr:
-        com_match = COM_LINK.match(ablauf.eu_dok_nr)
+    if ablauf['eu_dok_nr']:
+        com_match = COM_LINK.match(ablauf['eu_dok_nr'])
         if com_match:
             year, process = com_match.groups()
-            ablauf.eur_lex_url = EUR_LEX_RECH % ("V5", year, process)
-            ablauf.eur_lex_pdf = LEX_URI % ("COM", year, process.zfill(4), "PDF")
-        sec_match = SEC_LINK.match(ablauf.eu_dok_nr)
+            ablauf['eur_lex_url'] = EUR_LEX_RECH % ("V5", year, process)
+            ablauf['eur_lex_pdf'] = LEX_URI % ("COM", year, process.zfill(4), "PDF")
+        sec_match = SEC_LINK.match(ablauf['eu_dok_nr'])
         if sec_match:
             year, process = sec_match.groups()
-            ablauf.eur_lex_url = EUR_LEX_RECH % ("V7", year, process)
-            ablauf.eur_lex_pdf = LEX_URI % ("SEC", year, process.zfill(4), "PDF")
-        rat_match = RAT_LINK.match(ablauf.eu_dok_nr)
+            ablauf['eur_lex_url'] = EUR_LEX_RECH % ("V7", year, process)
+            ablauf['eur_lex_pdf'] = LEX_URI % ("SEC", year, process.zfill(4), "PDF")
+        rat_match = RAT_LINK.match(ablauf['eu_dok_nr'])
         if rat_match:
             id, = rat_match.groups()
-            ablauf.consilium_url = CONS % urllib.quote(id)
+            ablauf['consilium_url'] = CONS % urllib.quote(id)
     return ablauf
 
 
-def activity_person_merge(db, akteur):
-    akteur = akteur.copy()
-
-    if akteur.get('vorname') == 'Wolfgang' and akteur.get('zuname') == 'Neskovic':
-        akteur['zuname'] = u'Nešković'
-    if akteur.get('vorname') == 'Eva' and akteur.get('zuname') == 'Klamt':
-        akteur['vorname'] = 'Ewa'
-    if akteur.get('vorname') == 'Daniela' and akteur.get('zuname') == 'Raab':
-        # data mining and marriage: not a good fit. 
-        akteur['zuname'] = 'Ludwig'
-    candidates = list(db.akteur.find(
-        {"vorname": akteur.get('vorname'), 
-         "zuname": akteur.get('zuname')}))
-    if len(candidates) == 0:
-        candidates = list(db.akteur.find(
-            {"vorname": {"$regex": akteur.get('vorname') + ".*"}, 
-             "zuname": akteur.get('zuname')}))
-    if akteur.get('funktion') == 'MdB' or len(candidates) == 1:
-        if len(candidates) == 0:
-            def _namesub(name): 
-                s = '.*'
-                for c in name:
-                    if c in string.letters:
-                        s += c
-                    else:
-                        s += '.'
-                return s + '.*'
-            candidates = list(db.akteur.find(
-                {"vorname": {"$regex": _namesub(akteur.get('vorname'))}, 
-                 "zuname": {"$regex": _namesub(akteur.get('zuname'))}}))
-        if len(candidates) == 0:
-            candidates = list(db.akteur.find({"$or": [
-                {"vorname": akteur.get('vorname')}, 
-                {"zuname": akteur.get('zuname')}]}))
-        if len(candidates) == 1:
-            a = candidates[0]
-            db.akteur.update({'_id': a.get('_id')},
-                {"$set": {"funktion": akteur.get("funktion"),
-                          "ressort": akteur.get("ressort"),
-                          "ortszusatz": akteur.get("ortszusatz"),
-                          "state": akteur.get("state")}})
-            return a.get('_id')
-        pprint(akteur)
-        print "HAS", len(candidates), "CANDIDATES"
-        pprint(candidates)
-        return None
-    a = akteur.copy()
-    if 'seite' in a: 
-        del a['seite']
-    if 'aktivitaet' in a:
-        del a['aktivitaet']
-    a['key'] = sha1(repr(a).encode("ascii", "ignore")).hexdigest()[:10]
-    db.akteur.update({"key": a['key']}, a, upsert=True)
-    return db.akteur.find_one({"key": a['key']}).get('_id')
-
-
-def scrape_activities(ablauf):
-    urlfp = get_dip_with_cookie(DETAIL_VP_URL % ablauf.key)
+def scrape_activities(ablauf, db):
+    urlfp = get_dip_with_cookie(DETAIL_VP_URL % ablauf['key'])
     xml = inline_xml_from_page(urlfp.read())
     urlfp.close()
     if xml is not None: 
         for elem in xml.findall(".//VORGANGSPOSITION"):
-            scrape_activity(ablauf, elem)
+            scrape_activity(ablauf, elem, db)
 
-def scrape_activity(ablauf, elem):
+def scrape_activity(ablauf, elem, db):
     urheber = elem.findtext("URHEBER")
     fundstelle = elem.findtext("FUNDSTELLE")
-    q = Position.query.filter_by(urheber=urheber)
-    q = q.filter_by(ablauf_id=ablauf.id)
-    p = q.filter_by(fundstelle=fundstelle).first()
+    Position = db['position']
+    p = Position.find_one(urheber=urheber, 
+                          fundstelle=fundstelle, 
+                          ablauf_source_url=ablauf['source_url'])
     if p is not None:
         return 
-    p = Position()
-    p.ablauf = ablauf
-    p.urheber = urheber
-    p.fundstelle = fundstelle
-    p.zuordnung = elem.findtext("ZUORDNUNG")
-    p.fundstelle_url = elem.findtext("FUNDSTELLE_LINK")
+    p = {'ablauf_source_url': ablauf['source_url'], 
+         'urheber': urheber,
+         'fundstelle': fundstelle}
+    pos_keys = p.copy()
+    p['zuordnung'] = elem.findtext("ZUORDNUNG")
+    p['fundstelle_url'] = elem.findtext("FUNDSTELLE_LINK")
     
-    dt, rest = p.fundstelle.split("-", 1)
-    p.date = datetime.strptime(dt.strip(), "%d.%m.%Y")
-    if ',' in p.urheber:
-        typ, quelle = p.urheber.split(',', 1)
-        p.quelle = re.sub("^.*Urheber.*:", "", quelle).strip()
-        p.typ = typ.strip()
-    db.session.add(p)
+    dt, rest = p['fundstelle'].split("-", 1)
+    p['date'] = datetime.strptime(dt.strip(), "%d.%m.%Y").isoformat()
+    if ',' in p['urheber']:
+        typ, quelle = p['urheber'].split(',', 1)
+        p['quelle'] = re.sub("^.*Urheber.*:", "", quelle).strip()
+        p['typ'] = typ.strip()
     
     for zelem in elem.findall("ZUWEISUNG"):
-        z = Zuweisung()
-        z.position = p
-        z.text = zelem.findtext("AUSSCHUSS_KLARTEXT")
-        z.federfuehrung = zelem.find("FEDERFUEHRUNG") is not None
-        gremium_key = DIP_GREMIUM_TO_KEY.get(z.text)
-        g = Gremium.query.filter_by(key=gremium_key).first()
-        if g is None:
-            log.warn("TODO: %s" % z.text)
-        z.gremium = g
-        db.session.add(z)
+        z = pos_keys.copy()
+        z['text'] = zelem.findtext("AUSSCHUSS_KLARTEXT")
+        z['federfuehrung'] = zelem.find("FEDERFUEHRUNG") is not None
+        z['gremium_key'] = DIP_GREMIUM_TO_KEY.get(z['text'])
+        db['zuweisung'].writerow(z)
     
     for belem in elem.findall("BESCHLUSS"):
-        b = Beschluss()
-        b.position = p
-        b.seite = belem.findtext("BESCHLUSSSEITE")
-        b.dokument_text = belem.findtext("BEZUGSDOKUMENT")
-        b.tenor = belem.findtext("BESCHLUSSTENOR")
-        db.session.add(b)
+        b = pos_keys.copy()
+        b['seite'] = belem.findtext("BESCHLUSSSEITE")
+        b['dokument_text'] = belem.findtext("BEZUGSDOKUMENT")
+        b['tenor'] = belem.findtext("BESCHLUSSTENOR")
+        db['beschluss'].writerow(b)
     
-    p.dokument = dokument_by_url(p.fundstelle_url) or \
-        dokument_by_name(p.fundstelle)
+    dokument = dokument_by_url(p['fundstelle_url']) or \
+        dokument_by_name(p['fundstelle'])
+    dokument.update(pos_keys)
+    dokument['ablauf_key'] = ablauf['key']
+    dokument['wahlperiode'] = ablauf['wahlperiode']
+    db['referenz'].writerow(dokument, unique_columns=[
+            'link', 'wahlperiode', 'ablauf_key', 'seiten'
+            ])
     
+    Position.writerow(p)
+    Person = db['person']
+    Beitrag = db['beitrag']
     for belem in elem.findall("PERSOENLICHER_URHEBER"):
-        vorname = belem.findtext("VORNAME")
-        nachname = belem.findtext("NACHNAME")
-        funktion = belem.findtext("FUNKTION")
-        ortszusatz = belem.findtext('WAHLKREISZUSATZ')
-        q = Person.query.filter_by(vorname=vorname)
-        q = q.filter_by(nachname=nachname)
-        ps = q.filter_by(ort=ortszusatz).first()
-        if ps is None:
-            ps = Person()
-            ps.vorname = vorname
-            ps.nachname = nachname
-            ps.ort = ortszusatz
-            db.session.add(ps)
-        q = Rolle.query.filter_by(funktion=funktion)
-        r = q.filter_by(person_id=p.id).first()
-        if r is None:
-            r = Rolle()
-            r.funktion = funktion
-            r.ressort = belem.findtext("RESSORT")
-            r.land = belem.findtext("BUNDESLAND")
-            r.fraktion = FACTION_MAPS.get(belem.findtext("FRAKTION"), 
-                belem.findtext("FRAKTION"))
-            r.person = ps
-            db.session.add(r)
+        b = pos_keys.copy()
+        b['vorname'] = belem.findtext("VORNAME")
+        b['nachname'] = belem.findtext("NACHNAME")
+        b['funktion'] = belem.findtext("FUNKTION")
+        b['ort'] = belem.findtext('WAHLKREISZUSATZ')
+        p = Person.find_one(vorname=b['vorname'],
+                nachname=b['nachname'],
+                ort=b['ort'])
+        if p is not None:
+            b['person_source_url'] = p['source_url']
+        #q = Rolle.query.filter_by(funktion=funktion)
+        #r = q.filter_by(person_id=p.id).first()
+        #if r is None:
+        #    r = Rolle()
+        #    r.funktion = funktion
+        b['ressort'] = belem.findtext("RESSORT")
+        b['land'] = belem.findtext("BUNDESLAND")
+        b['fraktion'] = FACTION_MAPS.get(belem.findtext("FRAKTION"), 
+            belem.findtext("FRAKTION"))
+        #    r.person = ps
+        #    db.session.add(r)
 
-        b = Beitrag()
-        b.seite = belem.findtext("SEITE")
-        b.art = belem.findtext("AKTIVITAETSART")
-        b.position = p
-        b.person = ps
-        b.rolle = r
-        db.session.add(b)
+        b['seite'] = belem.findtext("SEITE")
+        b['art'] = belem.findtext("AKTIVITAETSART")
+        Beitrag.writerow(b)
 
-def scrape_ablauf(url):
-    a = Ablauf.query.filter_by(source_url=url).first()
-    if a is not None and a.abgeschlossen:
-        log.info("Skipping: %s" % a.titel)
+def scrape_ablauf(url, db):
+    Ablauf = db['ablauf']
+    a = Ablauf.find_one(source_url=url)
+    if a is not None and a['abgeschlossen'] == 'True':
+        log.info("Skipping: %s" % a['titel'])
         return
     if a is None:
-        a = Ablauf()
-    a.key = parse_qs(urlparse(url).query).get('selId')[0]
+        a = {}
+    a['key'] = key = parse_qs(urlparse(url).query).get('selId')[0]
     urlfp = get_dip_with_cookie(url)
     doc = inline_xml_from_page(urlfp.read())
     urlfp.close()
     if doc is None: 
         log.warn("Could not find embedded XML in Ablauf: %s", a.key)
         return
-    a.wahlperiode = doc.findtext("WAHLPERIODE")
-    a.typ = doc.findtext("VORGANGSTYP")
-    a.titel = doc.findtext("TITEL")
-    a.initiative = doc.findtext("INITIATIVE")
-    a.stand = doc.findtext("AKTUELLER_STAND")
-    a.signatur = doc.findtext("SIGNATUR")
-    a.gesta_id = doc.findtext("GESTA_ORDNUNGSNUMMER")
-    a.eu_dok_nr = doc.findtext("EU_DOK_NR")
-    a.abstrakt = doc.findtext("ABSTRAKT")
-    a.sachgebiet = doc.findtext("SACHGEBIET")
-    a.zustimmungsbeduerftig = doc.findtext("ZUSTIMMUNGSBEDUERFTIGKEIT")
-    a.source_url = url
-    a.schlagworte = []
+    a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
+    a['typ'] = doc.findtext("VORGANGSTYP")
+    a['titel'] = doc.findtext("TITEL")
+    if '\n' in a['titel']:
+        t, k = a['titel'].rsplit('\n', 1)
+        k = k.strip()
+        if k.startswith('KOM') or k.startswith('SEK'):
+            a['titel'] = t
+    a['initiative'] = doc.findtext("INITIATIVE")
+    a['stand'] = doc.findtext("AKTUELLER_STAND")
+    a['signatur'] = doc.findtext("SIGNATUR")
+    a['gesta_id'] = doc.findtext("GESTA_ORDNUNGSNUMMER")
+    a['eu_dok_nr'] = doc.findtext("EU_DOK_NR")
+    a['abstrakt'] = doc.findtext("ABSTRAKT")
+    a['sachgebiet'] = doc.findtext("SACHGEBIET")
+    a['zustimmungsbeduerftig'] = doc.findtext("ZUSTIMMUNGSBEDUERFTIGKEIT")
+    a['source_url'] = url
+    #a.schlagworte = []
     for sw in doc.findall("SCHLAGWORT"):
-        schlagwort = Schlagwort()
-        schlagwort.name = sw.text
-        db.session.add(schlagwort)
-        a.schlagworte.append(schlagwort)
-    log.info("Ablauf %s: %s" % (a.key, a.titel))
-    a.titel = a.titel.strip().lstrip('.').strip()
+        wort = {'wort': sw.text, 'key': key, 'wahlperiode': wp}
+        db['schlagwort'].writerow(wort, unique_columns=wort.keys())
+    log.info("Ablauf %s: %s" % (key, a['titel']))
+    a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
-    a.abgeschlossen = DIP_ABLAUF_STATES_FINISHED.get(a.stand, False)
-    if 'Originaltext der Frage(n):' in a.abstrakt:
-        _, a.abstrakt = a.abstrakt.split('Originaltext der Frage(n):', 1)
-    
+    a['abgeschlossen'] = DIP_ABLAUF_STATES_FINISHED.get(a['stand'], False)
+    if 'Originaltext der Frage(n):' in a['abstrakt']:
+        _, a['abstrakt'] = a['abstrakt'].split('Originaltext der Frage(n):', 1)
+
     for elem in doc.findall("WICHTIGE_DRUCKSACHE"):
         link = elem.findtext("DRS_LINK")
+        hash = None
         if link is not None and '#' in link:
             link, hash = link.rsplit('#', 1)
         dokument = dokument_by_id(elem.findtext("DRS_HERAUSGEBER"), 
                 'drs', elem.findtext("DRS_NUMMER"), link=link)
-        referenz = Referenz()
-        referenz.text = elem.findtext("DRS_TYP")
-        referenz.dokument = dokument
-        db.session.add(referenz)
-        a.referenzen.append(referenz)
+        dokument['text'] = elem.findtext("DRS_TYP")
+        dokument['seiten'] = hash
+        dokument['wahlperiode'] = wp
+        dokument['ablauf_key'] = key
+        db['referenz'].writerow(dokument, unique_columns=[
+            'link', 'wahlperiode', 'ablauf_key', 'seiten'
+            ])
 
     for elem in doc.findall("PLENUM"):
         link = elem.findtext("PLPR_LINK")
@@ -451,19 +382,19 @@ def scrape_ablauf(url):
             link, hash = link.rsplit('#', 1)
         dokument = dokument_by_id(elem.findtext("PLPR_HERAUSGEBER"), 
                 'plpr', elem.findtext("PLPR_NUMMER"), link=link)
-        referenz = Referenz()
-        referenz.text = elem.findtext("PLPR_KLARTEXT")
-        referenz.seiten = elem.findtext("PLPR_SEITEN")
-        referenz.dokument = dokument
-        db.session.add(referenz)
-        a.referenzen.append(referenz)
-    
-    db.session.flush()
-    scrape_activities(a)
-    db.session.commit()
+        dokument['text'] = elem.findtext("PLPR_KLARTEXT")
+        dokument['seiten'] = elem.findtext("PLPR_SEITEN")
+        dokument['wahlperiode'] = wp
+        dokument['ablauf_key'] = key
+        db['referenz'].writerow(dokument, unique_columns=[
+            'link', 'wahlperiode', 'ablauf_key', 'seiten'
+            ])
+
+    Ablauf.writerow(a, unique_columns=['key', 'wahlperiode'])
+    scrape_activities(a, db)
 
 
-def load_dip():
+def load_dip(db):
     for offset in count():
         urlfp = get_dip_with_cookie(BASE_URL % (offset*100))
         root = etree.parse(urlfp, etree.HTMLParser())
@@ -472,9 +403,12 @@ def load_dip():
         if table is None: return
         for result in table.findall(".//a[@class='linkIntern']"):
             url = urljoin(BASE_URL, result.get('href'))
-            scrape_ablauf(url)
+            scrape_ablauf(url, db)
 
 
 if __name__ == '__main__':
-    load_dip()
+    assert len(sys.argv)==2, "Need argument: webstore-url!"
+    db, _ = WebStore(sys.argv[1])
+    print "DESTINATION", db
+    load_dip(db)
 

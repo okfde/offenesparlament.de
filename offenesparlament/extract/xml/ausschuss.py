@@ -1,13 +1,18 @@
 import logging
+import sys
 from lxml import etree
 
-from offenesparlament.scrape.xml import news
-from offenesparlament.core import db
-from offenesparlament.model import Gremium
+from webstore.client import URL as WebStore
+
+from offenesparlament.extract.xml import news
+
 
 log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.NOTSET)
+
 
 AUSSCHUSS_INDEX_URL = "http://www.bundestag.de/xml/ausschuesse/index.xml"
+URL_PATTERN = "http://www.bundestag.de/bundestag/ausschuesse17/%s/index.jsp"
 
 RSS_FEEDS = {
         "a11": "http://www.bundestag.de/rss_feeds/arbeitsoziales.rss",
@@ -35,30 +40,32 @@ RSS_FEEDS = {
     }
 
 
-def load_index():
+def load_index(db):
     doc = etree.parse(AUSSCHUSS_INDEX_URL)
     for info_url in doc.findall("//ausschussDetailXML"):
-        load_ausschuss(info_url.text)
+        load_ausschuss(info_url.text, db)
 
-def load_ausschuss(url):
+def load_ausschuss(url, db):
     doc = etree.parse(url)
-    a = Gremium.query.filter_by(source_url=url).first()
-    if a is None:
-        a = Gremium()
-    a.key = doc.findtext('/ausschussId')
-    a.name = doc.findtext('/ausschussName')
-    log.info("Ausschuss (%s): %s" % (a.key, a.name))
-    a.aufgabe = doc.findtext('/ausschussAufgabe')
-    a.image_url = doc.findtext('/ausschussBildURL')
-    a.image_copyright = doc.findtext('/ausschussCopyright')
-    a.rss_url = RSS_FEEDS.get(a.key)
-    a.type = 'ausschuss'
-    db.session.add(a)
-    db.session.commit()
+    a = {'source_url': url}
+    a['key'] = doc.findtext('/ausschussId')
+    a['name'] = doc.findtext('/ausschussName')
+    log.info("Ausschuss (%s): %s" % (a['key'], a['name']))
+    a['aufgabe'] = doc.findtext('/ausschussAufgabe')
+    a['image_url'] = doc.findtext('/ausschussBildURL')
+    a['image_copyright'] = doc.findtext('/ausschussCopyright')
+    a['rss_url'] = RSS_FEEDS.get(a['key'])
+    a['url'] = URL_PATTERN % a['key']
+    a['type'] = 'ausschuss'
+    table = db['gremium']
+    table.writerow(a, unique_columns=['key'])
     for url in doc.findall("//news/detailsXML"):
-        news.load_item(url.text, gremium=a)
+        news.load_item(url.text, db, gremium=a)
 
 
 if __name__ == '__main__':
-    load_index()
+    assert len(sys.argv)==2, "Need argument: webstore-url!"
+    db, _ = WebStore(sys.argv[1])
+    print "DESTINATION", db
+    load_index(db)
 

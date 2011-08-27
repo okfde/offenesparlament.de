@@ -3,3 +3,5 @@ ipdb
 flask 
 flask-sqlalchemy
 lxml
+webstore-client
+python-Levenshtein
