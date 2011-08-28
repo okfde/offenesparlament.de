@@ -29,7 +29,7 @@ def load_gremien(ws):
         gremium.key = data.get('key')
         gremium.source_url = data.get('source_url')
         gremium.name = data.get('name')
-        gremium.type = data.get('type')
+        gremium.typ = data.get('typ')
         gremium.url = data.get('url')
         gremium.aufgabe = data.get('aufgabe')
         gremium.rss_url = data.get('rss_url')
@@ -247,6 +247,7 @@ def load_position(data, ablauf, ws):
     if position is not None:
         return 
     position = Position()
+    position.key = data.get('hash')
     position.zuordnung = data.get('zuordnung')
     position.urheber = data.get('urheber')
     position.fundstelle = data.get('fundstelle')

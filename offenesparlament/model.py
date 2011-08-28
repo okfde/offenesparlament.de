@@ -1,7 +1,6 @@
 from datetime import datetime
 from offenesparlament.core import db
 
-
 class NewsItem(db.Model):
     __tablename__ = 'news_item'
 
@@ -19,6 +18,29 @@ class NewsItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'source_url': self.source_url,
+            'title': self.title,
+            'text': self.text,
+            'date': self.date,
+            'image_url': self.image_url,
+            'image_copyright': self.image_copyright,
+            'image_changed_at': self.image_changed_at,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'gremium': self.gremium.to_ref()
+            }
+
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'source_url': self.source_url,
+            'title': self.title,
+            'gremium_id': self.gremium.id
+            }
 
 obleute = db.Table('obleute',
     db.Column('gremium_id', db.Integer, db.ForeignKey('gremium.id')),
@@ -46,20 +68,51 @@ class Gremium(db.Model):
     name = db.Column(db.Unicode)
     url = db.Column(db.Unicode)
     key = db.Column(db.Unicode)
-    type = db.Column(db.Unicode)
+    typ = db.Column(db.Unicode)
     aufgabe = db.Column(db.Unicode)
-    #date = db.Column(db.DateTime)
     image_url = db.Column(db.Unicode)
     image_copyright = db.Column(db.Unicode)
-    
+
     zuweisungen = db.relationship('Zuweisung', backref='gremium', 
             lazy='dynamic')
     news = db.relationship('NewsItem', backref='gremium',
                            lazy='dynamic')
-    
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'vorsitz': self.vorsitz.to_ref() if \
+                    self.vorsitz else None,
+            'stellv_vorsitz': self.stellv_vorsitz.to_ref() if \
+                    self.stellv_vorsitz else None,
+            'source_url': self.source_url,
+            'rss_url': self.rss_url,
+            'name': self.name,
+            'url': self.url,
+            'key': self.key,
+            'typ': self.typ,
+            'aufgabe': self.aufgabe,
+            'image_url': self.image_url,
+            'image_copyright': self.image_copyright,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'obleute': [m.to_ref() for m in self.obleute],
+            'mitglieder': [m.to_ref() for m in self.mitglieder],
+            'stellvertreter': [m.to_ref() for m in self.stellvertreter],
+            }
+
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'source_url': self.source_url,
+            'name': self.name,
+            'key': self.key
+            }
+
 
 class Person(db.Model):
     __tablename__ = 'person'
@@ -87,7 +140,6 @@ class Person(db.Model):
     bio_url = db.Column(db.Unicode)
     bio = db.Column(db.Unicode)
     wissenswertes = db.Column(db.Unicode)
-    homepage_url = db.Column(db.Unicode)
     telefon = db.Column(db.Unicode)
     homepage_url = db.Column(db.Unicode)
     angaben = db.Column(db.Unicode)
@@ -122,6 +174,62 @@ class Person(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
+    
+    @property
+    def name(self):
+        name = "%s %s %s" % (self.titel if self.titel else '', \
+                self.vorname, self.nachname)
+        if self.ort and len(self.ort):
+            name += " (%s)" % self.ort
+        return name.strip()
+
+    def to_dict(self):
+        data = {
+                'id': self.id,
+                'slug': self.slug,
+                'name': self.name,
+                'source_url': self.source_url,
+                'mdb_id': self.mdb_id,
+                'vorname': self.vorname,
+                'nachname': self.nachname,
+                'adelstitel': self.adelstitel,
+                'titel': self.titel,
+                'ort': self.ort,
+                'geburtsdatum': self.geburtsdatum,
+                'religion': self.religion,
+                'hochschule': self.hochschule,
+                'beruf': self.beruf,
+                'berufsfeld': self.berufsfeld,
+                'geschlecht': self.geschlecht,
+                'familienstand': self.familienstand,
+                'kinder': self.kinder,
+                'partei': self.partei,
+                'land': self.land,
+                'bio_url': self.bio_url,
+                'bio': self.bio,
+                'wissenswertes': self.wissenswertes,
+                'homepage_url': self.homepage_url,
+                'telefon': self.telefon,
+                'angaben': self.angaben,
+                'foto_url': self.foto_url,
+                'foto_copyright': self.foto_copyright,
+                'reden_plenum_url': self.reden_plenum_url,
+                'reden_plenum_rss_url': self.reden_plenum_rss_url,
+                'twitter_url': self.twitter_url,
+                'facebook_url': self.facebook_url,
+                'rollen': [r.to_ref() for r in self.rollen],
+                'created_at': self.created_at,
+                'updated_at': self.updated_at
+            }
+        return data
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'name': self.name,
+                'slug': self.slug
+                }
+
 
 class Rolle(db.Model):
     __tablename__ = 'rolle'
@@ -137,21 +245,50 @@ class Rolle(db.Model):
     ressort = db.Column(db.Unicode)
     land = db.Column(db.Unicode)
     austritt = db.Column(db.DateTime)
-    
+
     wahlkreis_id = db.Column(db.Integer, db.ForeignKey('wahlkreis.id'))
-    
+
     beitraege = db.relationship('Beitrag', backref='rolle',
-                           lazy='dynamic')
+            lazy='dynamic')
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
 
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'mdb_id': self.mdb_id,
+            'status': self.status,
+            'funktion': self.funktion,
+            'fraktion': self.fraktion,
+            'rolle': self.rolle,
+            'ressort': self.ressort,
+            'land': self.land,
+            'wahlkreis': self.wahlkreis.to_ref() if self.wahlkreis else None,
+            }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'person': self.person.to_ref(),
+            'gewaehlt': self.gewaehlt,
+            'austritt': self.austritt,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
+
 class Postleitzahl(db.Model):
     __tablename__ = 'postleitzahl'
-    
+
     plz = db.Column(db.Unicode, primary_key=True)
     wahlkreis_id = db.Column(db.Integer, db.ForeignKey('wahlkreis.id'))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
 
 
 class Wahlkreis(db.Model):
@@ -170,6 +307,24 @@ class Wahlkreis(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'nummer': self.nummer,
+                'name': self.name,
+                'url': self.url,
+            }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'mdbs': [m.to_ref() for m in self.mdbs],
+            'plzs': [p.plz for p in self.plzs],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            })
+        return data
 
 
 schlagworte = db.Table('schlagworte',
@@ -195,7 +350,7 @@ class Dokument(db.Model):
     referenzen = db.relationship('Referenz', backref='dokument',
                            lazy='dynamic')
     
-    ablaeufe = db.relationship('Ablauf', backref='dokument',
+    positionen = db.relationship('Position', backref='dokument',
                            lazy='dynamic')
     
     beschluesse = db.relationship('Beschluss', backref='dokument',
@@ -204,11 +359,44 @@ class Dokument(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
+    
+    @property
+    def typ_lang(self):
+        return {'plpr': 'Plenarprotokoll',
+                'drs': 'Drucksache'}.get(self.typ.lower(), 
+                        'Drucksache')
+    
+    @property
+    def name(self):
+        return "%s (%s) %s" % (self.typ_lang, self.hrsg, self.nummer)
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'name': self.name,
+                'nummer': self.nummer,
+                'hrsg': self.hrsg,
+                'typ': self.typ,
+                'link': self.link
+                }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'referenzen': [r.to_ref() for r in self.referenzen],
+            'positionen': [p.to_ref() for p in self.positionen],
+            'beschluesse': [b.to_ref() for b in self.beschluesse],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
 
 referenzen = db.Table('referenzen',
     db.Column('referenz_id', db.Integer, db.ForeignKey('referenz.id')),
     db.Column('ablauf_id', db.Integer, db.ForeignKey('ablauf.id'))
 )
+
 
 class Referenz(db.Model):
     __tablename__ = 'referenz'
@@ -225,6 +413,24 @@ class Referenz(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
 
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'seiten': self.seiten,
+                'text': self.text,
+                'dokument': self.dokument.id
+                }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'dokument': self.dokument.to_ref(),
+            'ablaeufe': [a.to_ref() for a in self.ablaeufe],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
 
 class Zuweisung(db.Model):
     __tablename__ = 'zuweisung'
@@ -232,9 +438,33 @@ class Zuweisung(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Unicode())
     federfuehrung = db.Column(db.Boolean())
-    
+
     gremium_id = db.Column(db.Integer, db.ForeignKey('gremium.id'))
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'text': self.text,
+                'federfuehrung': self.federfuehrung,
+                'gremium': self.gremium.key,
+                'position': self.position.id
+                }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'gremium': self.gremium.to_ref(),
+            'position': self.position.to_ref(),
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
 
 class Beitrag(db.Model):
     __tablename__ = 'beitrag'
@@ -242,10 +472,36 @@ class Beitrag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     seite = db.Column(db.Unicode())
     art = db.Column(db.Unicode())
-    
+
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     rolle_id = db.Column(db.Integer, db.ForeignKey('rolle.id'))
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'seite': self.seite,
+                'art': self.art,
+                'position': self.position.id,
+                'rolle': self.rolle.id if self.rolle else None,
+                'person': self.person.id if self.person else None
+                }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'person': self.person.to_ref() if self.person else None,
+            'rolle': self.rolle.to_ref() if self.rolle else None,
+            'position': self.position.to_ref(),
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
 
 class Beschluss(db.Model):
     __tablename__ = 'beschluss'
@@ -254,14 +510,39 @@ class Beschluss(db.Model):
     dokument_text = db.Column(db.Unicode())
     tenor = db.Column(db.Unicode())
     seite = db.Column(db.Unicode())
-    
+
     dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'dokument_text': self.text,
+                'tenor': self.tenor,
+                'seite': self.seite,
+                'position': self.position.id
+                }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'dokument': self.dokument.to_ref(),
+            'position': self.position.to_ref(),
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
 
 class Position(db.Model):
     __tablename__ = 'position'
 
     id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.Unicode())
     zuordnung = db.Column(db.Unicode())
     urheber = db.Column(db.Unicode())
     fundstelle = db.Column(db.Unicode())
@@ -269,17 +550,52 @@ class Position(db.Model):
     date = db.Column(db.DateTime())
     quelle = db.Column(db.Unicode())
     typ = db.Column(db.Unicode())
-    
+
     ablauf_id = db.Column(db.Integer, db.ForeignKey('ablauf.id'))
-    
+    dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
+
     zuweisungen = db.relationship('Zuweisung', backref='position', 
             lazy='dynamic')
 
     beschluesse = db.relationship('Beschluss', backref='position', 
             lazy='dynamic')
-    
-    beitraege = db.relationship('Beitrag', backref='position',
-                           lazy='dynamic')
+
+    beitraege = db.relationship('Beitrag', lazy='dynamic',
+            backref='position')
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'key': self.key,
+                'urheber': self.urheber,
+                'fundstelle': self.fundstelle,
+                'wahlperiode': self.ablauf.wahlperiode,
+                'ablauf': self.ablauf.key
+                }
+
+    def to_dict(self):
+        data = self.to_ref()
+        del data['wahlperiode']
+        data.update({
+            'zuordnung': self.zuordnung,
+            'fundstelle_url': self.fundstelle_url,
+            'date': self.date,
+            'quelle': self.quelle,
+            'typ': self.typ,
+            'ablauf': self.ablauf.to_ref(),
+            'dokument': self.dokument.to_ref(),
+            'zuweisungen': [z.to_ref() for z in self.zuweisungen],
+            'beschluesse': [b.to_ref() for b in self.beschluesse],
+            'beitraege': [b.to_dict() for b in self.beitraege],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
 
 class Ablauf(db.Model):
     __tablename__ = 'ablauf'
@@ -303,8 +619,6 @@ class Ablauf(db.Model):
     sachgebiet = db.Column(db.Unicode())
     abgeschlossen = db.Column(db.Boolean())
     
-    dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
-
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
@@ -314,7 +628,39 @@ class Ablauf(db.Model):
         backref=db.backref('ablaeufe', lazy='dynamic'))
     
     positionen = db.relationship('Position', backref='ablauf',
-                           lazy='dynamic')
+                           lazy='dynamic', order_by='Position.date.desc()')
+
+    def to_ref(self):
+        return {
+                'id': self.id,
+                'source_url': self.source_url,
+                'key': self.key,
+                'wahlperiode': self.wahlperiode,
+                'titel': self.titel
+                }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'typ': self.typ,
+            'initiative': self.initiative,
+            'stand': self.stand,
+            'signatur': self.signatur,
+            'gesta_id': self.gesta_id,
+            'eu_dok_nr': self.eu_dok_nr,
+            'eur_lex_pdf': self.eur_lex_pdf,
+            'eur_lex_url': self.eur_lex_url,
+            'consilium_url': self.consilium_url,
+            'abstrakt': self.abstrakt,
+            'zustimmungsbeduerftig': self.zustimmungsbeduerftig,
+            'sachgebiet': self.sachgebiet,
+            'schlagworte': [s.name for s in self.schlagworte],
+            'positionen': [p.to_ref() for p in self.positionen],
+            'referenzen': [r.to_ref() for r in self.referenzen],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
 
 
 db.create_all()

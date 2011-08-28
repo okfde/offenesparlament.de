@@ -51,12 +51,16 @@ def generate_person_long_names(db):
     print "Updating 'rollen' to have fingerprints...."
     Rolle = db['rolle']
     for person in Person:
-        if 'mdb_id' not in person:
-            continue
-        Rolle.writerow({
-            'mdb_id': person['mdb_id'],
-            'fingerprint': person['fingerprint']
-            }, unique_columns=['mdb_id'])
+        if person['mdb_id']:
+            Rolle.writerow({
+                'mdb_id': person['mdb_id'],
+                'fingerprint': person['fingerprint']
+                }, unique_columns=['mdb_id'])
+        elif person['source_url']:
+            Rolle.writerow({
+                'person_source_url': person['person_source_url'],
+                'fingerprint': person['fingerprint']
+                }, unique_columns=['person_source_url'])
 
 
 

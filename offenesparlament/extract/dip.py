@@ -3,7 +3,6 @@ import logging
 import re, sys
 import urllib2, urllib
 import cookielib
-from datetime import datetime
 from threading import Lock 
 from lxml import etree
 from itertools import count
@@ -257,15 +256,6 @@ def scrape_activity(ablauf, elem, db):
     pos_keys = p.copy()
     p['zuordnung'] = elem.findtext("ZUORDNUNG")
     p['fundstelle_url'] = elem.findtext("FUNDSTELLE_LINK")
-    
-    dt, rest = p['fundstelle'].split("-", 1)
-    p['date'] = datetime.strptime(dt.strip(), "%d.%m.%Y").isoformat()
-    if ',' in p['urheber']:
-        typ, quelle = p['urheber'].split(',', 1)
-        p['quelle'] = re.sub("^.*Urheber.*:", "", quelle).strip()
-        p['typ'] = typ.strip()
-    else:
-        p['typ'] = p['urheber']
     
     for zelem in elem.findall("ZUWEISUNG"):
         z = pos_keys.copy()
