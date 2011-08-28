@@ -1,0 +1,52 @@
+{% import "searches.html" as macros %}
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ searcher.q or 'Alle Abläufe' }} - Abläufe
+{% endblock %}
+
+{% block content %}
+  <h1>Suche</h1>
+  <div class="box">
+    {{ macros.search(searcher, pager) }}
+    
+    <div class="sidebar">
+      {% if searcher.has_facet('typ') %}
+        <h3>Typ</h3>
+        {{ macros.facet_list(searcher, pager, 'typ') }}
+      {% endif %}
+      {% if searcher.has_facet('sachgebiet') %}
+        <h3>Sachgebiet</h3>
+        {{ macros.facet_list(searcher, pager, 'sachgebiet') }}
+      {% endif %}
+      {% if searcher.has_facet('schlagworte') %}
+        <h3>Schlagworte</h3>
+        {{ macros.facet_list(searcher, pager, 'schlagworte') }}
+      {% endif %}
+      {% if searcher.has_facet('initiative') %}
+        <h3>Initiative</h3>
+        {{ macros.facet_list(searcher, pager, 'initiative') }}
+      {% endif %}
+      {% if searcher.has_facet('stand') %}
+        <h3>Stand</h3>
+        {{ macros.facet_list(searcher, pager, 'stand') }}
+      {% endif %}
+    </div>
+    <div class="mainbar">
+      <ul class="search-results ablauf">
+      {% for ablauf in pager %}
+      <li>
+        <h3><a href="{{ url_for('ablauf', wahlperiode=ablauf.wahlperiode,
+            key=ablauf.key) }}">{{ ablauf.titel }}</a></h3>
+        <p><strong>{{ ablauf.typ }}</strong> &mdash; {{ ablauf.initiative or
+        ablauf.sachgebiet or ablauf.stand }}</p>
+      </li>
+      {% endfor %}
+      </ul>
+      {{ macros.pager(pager) }}
+    </div>
+  </div>
+{% endblock %}
+
+
+

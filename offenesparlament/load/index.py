@@ -137,8 +137,8 @@ def index_ablaeufe():
     _solr.commit()
 
 def index():
-    #index_persons()
-    #index_gremien()
+    index_persons()
+    index_gremien()
     index_positionen()
     index_dokumente()
     index_ablaeufe()

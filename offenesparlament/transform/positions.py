@@ -9,7 +9,7 @@ from webstore.client import URL as WebStore
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
-UNIQUE = ['fundstelle', 'urheber', 'ablauf_source_url']
+UNIQUE = ['__id__']
 
 def extend_positions(db):
     log.info("Amending positions ...")

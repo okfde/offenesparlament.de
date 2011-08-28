@@ -324,7 +324,7 @@ def scrape_ablauf(url, db):
     doc = inline_xml_from_page(urlfp.read())
     urlfp.close()
     if doc is None: 
-        log.warn("Could not find embedded XML in Ablauf: %s", a.key)
+        log.warn("Could not find embedded XML in Ablauf: %s", a['key'])
         return
     a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
     a['typ'] = doc.findtext("VORGANGSTYP")

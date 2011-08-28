@@ -85,6 +85,7 @@ html, body {
 }
 
 body {
+  font-size: 0.8em;
   background-color: #CBC4A7;
 }
 
@@ -107,24 +108,30 @@ body, input {
   background-color: white;
   /*background-image: url(/static/img/inner_bg.png);*/
   border: 1px solid #D3CCB0;
-  padding: 5px;
+  padding: 10px 15px 10px 15px;
 }
 
 h1, h2, h3, h4 {
   font-weight: normal;
   font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
   color: #00636A;
+  margin-bottom: 0.5em;
 }
 
 h1 {
   font-size: 1.7em;
+  color: black;
+  font-weight: bold;
 }
 
 h2 {
+  font-weight: bold;
   font-size: 1.5em;
 }
 
 h3 {
+  margin-top: 1em;
+  font-weight: bold;
   font-size: 1.3em;
 }
 
@@ -139,6 +146,7 @@ a:hover {
 
 footer {
   margin: 10px 0 0 0;
+  padding-bottom: 10em;
 }
 
 footer ul {
@@ -153,7 +161,7 @@ footer ul li {
 }
 
 .mainbar {
-  width: 525px;
+  width: 630px;
   margin-right: 10px;
 }
 
@@ -163,12 +171,12 @@ footer ul li {
 }
 
 .leftbar {
-  width: 395px;
+  width: 460px;
   margin-right: 10px;
 }
 
 .rightbar {
-  width: 395px;
+  width: 460px;
   float: right;
 }
 
@@ -178,8 +186,11 @@ header {
 }
 
 h1#site-title {
+  font-family: Cochin, Baskerville, Georgia;
   font-weight: normal;
-  font-size: 2.2em;
+  font-size: 3em;
+  font-variant: small-caps !important;
+  margin-bottom: 0.2em;
   color: #000;
 }
 
@@ -202,6 +213,27 @@ h1#site-title {
 
 .flashes li.success {
   background-color: #63a62f;
+}
+
+/* Ablauf Details */
+#factsheet {
+}
+
+#factsheet td {
+  padding-bottom: 0.5em;
+}
+
+#factsheet th {
+  text-align: left;
+  padding-right: 10px;
+}
+
+#factsheet .abgeschlossen {
+  color: green;
+}
+
+#factsheet .laufend {
+  color: orange;
 }
 
 /* Forms */
@@ -304,19 +336,27 @@ form input[type=submit]:active {
 }
 
 /* Search */
-#search-box {
-  width: 97%;
-  padding: 0.2em;
+#search-form {
+  margin-bottom: 1em;
+}
+
+#search-form input {
   font-size: 1.1em;
   margin: 0 0 1em 0;
 }
 
+#search-form #search-box {
+  width: 60%;
+  padding: 0.3em;
+  margin-right: 1em;
+}
+
 /* Pager */
 .pager {
-  color: #666;
+  font-weight: bold;
   text-align: center;
   margin-bottom: 0.5em;
-  margin-top: 0.5em;
+  margin-top: 1em;
 }
 
 .pager .next {
@@ -325,6 +365,62 @@ form input[type=submit]:active {
 
 .pager .prev {
   float: left; 
+}
+
+/* Facets */
+ul.facets {
+  list-style: none;
+  margin: 0;
+}
+
+ul.facets li {
+  font-size: 0.9em;
+  padding-bottom: 0.2em; 
+}
+  
+ul.facets .count {
+  color: #999;
+  font-size: 0.8em;
+}
+
+ul.unfilter-list {
+  list-style-type: none;
+  margin: 0; 
+}
+
+ul.unfilter-list li {
+  display: inline;
+  font-weight: bold;
+  margin-right: 2em;
+}
+
+ul.unfilter-list li a {
+  color: red;
+  text-decoration: none;
+}
+
+/* Ablauf SERP */
+ul.search-results.ablauf {
+  list-style: none;
+  margin: 0;
+}
+
+ul.search-results.ablauf li {
+  padding-bottom: 1.2em;
+}
+
+ul.search-results.ablauf h3 {
+  font-size: 1.3em;
+  margin-bottom: 0.3em;
+}
+
+ul.search-results.ablauf h3 a {
+  color: #333;
+  text-decoration: none;
+}
+
+ul.search-results.ablauf p {
+  color: #666;
 }
 
 /** More Boilerplate 

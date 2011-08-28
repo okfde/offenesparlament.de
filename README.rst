@@ -28,6 +28,12 @@ Die Auswertung der Inhalte erfolgt in den folgenden Schritten:
 * Load (``offenesparlament.load``): Daten aus dem Webstore-System werden in
   die eigentliche produktiv-Datenbank geladen.
 
+Feature-Ideen
+-------------
+
+* Ablauf-Titel automatisch kürzen.
+* WebTV des Bundestags scrapen.
+
 Kontakt
 -------
 

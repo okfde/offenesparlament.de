@@ -288,7 +288,7 @@ def load_position(data, ablauf, ws):
 
     for bdata in ws['beitrag'].traverse(fundstelle=position.fundstelle,
             urheber=position.urheber, ablauf_source_url=ablauf.source_url):
-        load_beitrag(data, position, ws)
+        load_beitrag(bdata, position, ws)
 
 def load_beitrag(data, position, ws):
     beitrag = Beitrag()

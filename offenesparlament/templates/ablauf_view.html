@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+  {{ ablauf.titel }}
+{% endblock %}
+
+{% block content %}
+  <h1>{{ ablauf.titel }}</h1>
+  
+  <div class="rightbar">
+    <h3>Details</h3>
+    <table id="factsheet">
+      <tr>
+        <th>Typ:</th>
+        <td>{{ ablauf.typ }}</td>
+      </tr>
+      {% if ablauf.initiative %}
+        <tr>
+          <th>Initiative:</th>
+          <td>{{ ablauf.initiative }}</td>
+        </tr>
+      {% endif %}
+      <tr>
+        <th>Stand:</th>
+        <td class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
+          {{ ablauf.stand }}
+        </td>
+      </tr>
+      {% if ablauf.sachgebiet %}
+        <tr>
+          <th>Sachgebiet:</th>
+          <td>{{ ablauf.sachgebiet }}</td>
+        </tr>
+      {% endif %}
+      {% if ablauf.schlagworte %}
+        <tr>
+          <th>Schlagworte:</th>
+          <td>
+            {% for wort in ablauf.schlagworte %}
+              <a href="{{ url_for('search', schlagworte=wort.name) }}">
+                {{ wort.name }}</a>{% if not loop.last %},{% endif %}
+            {% endfor %}
+          </td>
+        </tr>
+      {% endif %}
+      {% if ablauf.eu_dok_nr %}
+        <tr>
+          <th>EU:</th>
+          <td>
+            <a href="{{ ablauf.eur_lex_url }}">{{ ablauf.eu_dok_nr }}</a>
+            (EUR-Lex)
+            
+          </td>
+        </tr>
+      {% endif %}
+    </table>
+    <h3>Dokumente</h3>
+    <ul>
+      {% for ref in ablauf.referenzen %}
+        <li><strong>{{ ref.dokument.name }}:</strong> {{ ref.seiten or
+        '(gesamtes Dokument)' }} </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="leftbar">
+    {% if ablauf.abstrakt %}
+      <h3>Beschreibung</h3>
+      <p>
+        {{ ablauf.abstrakt }}
+        </p>
+    {% endif %}
+    <h3>Verlauf</h3>
+    <ul>
+      {% for position in ablauf.positionen %}
+        <li>
+        {{position.date.strftime("%d.%m.%Y")}}: {{position.urheber}}<br/>
+        {{position.quelle}}: 
+        <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+        <ul>
+          {% for beitrag in position.beitraege %}
+          <li><strong>{{ beitrag.typ }}:</strong> {{ beitrag.person.name }}</li>
+          {% endfor %}
+        </ul>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+{% endblock %}
+
+
