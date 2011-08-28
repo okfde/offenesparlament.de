@@ -5,3 +5,4 @@ flask-sqlalchemy
 lxml
 webstore-client
 python-Levenshtein
+solrpy

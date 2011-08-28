@@ -4,6 +4,8 @@ import logging
 
 logging.basicConfig(level=logging.NOTSET)
 
+from solr import SolrConnection
+
 from flask import Flask
 from flaskext.sqlalchemy import SQLAlchemy
 
@@ -15,4 +17,5 @@ app.config.from_envvar('PARLAMENT_SETTINGS', silent=True)
 
 db = SQLAlchemy(app)
 
-
+def solr():
+    return SolrConnection(app.config['SOLR_URL'])
