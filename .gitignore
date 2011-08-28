@@ -1,2 +1,5 @@
 *.pyc
 *.egg-info
+offenesparlament/extract/xmlapi.py
+*.DS_Store
+*.db
