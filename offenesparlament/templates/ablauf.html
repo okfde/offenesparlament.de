@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+  {{ ablauf.titel }}
+{% endblock %}
+
+{% block content %}
+  <h1>{{ ablauf.titel }}</h1>
+  
+  Schuldig: {{ ablauf.initiative }}
+  <hr/>
+  <h3>Verlauf</h3>
+  <ul>
+    {% for position in ablauf.positionen %}
+      <li>
+      {{position.date.strftime("%d.%m.%Y")}}: {{position.urheber}}<br/>
+        {{position.quelle}}: <a href="{{position.dokument.link}}">
+          {{position.dokument.hrsg}} 
+          {{position.dokument.nummer}} 
+          ({{position.dokument.typ}})
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  <p>
+    {{ ablauf.abstrakt }}
+  </p>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+{% endblock %}
+
+
