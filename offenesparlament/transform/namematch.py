@@ -64,9 +64,12 @@ def match_beitrag(db, beitrag, prints):
 
 def match_persons(db):
     prints = [p.get('fingerprint') for p in db['person'].distinct('fingerprint')]
-    for beitrag in db['beitrag']:
+    Beitrag = db['beitrag']
+    for beitrag in Beitrag:
         match = match_beitrag(db, beitrag, prints)
         ensure_rolle(beitrag, match, db)
+        beitrag['fingerprint'] = match
+        Beitrag.writerow(beitrag, unique_columns=['__id__'])
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
