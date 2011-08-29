@@ -2,10 +2,19 @@ from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify
 
 from offenesparlament.core import app
-from offenesparlament.model import Ablauf
+from offenesparlament.model import Ablauf, Position
 
 from offenesparlament.pager import Pager
 from offenesparlament.searcher import SolrSearcher
+
+@app.route("/position/<key>")
+def position(key):
+    position = Position.query.filter_by(key=key).first()
+    if position is None:
+        abort(404)
+    return redirect(url_for('ablauf', 
+        wahlperiode=position.ablauf.wahlperiode,
+        key=position.ablauf.key) + '#' + position.key)
 
 @app.route("/ablauf/<wahlperiode>/<key>")
 def ablauf(wahlperiode, key):

@@ -17,18 +17,18 @@
         <th>Typ:</th>
         <td>{{ ablauf.typ }}</td>
       </tr>
-      {% if ablauf.initiative %}
-        <tr>
-          <th>Initiative:</th>
-          <td>{{ ablauf.initiative }}</td>
-        </tr>
-      {% endif %}
       <tr>
         <th>Stand:</th>
         <td class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
           {{ ablauf.stand }}
         </td>
       </tr>
+      {% if ablauf.initiative %}
+        <tr>
+          <th>Initiative:</th>
+          <td>{{ ablauf.initiative }}</td>
+        </tr>
+      {% endif %}
       {% if ablauf.sachgebiet %}
         <tr>
           <th>Sachgebiet:</th>
@@ -73,17 +73,27 @@
         </p>
     {% endif %}
     <h3>Verlauf</h3>
-    <ul>
+    <ul class="position-list">
       {% for position in ablauf.positionen %}
         <li>
-        {{position.date.strftime("%d.%m.%Y")}}: {{position.urheber}}<br/>
-        {{position.quelle}}: 
-        <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
-        <ul>
-          {% for beitrag in position.beitraege %}
-          <li><strong>{{ beitrag.typ }}:</strong> {{ beitrag.person.name }}</li>
-          {% endfor %}
-        </ul>
+          <span class="header">
+            <span class="date">
+              <a name="{{position.key}}">&para;</a>
+              {{position.date.strftime("%d.%m.%Y")}}</span>
+            <span class="zuordnung">{{position.zuordnung}}</span>
+            <span class="typ">{{position.typ}}</span>
+          </span>
+          <span class="body">
+            Quelle: {{position.quelle}}
+            <ul>
+              {% for beitrag in position.beitraege %}
+              <li><strong>{{ beitrag.typ }}:</strong> {{ beitrag.person.name }}</li>
+              {% endfor %}
+            </ul>
+          </span>
+          <span class="bottom">
+            <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+          </span>
         </li>
       {% endfor %}
     </ul>

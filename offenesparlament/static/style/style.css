@@ -230,10 +230,49 @@ h1#site-title {
 
 #factsheet .abgeschlossen {
   color: green;
+  font-weight: bold;
 }
 
 #factsheet .laufend {
   color: orange;
+  font-weight: bold;
+}
+
+ul.position-list {
+  list-style-type: none;
+  margin: 0;
+}
+
+ul.position-list li {
+  margin-bottom: 2em;
+}
+
+ul.position-list .header {
+  display: block;
+  background-color: #eee;
+  border-top: 1px solid #ccc;
+  padding: 5px;
+}
+
+ul.position-list .header .zuordnung {
+  float: right; 
+}
+
+ul.position-list .header .typ {
+  float: right;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+ul.position-list .body {
+  display: block;
+  padding: 5px;
+}
+
+ul.position-list .bottom {
+  display: block;
+  padding: 0 5px 0 5px;
+  font-size: 0.8em;
 }
 
 /* Forms */
