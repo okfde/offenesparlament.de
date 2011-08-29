@@ -114,7 +114,24 @@
    <field name="beitraege.position.key" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="beitraege.position.urheber" type="textgen" indexed="true" stored="false" multiValued="true"/>
    <field name="beitraege.position.wahlperiode" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.person" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.person.id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.person.slug" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.person.name" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="beitraege.rolle" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.fraktion" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.funktion" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.land" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.mdb_id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.ressort" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.rolle" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.status" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.wahlkreis" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.wahlkreis.id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.wahlkreis.name" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.wahlkreis.nummer" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="beitraege.rolle.wahlkreis.url" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="beitraege.seite" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="beitraege.updated_at" type="date" indexed="true" stored="false" multiValued="true"/>
    <field name="beitraege.created_at" type="date" indexed="true" stored="false" multiValued="true"/>
@@ -185,17 +202,33 @@
    <field name="positionen.ablauf.source_url" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.ablauf.titel" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.ablauf.wahlperiode" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.person" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.person.id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.person.slug" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.person.name" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.fraktion" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.funktion" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.land" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.mdb_id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.ressort" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.rolle" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.status" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.wahlkreis" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.wahlkreis.id" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.wahlkreis.name" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.wahlkreis.nummer" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="positionen.beitraege.rolle.wahlkreis.url" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.art" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.created_at" type="date" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.id" type="string" indexed="true" stored="false" multiValued="true"/>
-   <field name="positionen.beitraege.person" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.position.ablauf" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.position.fundstelle" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.position.id" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.position.key" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.position.urheber" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.position.wahlperiode" type="string" indexed="true" stored="false" multiValued="true"/>
-   <field name="positionen.beitraege.rolle" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.seite" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.beitraege.updated_at" type="date" indexed="true" stored="false" multiValued="true"/>
    <field name="positionen.created_at" type="date" indexed="true" stored="false" multiValued="true"/>

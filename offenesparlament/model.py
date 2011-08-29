@@ -587,7 +587,7 @@ class Position(db.Model):
             'quelle': self.quelle,
             'typ': self.typ,
             'ablauf': self.ablauf.to_ref(),
-            'dokument': self.dokument.to_ref(),
+            'dokument': self.dokument.to_ref() if self.dokument else None,
             'zuweisungen': [z.to_ref() for z in self.zuweisungen],
             'beschluesse': [b.to_ref() for b in self.beschluesse],
             'beitraege': [b.to_dict() for b in self.beitraege],
