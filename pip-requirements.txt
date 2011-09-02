@@ -2,6 +2,7 @@ ipython
 ipdb 
 flask 
 flask-sqlalchemy
+flask-script
 lxml
 webstore-client
 python-Levenshtein

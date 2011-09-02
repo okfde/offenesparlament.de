@@ -26,7 +26,7 @@ def add_to_gremium(node, url, role, db):
         'role': role
         }, unique_columns=['person_source_url', 'gremium_key', 'role'])
 
-def load_index(db,): 
+def load_index(db): 
     doc = etree.parse(MDB_INDEX_URL)
     for info_url in doc.findall("//mdbInfoXMLURL"):
         load_mdb(info_url.text, db)

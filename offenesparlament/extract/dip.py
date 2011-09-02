@@ -11,6 +11,8 @@ from StringIO import StringIO
 
 from webstore.client import URL as WebStore
 
+from offenesparlament.extract.util import threaded
+
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
@@ -388,6 +390,11 @@ def scrape_ablauf(url, db):
 
 
 def load_dip(db):
+    def bound_scrape(url):
+        scrape_ablauf(url, db)
+    threaded(load_dip_index(), bound_scrape)
+
+def load_dip_index():
     for offset in count():
         urlfp = get_dip_with_cookie(BASE_URL % (offset*100))
         root = etree.parse(urlfp, etree.HTMLParser())
@@ -395,9 +402,7 @@ def load_dip(db):
         table = root.find(".//table[@summary='Ergebnisliste']")
         if table is None: return
         for result in table.findall(".//a[@class='linkIntern']"):
-            url = urljoin(BASE_URL, result.get('href'))
-            scrape_ablauf(url, db)
-
+            yield urljoin(BASE_URL, result.get('href'))
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"

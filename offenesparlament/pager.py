@@ -8,6 +8,7 @@ class Pager(object):
         self.args = args
         self.route = route 
         self.query = query
+        self.kwargs = kwargs
         try:
             self.page = int(args.get('page'))
         except:
@@ -50,7 +51,7 @@ class Pager(object):
 
     def add_url_state(self, arg, value):
         query_args = self.query_args
-        query_args.append((arg, value.encode('utf-8')))
+        query_args.append((arg, unicode(value).encode('utf-8')))
         return self.url(query_args)
 
     def remove_url_state(self, arg, value):
@@ -62,7 +63,9 @@ class Pager(object):
         return self.add_url_state('page', page)
 
     def url(self, query):
-        return url_for(self.route, **dict(query))
+        kw = dict(query)
+        kw.update(self.kwargs)
+        return url_for(self.route, **dict(kw))
 
     def __iter__(self):
         query = self.query.limit(self.limit)

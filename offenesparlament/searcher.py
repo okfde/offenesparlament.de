@@ -11,6 +11,7 @@ class SolrSearcher(object):
         self.args = args
         self.results = None
         self._offset = 0
+        self._filters = []
         self._facets = []
         self._limit = 9001
         self._sort = 'score desc'
@@ -53,6 +54,9 @@ class SolrSearcher(object):
 
     def has_facet(self, facet):
         return self.facet_values(facet) > self.args.getlist(facet)
+    
+    def filter(self, key, value):
+        self._filters.append((key, value))
 
     @property
     def query_filters(self):
@@ -67,6 +71,7 @@ class SolrSearcher(object):
     def filters(self):
         _filters = [('index_type', self.type_.__name__.lower())]
         _filters.extend(self.query_filters)
+        _filters.extend(self._filters)
         return _filters
 
     @property
@@ -90,6 +95,7 @@ class SolrSearcher(object):
             'facet_sort': 'count',
             'facet_field': self._facets,
             'wt': 'json',
+            'fl': 'id score',
             'sort': self._sort
             }
         response = solr().raw_query(**query)

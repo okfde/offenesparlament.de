@@ -60,7 +60,8 @@
     <h3>Dokumente</h3>
     <ul>
       {% for ref in ablauf.referenzen %}
-        <li><strong>{{ ref.dokument.name }}:</strong> {{ ref.seiten or
+        <li>
+        <strong><a href="{{ref.dokument.link}}">{{ ref.dokument.name }}</a>:</strong> {{ ref.seiten or
         '(gesamtes Dokument)' }} </li>
       {% endfor %}
     </ul>
@@ -75,35 +76,36 @@
     <h3>Verlauf</h3>
     <ul class="position-list">
       {% for position in ablauf.positionen %}
-        <li>
+        <li class="position">
           <span class="header">
             <span class="date">
-              <a name="{{position.key}}">&para;</a>
               {{position.date.strftime("%d.%m.%Y")}}</span>
-            <span class="zuordnung">{{position.zuordnung}}</span>
+            <span class="zuordnung">{{position.zuordnung}} 
+              <a name="{{position.key}}">&para;</a>
+            </span>
             <span class="typ">{{position.typ}}</span>
           </span>
           <span class="body">
-            Quelle: {{position.quelle}}
             <ul>
               {% for beitrag in position.beitraege %}
-              <li><strong>{{ beitrag.typ }}:</strong> {{ beitrag.person.name }}</li>
+              <li><strong>{{ beitrag.art }}:</strong> 
+                <a href="{{ url_for('person', slug=beitrag.person.slug) }}">{{ beitrag.person.name
+                }} ({{ (beitrag.rolle.fraktion or beitrag.rolle.ressort) + ', ' + beitrag.rolle.funktion }})</a></li>
               {% endfor %}
             </ul>
           </span>
           <span class="bottom">
+            Quelle: {{position.quelle}} &middot;
             <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
           </span>
         </li>
       {% endfor %}
     </ul>
   </div>
-  <br/>
-  <br/>
-  <br/>
-  <br/>
-  <br/>
-  <br/>
+  <div class="clearfix"></div>
+  <hr/>
+  Die dargestellten Daten entstammen dem Dokumentensystem des Bundestags. 
+  <a href="{{ ablauf.source_url }}">Quelle</a> &middot; <b>TODO: JSON</b>
 {% endblock %}
 
 

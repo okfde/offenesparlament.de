@@ -3,6 +3,7 @@ from flask import url_for, redirect, jsonify
 
 from offenesparlament.core import app
 from offenesparlament.model import Ablauf, Position
+from offenesparlament.model import Person
 
 from offenesparlament.pager import Pager
 from offenesparlament.searcher import SolrSearcher
@@ -36,6 +37,28 @@ def search():
     pager = Pager(searcher, 'search', request.args)
     return render_template('ablauf_search.html', 
             searcher=searcher, pager=pager)
+
+@app.route("/person")
+def persons():
+    searcher = SolrSearcher(Person, request.args)
+    searcher.add_facet('rollen.funktion')
+    searcher.add_facet('rollen.fraktion')
+    searcher.add_facet('berufsfeld')
+    pager = Pager(searcher, 'persons', request.args)
+    return render_template('person_search.html', 
+            searcher=searcher, pager=pager)
+
+@app.route("/person/<slug>")
+def person(slug):
+    person = Person.query.filter_by(slug=slug).first()
+    if person is None:
+        abort(404)
+    searcher = SolrSearcher(Position, request.args)
+    searcher.sort('date')
+    searcher.filter('beitraege.person.id', str(person.id))
+    pager = Pager(searcher, 'person', request.args, slug=slug)
+    return render_template('person_view.html',
+            person=person, searcher=searcher, pager=pager)
 
 @app.route("/")
 def index():

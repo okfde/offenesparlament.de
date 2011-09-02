@@ -25,7 +25,7 @@ def extend_positions(db):
             data['typ'] = data['urheber']
 
         br = 'Bundesregierung, '
-        if br in data['urheber']:
+        if data['urheber'].startswith(br):
             data['urheber'] = data['urheber'][len(br):]
 
         hash = sha1(data['fundstelle'].encode('utf-8') \

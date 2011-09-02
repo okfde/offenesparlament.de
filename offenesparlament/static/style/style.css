@@ -135,7 +135,7 @@ h3 {
   font-size: 1.3em;
 }
 
-a {
+a, a:visited, a:active {
   color: #036DAA;
   text-decoration: underline;
 }
@@ -186,11 +186,15 @@ header {
 }
 
 h1#site-title {
+  margin-bottom: 0.2em;
+  font-size: 3em;
+}
+
+h1#site-title a {
+  text-decoration: none;
   font-family: Cochin, Baskerville, Georgia;
   font-weight: normal;
-  font-size: 3em;
   font-variant: small-caps !important;
-  margin-bottom: 0.2em;
   color: #000;
 }
 
@@ -244,6 +248,10 @@ ul.position-list {
 }
 
 ul.position-list li {
+  margin-bottom: 0.4em;
+}
+
+ul.position-list li.position {
   margin-bottom: 2em;
 }
 
@@ -269,10 +277,31 @@ ul.position-list .body {
   padding: 5px;
 }
 
+ul.position-list .ablauf {
+  display: block;
+  font-size: 1.2em;
+  padding: 5px;
+}
+
+ul.position-list .ablauf a {
+  text-decoration: none;
+}
+
 ul.position-list .bottom {
   display: block;
   padding: 0 5px 0 5px;
   font-size: 0.8em;
+}
+
+/* Persons */
+
+.person-foto {
+  float: left;
+  margin-right: 2em;
+}
+
+.person-foto img {
+  height: 200px;
 }
 
 /* Forms */
@@ -439,7 +468,7 @@ ul.unfilter-list li a {
 }
 
 /* Ablauf SERP */
-ul.search-results.ablauf {
+ul.search-results {
   list-style: none;
   margin: 0;
 }
@@ -453,13 +482,29 @@ ul.search-results.ablauf h3 {
   margin-bottom: 0.3em;
 }
 
-ul.search-results.ablauf h3 a {
-  color: #333;
+ul.search-results h3 a {
   text-decoration: none;
 }
 
-ul.search-results.ablauf p {
+ul.search-results p {
   color: #666;
+}
+
+ul.search-results.ablauf h3 a {
+  color: #333;
+}
+
+ul.search-results.person p,
+ul.search-results.person h3 {
+  display: inline;
+}
+
+ul.search-results.person p {
+  font-size: 0.9em;
+}
+
+ul.search-results.person li {
+  padding-bottom: 1em;
 }
 
 /** More Boilerplate 

@@ -19,3 +19,8 @@ db = SQLAlchemy(app)
 
 def solr():
     return SolrConnection(app.config['SOLR_URL'])
+
+def master_data():
+    from webstore.client import URL as WebStore
+    db, _ = WebStore(app.config['MASTER_URL'])
+    return db
