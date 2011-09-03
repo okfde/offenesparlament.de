@@ -1,0 +1,68 @@
+{% import "searches.html" as macros %}
+{% extends "layout.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+  {{ person.name }}
+{% endblock %}
+
+{% block content %}
+  {% if person.foto_url %}
+    <div class="person-foto">
+      <img src="{{ person.foto_url }}">
+      <p>{{ person.foto_copyright }}</p>
+    </div>
+  {% endif %}
+  <h1>{{ person.name }}</h1>
+  <ul>
+    {% for rolle in person.rollen %}
+      <li>{{ rolle.funktion }} 
+        {% if rolle.wahlkreis %}
+        &mdash; {{rolle.wahlkreis.name}} (Wahlkreis {{rolle.wahlkreis.nummer}})
+        {% endif %}  
+        {% if rolle.ressort %}
+          &mdash; {{rolle.ressort}}
+        {% endif %}  
+        {% if rolle.land %}
+          &mdash; {{rolle.land}}
+        {% endif %}  
+      </li>
+    {% endfor %}
+  </ul>
+  <div class="clearfix"></div>
+  <div class="rightbar">
+    {% if person.bio %}
+      <h3>Biografie</h3>
+      <p>{{person.bio | safe}}</p>
+    {% endif %}
+  </div>
+  <div class="leftbar">
+    <h3>Arbeit</h3>
+    <ul class="position-list">
+      {% for position in pager %}
+        <li>
+          <span class="header">
+            <span class="date">
+              {{position.date.strftime("%d.%m.%Y")}}</span>
+            <span class="zuordnung">{{position.zuordnung}}</span>
+            <span class="typ">{{position.typ}}</span>
+          </span>
+          <span class="ablauf">
+            <h4><a href="{{ url_for('position', key=position.key) }}">
+                {{position.ablauf.titel}}</a></h4>
+          </span>
+          <span class="bottom">
+            {{position.ablauf.initiative}} &mdash; {{position.ablauf.typ}}
+            &mdash;
+            <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+    {{ macros.pager(pager) }}
+  </div>
+{% endblock %}
+
+

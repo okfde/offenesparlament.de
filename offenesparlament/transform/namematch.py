@@ -8,10 +8,18 @@ from webstore.client import URL as WebStore
 from offenesparlament.transform.persons import make_person, make_long_name
 from offenesparlament.core import master_data
 
+CHOP_PARTS = [' ', ')', '(', '[', ']', u'Vizepräsidentin', u'Vizepräsident',
+              u'ÜNDNIS']
+
+def chop(txt):
+    for part in CHOP_PARTS:
+        txt = txt.replace(part, '')
+    return txt
+
 def levenshtein(a,b):
     return Levenshtein.distance(
-            a.replace(' ', '').lower(), 
-            b.replace(' ', '').lower()
+            chop(a).lower(),
+            chop(b).lower()
             )
 
 def ensure_rolle(beitrag, fp, db):
@@ -28,10 +36,9 @@ def ask_user(beitrag, beitrag_print, matches, db):
     for i, (fp, dist) in enumerate(matches):
         m = " %s: %s (%s)" % (i, fp, dist)
         print m.encode('utf-8')
-    sys.stdout.write("Enter choice number or 'n' for new [0]: ")
+    sys.stdout.write("Enter choice or 'n' for new, 'x' for non-speaker [0]: ")
     sys.stdout.flush()
     line = sys.stdin.readline()
-    print line
     if not len(line.strip()):
         return matches[0][0]
     try:
@@ -39,14 +46,18 @@ def ask_user(beitrag, beitrag_print, matches, db):
         ma, score = matches[idx]
         return ma
     except ValueError:
-        if beitrag is not None:
+        line = line.lower().strip()
+        if line == 'x':
+            raise ValueError()
+        if line == 'n' and beitrag is not None:
+            print "CREATING", beitrag_print.encode("utf-8")
             return make_person(beitrag, beitrag_print, db)
 
 def match_beitrag(db, master, beitrag, prints):
     beitrag_print = make_long_name(beitrag)
     print "Matching:", beitrag_print.encode('utf-8')
     matches = [(p, levenshtein(p, beitrag_print)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)[:5]
+    matches = sorted(matches, key=lambda (p,d): d)[:10]
     if not len(matches):
         # create new
         return make_person(beitrag, beitrag_print, db)
@@ -60,9 +71,11 @@ def match_beitrag(db, master, beitrag, prints):
         if Person.find_one(fingerprint=match.get('clean')) is None:
             return make_person(beitrag, match.get('clean'), db)
         return match.get('clean')
-    user_res = ask_user(beitrag, beitrag_print, matches, db)
-    NameMatch.writerow({'dirty': beitrag_print, 'clean': user_res})
-    return user_res
+    try:
+        user_res = ask_user(beitrag, beitrag_print, matches, db)
+        NameMatch.writerow({'dirty': beitrag_print, 'clean': user_res})
+        return user_res
+    except ValueError: pass
 
 def speaker_name_transform(name):
     cparts = name.split(',')
@@ -75,30 +88,39 @@ def speaker_name_transform(name):
     fragment.replace('(', '').replace(')', '')
     return fragment
 
-def match_speech(db, master, speech, prints):
-    speaker_name = speaker_name_transform(speech['speech_title'])
-    print "Matching:", speaker_name.encode('utf-8')
-    matches = [(p, levenshtein(p, speaker_name)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)[:20]
+def match_speaker(master, speaker, prints):
+    print "Matching:", speaker.encode('utf-8')
+    NonSpeaker = master['non_speaker']
+    match = NonSpeaker.find_one(text=speaker)
+    if match is not None:
+        return None
+
+    matches = [(p, levenshtein(p, speaker)) for p in prints]
+    matches = sorted(matches, key=lambda (p,d): d)[:10]
     if not len(matches):
         return
     first, dist = matches[0]
     if dist == 0:
         return first
     NameMatch = master['name_match']
-    match = NameMatch.find_one(dirty=speaker_name)
+    match = NameMatch.find_one(dirty=speaker)
     if match is not None:
         return match.get('clean')
-    user_res = ask_user(None, speaker_name, matches, db)
-    if user_res is not None:
-        NameMatch.writerow({'dirty': speaker_name, 'clean': user_res})
-        return user_res
+    try:
+        user_res = ask_user(None, speaker, matches, None)
+        if user_res is not None:
+            NameMatch.writerow({'dirty': speaker, 'clean': user_res})
+            return user_res
+    except ValueError:
+        NonSpeaker.writerow({'text': speaker}, unique_columns=['text'])
 
 def match_speakers(db, master, prints):
     Speech = db['mediathek']
     for speech in Speech:
-        fp = match_speech(db, master, speech, prints)
-        Speech.writerow({'fingerprint': fp},
+        if speech['speech_title']:
+            speaker = speaker_name_transform(speech['speech_title'])
+            fp = match_speaker(master, speaker, prints)
+            Speech.writerow({'fingerprint': fp},
                         unique_columns=['speech_source_url'])
 
 def match_beitraege(db, master, prints):
@@ -109,10 +131,14 @@ def match_beitraege(db, master, prints):
         beitrag['fingerprint'] = match
         Beitrag.writerow(beitrag, unique_columns=['__id__'])
 
+def make_prints(db):
+    return [p.get('fingerprint') for p in db['person'].distinct('fingerprint')]
+
+
 def match_persons(db, master):
-    prints = [p.get('fingerprint') for p in db['person'].distinct('fingerprint')]
-    #match_beitraege(db, master, prints)
-    match_speakers(db, master, prints)
+    prints = make_prints(db)
+    match_beitraege(db, master, prints)
+    #match_speakers(db, master, prints)
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"

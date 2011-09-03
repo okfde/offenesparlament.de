@@ -1,0 +1,47 @@
+{% import "searches.html" as macros %}
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ searcher.q or 'Personen' }} - Personen
+{% endblock %}
+
+{% block content %}
+  <h1>Personen</h1>
+  <div class="box">
+    {{ macros.search(searcher, pager) }}
+    
+    <div class="sidebar">
+      {% if searcher.has_facet('rollen.funktion') %}
+        <h3>Funktion</h3>
+        {{ macros.facet_list(searcher, pager, 'rollen.funktion') }}
+      {% endif %}
+      {% if searcher.has_facet('rollen.fraktion') %}
+        <h3>Fraktion</h3>
+        {{ macros.facet_list(searcher, pager, 'rollen.fraktion') }}
+      {% endif %}
+      {% if searcher.has_facet('berufsfeld') %}
+        <h3>Berufe</h3>
+        {{ macros.facet_list(searcher, pager, 'berufsfeld') }}
+      {% endif %}
+    </div>
+    <div class="mainbar">
+      <ul class="search-results person">
+      {% for person in pager %}
+      <li>
+        <h3>
+          <a href="{{ url_for('person', slug=person.slug) }}">{{ person.name }}</a>
+        </h3>
+        <p>{% for rolle in person.rollen %}
+          {{ rolle.funktion }}
+          ({{ rolle.ressort or rolle.wahlkreis.name or 'Liste' }}){% if not loop.last %},{% endif %}
+        {% endfor %}</p>
+      </li>
+      {% endfor %}
+      </ul>
+      {{ macros.pager(pager) }}
+    </div>
+  </div>
+{% endblock %}
+
+
+
