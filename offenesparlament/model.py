@@ -171,6 +171,9 @@ class Person(db.Model):
     beitraege = db.relationship('Beitrag', backref='person',
                            lazy='dynamic')
     
+    zitate = db.relationship('Zitat', backref='person',
+                           lazy='dynamic')
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
@@ -662,6 +665,169 @@ class Ablauf(db.Model):
             })
         return data
 
+
+class Sitzung(db.Model):
+    __tablename__ = 'sitzung'
+
+    id = db.Column(db.Integer, primary_key=True)
+    wahlperiode = db.Column(db.Unicode())
+    nummer = db.Column(db.Unicode())
+    titel = db.Column(db.Unicode())
+    text = db.Column(db.Unicode())
+    date = db.Column(db.DateTime())
+    pdf_url = db.Column(db.Unicode())
+    pdf_page = db.Column(db.Unicode())
+    video_url = db.Column(db.Unicode())
+    source_url = db.Column(db.Unicode())
+
+    debatten = db.relationship('Debatte', backref='sitzung',
+                           lazy='dynamic', order_by='Debatte.nummer.desc()')
+    
+    zitate = db.relationship('Zitat', backref='sitzung',
+                           lazy='dynamic', order_by='Zitat.sequenz.desc()')
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'wahlperiode': self.wahlperiode,
+            'nummer': self.nummer,
+            'titel': self.titel
+            }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'text': self.text,
+            'date': self.date,
+            'pdf_url': self.pdf_url,
+            'pdf_page': self.pdf_page,
+            'video_url': self.video_url,
+            'debatten': [d.to_ref() for d in self.debatten],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
+class Debatte(db.Model):
+    __tablename__ = 'debatte'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nummer = db.Column(db.Integer())
+    titel = db.Column(db.Unicode())
+    text = db.Column(db.Unicode())
+    pdf_url = db.Column(db.Unicode())
+    pdf_page = db.Column(db.Unicode())
+    video_url = db.Column(db.Unicode())
+    source_url = db.Column(db.Unicode())
+
+    sitzung_id = db.Column(db.Integer, db.ForeignKey('sitzung.id'))
+
+    debatten_zitate = db.relationship('DebatteZitat', backref='debatten',
+                           lazy='dynamic', order_by='DebatteZitat.nummer.desc()')
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'nummer': self.nummer,
+            'titel': self.titel
+            }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'sitzung': self.sitzung.to_ref(),
+            'text': self.text,
+            'pdf_url': self.pdf_url,
+            'pdf_page': self.pdf_page,
+            'video_url': self.video_url,
+            'debatten_zitate': [dz.to_ref() for dz in self.debatten_zitate],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
+class Zitat(db.Model):
+    __tablename__ = 'zitat'
+
+    id = db.Column(db.Integer, primary_key=True)
+    sequenz = db.Column(db.Integer())
+    sprecher = db.Column(db.Unicode())
+    text = db.Column(db.Unicode())
+    typ = db.Column(db.Unicode())
+    source_url = db.Column(db.Unicode())
+
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), 
+            nullable=True)
+    sitzung_id = db.Column(db.Integer, db.ForeignKey('sitzung.id'))
+
+    debatten_zitate = db.relationship('DebatteZitat', backref='zitate',
+                           lazy='dynamic', order_by='DebatteZitat.nummer.desc()')
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'sequenz': self.sequenz,
+            'specher': self.sprecher,
+            'typ': self.typ,
+            }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'text': self.text,
+            'source_url': self.source_url,
+            'sitzung': self.sitzung.to_ref(),
+            'person': self.person.to_ref() if self.person else None,
+            'debatten_zitate': [dz.to_ref() for dz in self.debatten_zitate],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
+
+class DebatteZitat(db.Model):
+    __tablename__ = 'debatte_zitat'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nummer = db.Column(db.Integer())
+
+    pdf_url = db.Column(db.Unicode())
+    pdf_page = db.Column(db.Unicode())
+    video_url = db.Column(db.Unicode())
+
+    debatte_id = db.Column(db.Integer, db.ForeignKey('debatte.id'))
+    zitat_id = db.Column(db.Integer, db.ForeignKey('zitat.id'))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'nummer': self.nummer,
+            'pdf_url': self.pdf_url,
+            'pdf_page': self.pdf_page,
+            'video_url': self.video_url,
+            'debatte': self.debatte.to_ref(),
+            'zitat': self.zitat.to_ref(),
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            }
+
+    to_dict = to_ref
 
 db.create_all()
 

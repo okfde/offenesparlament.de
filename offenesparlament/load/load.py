@@ -8,7 +8,7 @@ from offenesparlament.core import db
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
         Wahlkreis, obleute, mitglieder, stellvertreter, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
-        Schlagwort
+        Schlagwort, Sitzung, Debatte, Zitat, DebatteZitat
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
@@ -320,11 +320,117 @@ def load_dokument(data, ws):
     db.session.flush()
     return dokument
 
+def load_debatten(ws):
+    sitzungen = {}
+    for speech in ws['mediathek']:
+        sitz = (speech['wahlperiode'], speech['meeting_nr'])
+        if not sitz in sitzungen:
+            sitzungen[sitz] = load_sitzung(ws, speech)
+        sitzung = sitzungen[sitz]
+        debatte = Debatte.query.filter_by(
+                sitzung=sitzung,
+                source_url=speech.get('top_source_url')
+                ).first()
+        if debatte is None:
+            debatte = Debatte()
+            debatte.sitzung = sitzung
+            debatte.source_url = speech.get('top_source_url')
+        debatte.nummer = speech.get('top_nr')
+        debatte.titel = speech.get('top_title')
+        debatte.text = speech.get('top_text')
+        debatte.pdf_url = speech.get('top_pdf_url_plain')
+        debatte.pdf_page = speech.get('top_pdf_url_pages')
+        debatte.video_url = speech.get('top_mp4_url')
+
+        db.session.add(debatte)
+        db.session.commit()
+
+def load_sitzung(ws, speech):
+    sitzung = Sitzung.query.filter_by(
+            wahlperiode=speech.get('wahlperiode'),
+            nummer=speech.get('meeting_nr')
+            ).first()
+    if sitzung is None:
+        sitzung = Sitzung()
+        sitzung.wahlperiode = speech.get('wahlperiode')
+        sitzung.nummer = speech.get('meeting_nr')
+    
+    sitzung.titel = speech.get('meeting_title')
+    sitzung.text = speech.get('meeting_text')
+    sitzung.date = date(speech.get('meeting_date'))
+    sitzung.pdf_url = speech.get('meeting_pdf_url_plain')
+    sitzung.pdf_page = speech.get('meeting_pdf_url_pages')
+    sitzung.video_url = speech.get('meeting_mp4_url')
+    sitzung.source_url = speech.get('meeting_source_url')
+
+    db.session.add(sitzung)
+    db.session.flush()
+    return sitzung
+
+def load_zitate(ws):
+    sitzungen = {}
+    for speech in ws['speech']:
+        s = (speech['wahlperiode'], speech['sitzung'])
+        if s not in sitzungen:
+            sitzungen[s] = Sitzung.query.filter_by(
+                wahlperiode=speech.get('wahlperiode'),
+                nummer=speech.get('sitzung')
+                ).first()
+        sitzung = sitzungen[s]
+
+        zitat = Zitat.query.filter_by(
+                sitzung=sitzung,
+                sequenz=speech['sequence']).first()
+        if zitat is None:
+            zitat = Zitat()
+        zitat.sitzung = sitzung
+        zitat.sequenz = speech['sequence']
+        zitat.text = speech['text']
+        zitat.typ = speech['type']
+        zitat.sprecher = speech['speaker']
+        zitat.source_url = speech['source_url']
+
+        if speech['fingerprint']:
+            zitat.person = Person.query.filter_by(
+                fingerprint=speech['fingerprint']
+                ).first()
+
+        db.session.add(zitat)
+        db.session.flush()
+        load_debatte_zitate(ws, zitat)
+
+        db.session.commit()
+
+def load_debatte_zitate(ws, zitat):
+    if zitat.sitzung is None:
+        return
+    spme = ws['speech_mediathek']
+    me = ws['mediathek']
+    for item in spme.traverse(wahlperiode=zitat.sitzung.wahlperiode,
+            sitzung=zitat.sitzung.nummer, sequence=zitat.sequenz):
+        sp = me.find_one(speech_source_url=item['mediathek_url'])
+        debatte = Debatte.query.filter_by(
+                source_url=sp['top_source_url']).first()
+        dz = DebatteZitat.query.filter_by(zitat=zitat,
+                debatte=debatte).first()
+        if dz is None:
+            dz = DebatteZitat()
+            dz.debatte = debatte
+            dz.zitat = zitat
+        dz.nummer = sp['speech_nr']
+        dz.pdf_url = sp['speech_pdf_url_plain']
+        dz.pdf_page = sp['speech_pdf_url_pages']
+        dz.video_url = sp['speech_mp4_url']
+        db.session.add(dz)
+
+
 def load(ws):
-    load_gremien(ws)
+    #load_gremien(ws)
     #load_news(ws)
-    load_persons(ws)
-    load_ablaeufe(ws)
+    #load_persons(ws)
+    #load_ablaeufe(ws)
+    load_debatten(ws)
+    load_zitate(ws)
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
