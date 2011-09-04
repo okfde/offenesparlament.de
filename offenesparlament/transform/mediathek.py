@@ -55,36 +55,28 @@ def merge_speech(db, master, wp, session):
     SpeechMediathek = db['speech_mediathek']
     med = list(Mediathek.traverse(wahlperiode=wp, meeting_nr=session))
     med = sorted(med, key=lambda x: x.get('speech_time'))
-    last_match, i, match = None, 0, None
+    #last_match, i, match = None, 0, None
+    i = 0
+    if not len(med):
+        return
     for speech in Speech.traverse(wahlperiode=wp, sitzung=session):
-        if speech['type'] == 'poi': 
-            continue
-        #print speech['fingerprint'].encode('utf-8') if speech['fingerprint'] else ''
-        match = None if not len(med) <= i else match
+        #if speech['type'] == 'poi': 
+        #    continue
+        print speech['fingerprint'].encode('utf-8') if speech['fingerprint'] else ''
+        #match = None if not len(med) < i else match
         while True:
-            if not len(med):
-                break
-            if not len(med) <= i:
-                break
+            SpeechMediathek.writerow({
+                'wahlperiode': wp,
+                'sitzung': session,
+                'mediathek_url': med[i]['speech_source_url'],
+                'sequence': speech['sequence']
+                }, unique_columns=UNIQUES)
             if speech['fingerprint'] != med[i]['fingerprint']:
                 break
-            match = med[i]['speech_source_url']
-            last_match = match
-            SpeechMediathek.writerow({
-                'wahlperiode': wp,
-                'sitzung': session,
-                'mediathek_url': match,
-                'sequence': speech['sequence']
-                }, unique_columns=UNIQUES)
-            i += 1
-
-        if match is None:
-            SpeechMediathek.writerow({
-                'wahlperiode': wp,
-                'sitzung': session,
-                'mediathek_url': last_match,
-                'sequence': speech['sequence']
-                }, unique_columns=UNIQUES)
+            if len(med) > i:
+                i += 1
+            else:
+                break
 
 
 if __name__ == '__main__':
@@ -92,5 +84,4 @@ if __name__ == '__main__':
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
     #extend_speeches(db, master_data())
-
     merge_speech(db, master_data(), 17, 121)
