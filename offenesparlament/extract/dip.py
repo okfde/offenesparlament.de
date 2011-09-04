@@ -131,7 +131,7 @@ def get_dip_with_cookie(url, method='GET', data={}):
         def get_method(self): 
             return method
 
-    for i in range(10):
+    for i in range(3):
         lock.acquire()
         try:
             def _req(url, jar, data={}):
@@ -150,8 +150,7 @@ def get_dip_with_cookie(url, method='GET', data={}):
             return _req(url, jar, data=data)
         except urllib2.HTTPError, he:
             log.exception(he)
-            if int(he.code) == 500:
-                time.sleep(1)
+            time.sleep(2)
         finally:
             lock.release()
 
@@ -243,6 +242,8 @@ def expand_dok_nr(ablauf):
 
 def scrape_activities(ablauf, db):
     urlfp = get_dip_with_cookie(DETAIL_VP_URL % ablauf['key'])
+    if urlfp is None:
+        return
     xml = inline_xml_from_page(urlfp.read())
     urlfp.close()
     if xml is not None: 
@@ -329,6 +330,8 @@ def scrape_ablauf(url, db):
         a = {}
     a['key'] = key = parse_qs(urlparse(url).query).get('selId')[0]
     urlfp = get_dip_with_cookie(url)
+    if urlfp is None:
+        return
     doc = inline_xml_from_page(urlfp.read())
     urlfp.close()
     if doc is None: 
@@ -405,6 +408,8 @@ def load_dip(db):
 def load_dip_index():
     for offset in count():
         urlfp = get_dip_with_cookie(BASE_URL % (offset*100))
+        if urlfp is None:
+            return
         root = etree.parse(urlfp, etree.HTMLParser())
         urlfp.close()
         table = root.find(".//table[@summary='Ergebnisliste']")
