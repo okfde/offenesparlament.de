@@ -145,8 +145,8 @@ if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
-    load_transcripts(db, master_data())
-    #load_transcript(db, master_data(), 17, 121)
+    #load_transcripts(db, master_data())
+    load_transcript(db, master_data(), 17, 121)
     #sp = SpeechParser(master_data(), db, fp)
     #for l in sp:
     #    pprint(l)
