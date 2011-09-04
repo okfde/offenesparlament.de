@@ -39,7 +39,7 @@ def video_box(doc, prefix):
 def load_sessions(db):
     fails = 0
     for wp in count(MIN_WP):
-        for session in [121]: #count(1):
+        for session in count(1):
             url = SHORT_URL + str(wp) + "/" + str(session)
             doc = html.parse(url)
             if no_results(doc):

@@ -1,6 +1,8 @@
 # coding: utf-8
+import logging
 from itertools import count
 from urllib2 import urlopen, HTTPError
+from StringIO import StringIO
 from pprint import pprint
 import re
 import sys
@@ -9,6 +11,9 @@ from webstore.client import URL as WebStore
 
 from offenesparlament.core import master_data
 from offenesparlament.transform.namematch import match_speaker, make_prints
+
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.NOTSET)
 
 TEST_URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/17121.txt"
 
@@ -19,7 +24,7 @@ CHAIRS = [u'Vizepräsidentin', u'Vizepräsident', u'Präsident']
 BEGIN_MARK = re.compile('Beginn: \d{1,2}.\d{1,2} Uhr')
 END_MARK = re.compile('\(Schluss: \d{1,2}.\d{1,2} Uhr\).*')
 SPEAKER_MARK = re.compile('  (.{5,140}):\s*$')
-TOP_MARK = re.compile('  Ich rufe (den|die) (Tagesordnungs|Zusatzpunkte).*auf.*:\s$')
+TOP_MARK = re.compile('.*(rufe.*die Frage|zur Frage|Tagesordnungspunkt|Zusatzpunkt).*')
 POI_MARK = re.compile('\((.*)\)\s*$')
 
 class SpeechParser(object):
@@ -85,7 +90,7 @@ class SpeechParser(object):
                 is_top = True
             
             m = SPEAKER_MARK.match(line)
-            if is_top is False and m is not None:
+            if m is not None and not is_top:
                 if speaker is not None:
                     data = emit()
                     if len(data['text'].strip()):
@@ -118,31 +123,30 @@ class SpeechParser(object):
 def load_transcript(db, master, wp, session):
     url = URL % (wp, session)
     fh = urlopen(url)
-    print "URL", url
+    sio = StringIO(fh.read())
+    fh.close()
+    log.info("Loading transcript: %s/%s" % (wp, session))
     Speech = db['speech']
-    for contrib in SpeechParser(master_data(), db, fp):
+    for contrib in SpeechParser(master_data(), db, sio):
         contrib['sitzung'] = session
         contrib['wahlperiode'] = wp
         contrib['source_url'] = url
         Speech.writerow(contrib, 
-                unique_columns=['source_url', 'sequence'])
-    fh.close()
+                unique_columns=['sequence', 'sitzung', 'wahlperiode'])
 
 def load_transcripts(db, master):
     for i in count(33):
         try:
             load_transcript(db, master, 17, i)
         except HTTPError:
-            pass
+            break
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
-    fp = urlopen(TEST_URL)
-
     load_transcripts(db, master_data())
-
+    #load_transcript(db, master_data(), 17, 121)
     #sp = SpeechParser(master_data(), db, fp)
     #for l in sp:
     #    pprint(l)

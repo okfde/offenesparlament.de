@@ -38,7 +38,7 @@ def generate_person_long_names(db):
     Person = db['person']
     for person in Person:
         long_name = make_long_name(person)
-        print long_name.encode("utf-8").strip()
+        log.debug(" -> %s" % long_name.strip())
         slug = url_slug(long_name)
         Person.writerow({'fingerprint': long_name,
                          'slug': slug,
@@ -48,7 +48,7 @@ def generate_person_long_names(db):
         if fp['_count'] > 1:
             raise ValueError("Partial fingerprint: %s" % fp['fingerprint'])
 
-    print "Updating 'rollen' to have fingerprints...."
+    log.info("Updating 'rollen' to have fingerprints...")
     Rolle = db['rolle']
     for person in Person:
         if person['mdb_id']:

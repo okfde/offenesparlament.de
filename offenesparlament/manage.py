@@ -1,7 +1,7 @@
 from flaskext.script import Manager
 from webstore.client import URL as WebStore
 
-from offenesparlament.core import app
+from offenesparlament.core import app, master_data
 
 manager = Manager(app)
 
@@ -17,8 +17,35 @@ def extract():
     mdb.load_index(db)
     from offenesparlament.extract import dip
     dip.load_dip(db)
-    from offenesparlament.extracl import mediathek
+    from offenesparlament.extract import mediathek
     mediathek.load_sessions(db)
+
+@manager.command
+def transform():
+    """ Transform and clean up content """
+    db, _ = WebStore(app.config['STAGING_URL'])
+    master = master_data()
+    from offenesparlament.transform import persons
+    persons.generate_person_long_names(db)
+    from offenesparlament.transform import positions
+    positions.extend_positions(db)
+    from offenesparlament.transform import namematch
+    namematch.match_persons(db, master)
+    #persons.generate_person_long_names(db)
+    from offenesparlament.transform import mediathek
+    mediathek.extend_speeches(db, master)
+    from offenesparlament.transform import speechparser
+    speechparser.load_transcripts(db, master)
+    mediathek.merge_speeches(db, master)
+
+@manager.command
+def load():
+    """ Load and index staging DB into production """
+    db, _ = WebStore(app.config['STAGING_URL'])
+    from offenesparlament.load import load
+    load.load(db)
+    from offenesparlament.load import index
+    index.index(db)
 
 @manager.command
 def longextract():

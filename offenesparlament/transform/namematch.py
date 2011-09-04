@@ -88,7 +88,15 @@ def speaker_name_transform(name):
     fragment.replace('(', '').replace(')', '')
     return fragment
 
+_SPEAKER_CACHE = {}
+
 def match_speaker(master, speaker, prints):
+    if speaker not in _SPEAKER_CACHE:
+        _SPEAKER_CACHE[speaker] = \
+                _match_speaker(master, speaker, prints)
+    return _SPEAKER_CACHE[speaker]
+
+def _match_speaker(master, speaker, prints):
     print "Matching:", speaker.encode('utf-8')
     NonSpeaker = master['non_speaker']
     match = NonSpeaker.find_one(text=speaker)
@@ -116,20 +124,27 @@ def match_speaker(master, speaker, prints):
 
 def match_speakers(db, master, prints):
     Speech = db['mediathek']
-    for speech in Speech:
-        if speech['speech_title']:
-            speaker = speaker_name_transform(speech['speech_title'])
-            fp = match_speaker(master, speaker, prints)
-            Speech.writerow({'fingerprint': fp},
-                        unique_columns=['speech_source_url'])
+    for speech in Speech.distinct('speech_title'):
+        if speech['speech_title'] is None:
+            continue
+        speaker = speaker_name_transform(speech['speech_title'])
+        fp = match_speaker(master, speaker, prints)
+        Speech.writerow({'fingerprint': fp, 
+                         'speech_title': speech['speech_title']},
+                    unique_columns=['speech_title'])
+
+
+QUERY = '''SELECT DISTINCT vorname, nachname, funktion, land, fraktion, 
+           ressort, ort FROM beitrag;'''
 
 def match_beitraege(db, master, prints):
     Beitrag = db['beitrag']
-    for beitrag in Beitrag:
+    for beitrag in db.query(QUERY):
         match = match_beitrag(db, master, beitrag, prints)
         ensure_rolle(beitrag, match, db)
         beitrag['fingerprint'] = match
-        Beitrag.writerow(beitrag, unique_columns=['__id__'])
+        Beitrag.writerow(beitrag, unique_columns=['vorname', 'nachname',
+            'funktion', 'land', 'fraktion', 'ressort', 'ort'])
 
 def make_prints(db):
     return [p.get('fingerprint') for p in db['person'].distinct('fingerprint')]
@@ -138,7 +153,7 @@ def make_prints(db):
 def match_persons(db, master):
     prints = make_prints(db)
     match_beitraege(db, master, prints)
-    #match_speakers(db, master, prints)
+    match_speakers(db, master, prints)
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"

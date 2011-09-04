@@ -390,9 +390,11 @@ def scrape_ablauf(url, db):
 
 
 def load_dip(db):
-    def bound_scrape(url):
+    for url in load_dip_index():
         scrape_ablauf(url, db)
-    threaded(load_dip_index(), bound_scrape)
+    #def bound_scrape(url):
+    #    scrape_ablauf(url, db)
+    #threaded(load_dip_index(), bound_scrape)
 
 def load_dip_index():
     for offset in count():

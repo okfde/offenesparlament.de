@@ -1,9 +1,14 @@
 from pprint import pprint
+import logging
+from datetime import datetime
 import sys
 
 from offenesparlament.core import master_data
 
 from webstore.client import URL as WebStore
+
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.NOTSET)
 
 def extend_speeches(db, master):
     Speech = db['mediathek']
@@ -22,7 +27,9 @@ def extend_speeches(db, master):
         ctx = speech['speech_context']
         if ctx is not None:
             speech['meeting_nr'], text = ctx.split('.', 1)
-            text, speech['meeting_date'] = ctx.rsplit('vom ', 1)
+            text, date = ctx.rsplit('vom ', 1)
+            date = datetime.strptime(date, "%d.%m.%Y")
+            speech['meeting_date'] = date.isoformat()
         ctx = speech['meeting_context']
         if ctx is not None:
             speech['wahlperiode'], text = ctx.split('.', 1)
@@ -32,8 +39,58 @@ def extend_speeches(db, master):
         Speech.writerow(speech, unique_columns=['speech_source_url'])
         #pprint(speech)
 
+QUERY = '''SELECT DISTINCT wahlperiode, sitzung FROM speech;'''
+
+def merge_speeches(db, master):
+    for combo in db.query(QUERY):
+        merge_speech(db, master, combo['wahlperiode'], 
+                combo['sitzung'])
+
+UNIQUES = ['wahlperiode', 'sitzung', 'sequence', 'mediathek_url']
+
+def merge_speech(db, master, wp, session):
+    log.info("Merging media + transcript: %s/%s" % (wp, session))
+    Mediathek = db['mediathek']
+    Speech = db['speech']
+    SpeechMediathek = db['speech_mediathek']
+    med = list(Mediathek.traverse(wahlperiode=wp, meeting_nr=session))
+    med = sorted(med, key=lambda x: x.get('speech_time'))
+    last_match, i, match = None, 0, None
+    for speech in Speech.traverse(wahlperiode=wp, sitzung=session):
+        if speech['type'] == 'poi': 
+            continue
+        #print speech['fingerprint'].encode('utf-8') if speech['fingerprint'] else ''
+        match = None if not len(med) <= i else match
+        while True:
+            if not len(med):
+                break
+            if not len(med) <= i:
+                break
+            if speech['fingerprint'] != med[i]['fingerprint']:
+                break
+            match = med[i]['speech_source_url']
+            last_match = match
+            SpeechMediathek.writerow({
+                'wahlperiode': wp,
+                'sitzung': session,
+                'mediathek_url': match,
+                'sequence': speech['sequence']
+                }, unique_columns=UNIQUES)
+            i += 1
+
+        if match is None:
+            SpeechMediathek.writerow({
+                'wahlperiode': wp,
+                'sitzung': session,
+                'mediathek_url': last_match,
+                'sequence': speech['sequence']
+                }, unique_columns=UNIQUES)
+
+
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
-    extend_speeches(db, master_data())
+    #extend_speeches(db, master_data())
+
+    merge_speech(db, master_data(), 17, 121)
