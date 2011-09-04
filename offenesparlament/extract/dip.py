@@ -131,8 +131,8 @@ def get_dip_with_cookie(url, method='GET', data={}):
         def get_method(self): 
             return method
 
-    lock.acquire()
     for i in range(10):
+        lock.acquire()
         try:
             def _req(url, jar, data={}):
                 _data = urllib.urlencode(data) 
