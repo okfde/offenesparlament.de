@@ -3,6 +3,7 @@ import logging
 import re, sys
 import urllib2, urllib
 import cookielib
+import time
 from threading import Lock 
 from lxml import etree
 from itertools import count
@@ -131,23 +132,28 @@ def get_dip_with_cookie(url, method='GET', data={}):
             return method
 
     lock.acquire()
-    try:
-        def _req(url, jar, data={}):
-            _data = urllib.urlencode(data) 
-            req = _Request(url, _data)
-            jar.add_cookie_header(req)
-            fp = urllib2.urlopen(req)
-            jar.extract_cookies(fp, req)
-            return fp
-        global jar
-        if jar is None:
-            jar = cookielib.CookieJar()
-            fp = _req(MAKE_SESSION_URL, jar)
-            fp.read()
-            fp.close()
-        return _req(url, jar, data=data)
-    finally:
-        lock.release()
+    for i in range(10):
+        try:
+            def _req(url, jar, data={}):
+                _data = urllib.urlencode(data) 
+                req = _Request(url, _data)
+                jar.add_cookie_header(req)
+                fp = urllib2.urlopen(req)
+                jar.extract_cookies(fp, req)
+                return fp
+            global jar
+            if jar is None:
+                jar = cookielib.CookieJar()
+                fp = _req(MAKE_SESSION_URL, jar)
+                fp.read()
+                fp.close()
+            return _req(url, jar, data=data)
+        except urllib2.HTTPError, he:
+            log.exception(he)
+            if int(he.code) == 500:
+                time.sleep(1)
+        finally:
+            lock.release()
 
 
 def _get_dokument(hrsg, typ, nummer, link=None):
