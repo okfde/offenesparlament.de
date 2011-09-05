@@ -293,6 +293,45 @@ ul.position-list .bottom {
   font-size: 0.8em;
 }
 
+table.zitate td {
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+  border-bottom: 1px solid #ddd;
+}
+
+table.zitate td.speaker {
+  width: 40%;
+  padding-left: 1em;
+  font-weight: bold;
+}
+
+table.zitate td.text {
+  font-family: Georgia;
+  font-size: 1.2em;
+  padding-right: 1em;
+}
+
+table.zitate td.text hr {
+  margin: 0;
+  border: 0;
+  padding-bottom: 0.5em;
+  display: block;
+}
+
+table.zitate tr.poi {
+  font-style: italic;
+  background-color: #E9EEF7;
+}
+
+table.zitate tr.poi td.speaker {
+  font-weight: normal;
+}
+
+table.zitate tr.chair {
+  background-color: #EAF7E9;
+}
+
+
 /* Persons */
 
 .person-foto {

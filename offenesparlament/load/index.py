@@ -8,7 +8,7 @@ from offenesparlament.core import db, solr
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
         Wahlkreis, obleute, mitglieder, stellvertreter, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
-        Schlagwort
+        Schlagwort, Sitzung, Debatte, Zitat
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
@@ -32,7 +32,10 @@ def flatten(data, sep='.'):
                         if key in _data:
                             if not isinstance(_data[key], set):
                                 _data[key] = set([_data[key]])
-                            _data[key].add(lv)
+                            if isinstance(lv, set):
+                                _data[key].union(lv)
+                            else:
+                                _data[key].add(lv)
                         else:
                             _data[key] = lv
                 else:
@@ -136,16 +139,57 @@ def index_ablaeufe():
         _solr.add_many([data])
     _solr.commit()
 
+
+def index_sitzungen():
+    _solr = solr()
+    for sitzung in Sitzung.query:
+        log.info("indexing %s..." % sitzung.titel)
+        data = sitzung.to_dict()
+        data['zitate'] = [z.to_dict() for z in sitzung.zitate]
+        data = flatten(data)
+        data.update(type_info(sitzung))
+        data = convert_dates(data)
+        _solr.add_many([data])
+    _solr.commit()
+
+def index_debatten():
+    _solr = solr()
+    for debatte in Debatte.query:
+        log.info("indexing %s..." % debatte.titel)
+        data = debatte.to_dict()
+        #data['zitate'] = []
+        #for dz in debatte.debatten_zitate:
+        data['zitate'] = [dz.zitat.to_dict() for dz in \
+            debatte.debatten_zitate]
+        data = flatten(data)
+        data.update(type_info(debatte))
+        data = convert_dates(data)
+        _solr.add_many([data])
+    _solr.commit()
+
+def index_zitate():
+    _solr = solr()
+    log.info("indexing transcripts...")
+    for zitat in Zitat.query:
+        data = zitat.to_dict()
+        data = flatten(data)
+        data.update(type_info(zitat))
+        data = convert_dates(data)
+        _solr.add_many([data])
+    _solr.commit()
+
 def index():
     index_persons()
     index_gremien()
     index_positionen()
     index_dokumente()
     index_ablaeufe()
-
-
+    index_sitzungen()
+    index_debatten()
+    index_zitate()
 
 if __name__ == '__main__':
     #gather_index_fields()
     index()
+    #index_debatten()
 

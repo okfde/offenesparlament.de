@@ -1,0 +1,33 @@
+{% import "searches.html" as macros %}
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ searcher.q or 'Alle Sitzungen' }} - Sitzungen
+{% endblock %}
+
+{% block content %}
+  <h1>Sitzungen des Bundestags</h1>
+  <div class="box">
+    
+    <div class="sidebar">
+      {% if searcher.has_facet('wahlperiode') %}
+        <h3>Wahlperiode</h3>
+        {{ macros.facet_list(searcher, pager, 'typ') }}
+      {% endif %}
+    </div>
+    <div class="mainbar">
+      <ul class="search-results sitzung">
+      {% for sitzung in pager %}
+      <li>
+        <h3><a href="{{ url_for('sitzung', wahlperiode=sitzung.wahlperiode,
+            nummer=sitzung.nummer) }}">{{ sitzung.titel }}</a></h3>
+      </li>
+      {% endfor %}
+      </ul>
+      {{ macros.pager(pager) }}
+    </div>
+  </div>
+{% endblock %}
+
+
+

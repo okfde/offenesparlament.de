@@ -95,27 +95,37 @@ class SpeechParser(object):
                     data = emit()
                     if len(data['text'].strip()):
                         yield data
+                    else:
+                        sequence[0] -= 1
                 speaker = m.group(1)
-                fingerprint = self.identify_speaker(speaker)
-                role = line.strip().split(' ')[0]
-                chair_[0] = role in CHAIRS
-                continue
+                try:
+                    fingerprint = self.identify_speaker(speaker)
+                    role = line.strip().split(' ')[0]
+                    chair_[0] = role in CHAIRS
+                    continue
+                except ValueError:
+                    pass
             
             m = POI_MARK.match(line)
             if m is not None:
                 data = emit()
                 if len(data['text'].strip()):
                     yield data
-                for _speaker, _fingerprint, _text in self.parse_pois(m.group(1)):
-                    yield {
-                        'speaker': _speaker,
-                        'type': 'poi',
-                        'fingerprint': _fingerprint,
-                        'sequence': sequence[0],
-                        'text': _text
-                            }
-                    sequence[0] += 1
-                continue
+                else:
+                    sequence[0] -= 1
+                try:
+                    for _speaker, _fingerprint, _text in self.parse_pois(m.group(1)):
+                        yield {
+                            'speaker': _speaker,
+                            'type': 'poi',
+                            'fingerprint': _fingerprint,
+                            'sequence': sequence[0],
+                            'text': _text
+                                }
+                        sequence[0] += 1
+                    continue
+                except ValueError:
+                    pass
             
             text.append(line)
         yield emit()

@@ -682,7 +682,7 @@ class Sitzung(db.Model):
 
     debatten = db.relationship('Debatte', backref='sitzung',
                            lazy='dynamic', order_by='Debatte.nummer.desc()')
-    
+
     zitate = db.relationship('Zitat', backref='sitzung',
                            lazy='dynamic', order_by='Zitat.sequenz.desc()')
 
@@ -726,7 +726,7 @@ class Debatte(db.Model):
 
     sitzung_id = db.Column(db.Integer, db.ForeignKey('sitzung.id'))
 
-    debatten_zitate = db.relationship('DebatteZitat', backref='debatten',
+    debatten_zitate = db.relationship('DebatteZitat', backref='debatte',
                            lazy='dynamic', order_by='DebatteZitat.nummer.desc()')
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -743,7 +743,7 @@ class Debatte(db.Model):
     def to_dict(self):
         data = self.to_ref()
         data.update({
-            'sitzung': self.sitzung.to_ref(),
+            'sitzung': self.sitzung.to_ref() if self.sitzung else None,
             'text': self.text,
             'pdf_url': self.pdf_url,
             'pdf_page': self.pdf_page,
@@ -768,7 +768,7 @@ class Zitat(db.Model):
             nullable=True)
     sitzung_id = db.Column(db.Integer, db.ForeignKey('sitzung.id'))
 
-    debatten_zitate = db.relationship('DebatteZitat', backref='zitate',
+    debatten_zitate = db.relationship('DebatteZitat', backref='zitat',
                            lazy='dynamic', order_by='DebatteZitat.nummer.desc()')
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -779,7 +779,7 @@ class Zitat(db.Model):
         return {
             'id': self.id,
             'sequenz': self.sequenz,
-            'specher': self.sprecher,
+            'sprecher': self.sprecher,
             'typ': self.typ,
             }
 
@@ -788,7 +788,7 @@ class Zitat(db.Model):
         data.update({
             'text': self.text,
             'source_url': self.source_url,
-            'sitzung': self.sitzung.to_ref(),
+            'sitzung': self.sitzung.to_ref() if self.sitzung else None,
             'person': self.person.to_ref() if self.person else None,
             'debatten_zitate': [dz.to_ref() for dz in self.debatten_zitate],
             'created_at': self.created_at,

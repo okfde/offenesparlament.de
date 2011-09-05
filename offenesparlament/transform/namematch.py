@@ -101,7 +101,8 @@ def _match_speaker(master, speaker, prints):
     NonSpeaker = master['non_speaker']
     match = NonSpeaker.find_one(text=speaker)
     if match is not None:
-        return None
+        print "non-speaker!"
+        raise ValueError()
 
     matches = [(p, levenshtein(p, speaker)) for p in prints]
     matches = sorted(matches, key=lambda (p,d): d)[:10]
@@ -152,7 +153,7 @@ def make_prints(db):
 
 def match_persons(db, master):
     prints = make_prints(db)
-    match_beitraege(db, master, prints)
+    #match_beitraege(db, master, prints)
     match_speakers(db, master, prints)
 
 if __name__ == '__main__':

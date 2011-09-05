@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.NOTSET)
 PLPR_URL = "http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=details&isLinkCallPlenar=1"
 MEDIATHEK_URL = "http://www.bundestag.de/Mediathek/index.jsp"
 MIN_WP = 17
-MAX_FAIL = 3
+MAX_FAIL = 2
 SHORT_URL = "http://dbtg.tv/vid/"
 
 def get_doc(url):
@@ -24,6 +24,7 @@ def get_doc(url):
         try:
             doc = html.parse(url)
             doc.find('//body')
+            #print url
             return doc
         except Exception, e:
             log.exception(e)
@@ -41,7 +42,8 @@ def video_box(doc, prefix):
     pdf_elem = area.find('.//li[@class="pdf"]/a')
     text = html.tostring(area.find('div'))
     text = text.split('<div>', 1)[-1].rsplit('</div>')[0]
-    data = {prefix + '_context': area.find('h2/span').text.strip(),
+    data = {
+            prefix + '_context': area.find('h2/span').text.strip(),
             prefix + '_title': area.find('h2/br').tail.strip(),
             prefix + '_text': text,
             prefix + '_mp4_url': urljoin(MEDIATHEK_URL, vid_elem.get('href')) \
@@ -109,10 +111,11 @@ def load_speeches(url, context, db):
                         map(lambda s: s.strip(), spch['speech_meta'].split('|'))
                 spch['speech_duration'] = spch['speech_duration'].split(": ")[-1]
                 spch['speech_time'] = spch['speech_time'].split(" ")[0]
-            #pprint(spch)
             spch['speech_nr'] = speech_id
-            db['mediathek'].writerow(spch, 
-                    unique_columns=['speech_source_url'])
+            #db['mediathek'].writerow(spch, 
+            #        unique_columns=['speech_source_url'])
+            if not 'speech_title' in spch or not spch['speech_title']:
+                pprint(spch)
             #name_transform(spch['speech_title'])
 
 

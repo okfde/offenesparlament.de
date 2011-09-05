@@ -4,9 +4,36 @@ from flask import url_for, redirect, jsonify
 from offenesparlament.core import app
 from offenesparlament.model import Ablauf, Position
 from offenesparlament.model import Person
+from offenesparlament.model import Sitzung, Zitat
 
 from offenesparlament.pager import Pager
 from offenesparlament.searcher import SolrSearcher
+
+@app.route("/plenum/<wahlperiode>/<nummer>")
+def sitzung(wahlperiode, nummer):
+    sitzung = Sitzung.query.filter_by(wahlperiode=wahlperiode,
+                                      nummer=nummer).first()
+    if sitzung is None:
+        abort(404)
+    searcher = SolrSearcher(Zitat, request.args)
+    searcher.filter('sitzung.wahlperiode', sitzung.wahlperiode)
+    searcher.filter('sitzung.nummer', sitzung.nummer)
+    searcher.add_facet('debatten_zitate.debatte.titel')
+    searcher.add_facet('person.name')
+    searcher.sort('sequenz', 'asc')
+    pager = Pager(searcher, 'sitzung', request.args,
+            wahlperiode=wahlperiode, nummer=nummer)
+    pager.limit = 100
+    return render_template('sitzung_view.html',
+            sitzung=sitzung, pager=pager, searcher=searcher)
+
+@app.route("/plenum")
+def sitzungen():
+    searcher = SolrSearcher(Sitzung, request.args)
+    searcher.add_facet('wahlperiode')
+    pager = Pager(searcher, 'sitzungen', request.args)
+    return render_template('sitzung_search.html', 
+            searcher=searcher, pager=pager)
 
 @app.route("/position/<key>")
 def position(key):
@@ -27,14 +54,14 @@ def ablauf(wahlperiode, key):
             ablauf=ablauf)
 
 @app.route("/ablauf")
-def search():
+def ablaeufe():
     searcher = SolrSearcher(Ablauf, request.args)
     searcher.add_facet('initiative')
     searcher.add_facet('typ')
     searcher.add_facet('stand')
     searcher.add_facet('sachgebiet')
     searcher.add_facet('schlagworte')
-    pager = Pager(searcher, 'search', request.args)
+    pager = Pager(searcher, 'ablaeufe', request.args)
     return render_template('ablauf_search.html', 
             searcher=searcher, pager=pager)
 

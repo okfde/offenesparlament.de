@@ -340,6 +340,10 @@ def scrape_ablauf(url, db):
     a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
     a['typ'] = doc.findtext("VORGANGSTYP")
     a['titel'] = doc.findtext("TITEL")
+
+    if not a['titel'] or not len(a['titel'].strip()):
+        return
+
     if '\n' in a['titel']:
         t, k = a['titel'].rsplit('\n', 1)
         k = k.strip()

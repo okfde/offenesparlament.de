@@ -327,6 +327,10 @@ def load_debatten(ws):
         if not sitz in sitzungen:
             sitzungen[sitz] = load_sitzung(ws, speech)
         sitzung = sitzungen[sitz]
+        log.info("Loading Debatte: %s/%s - %s..." % (
+            speech.get('wahlperiode'),
+            speech.get('meeting_nr'), 
+            speech.get('top_title')))
         debatte = Debatte.query.filter_by(
                 sitzung=sitzung,
                 source_url=speech.get('top_source_url')
@@ -346,6 +350,8 @@ def load_debatten(ws):
         db.session.commit()
 
 def load_sitzung(ws, speech):
+    log.info("Loading Sitzung: %s/%s..." % (speech.get('wahlperiode'),
+        speech.get('meeting_nr')))
     sitzung = Sitzung.query.filter_by(
             wahlperiode=speech.get('wahlperiode'),
             nummer=speech.get('meeting_nr')
@@ -369,7 +375,12 @@ def load_sitzung(ws, speech):
 
 def load_zitate(ws):
     sitzungen = {}
+    mediathek = dict([(m['speech_source_url'], m) for m in ws['mediathek']])
+    sys.stdout.write("Loading transcripts")
+    sys.stdout.flush()
     for speech in ws['speech']:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         s = (speech['wahlperiode'], speech['sitzung'])
         if s not in sitzungen:
             sitzungen[s] = Sitzung.query.filter_by(
@@ -397,18 +408,17 @@ def load_zitate(ws):
 
         db.session.add(zitat)
         db.session.flush()
-        load_debatte_zitate(ws, zitat)
+        load_debatte_zitate(ws, zitat, mediathek)
 
         db.session.commit()
 
-def load_debatte_zitate(ws, zitat):
+def load_debatte_zitate(ws, zitat, mediathek):
     if zitat.sitzung is None:
         return
     spme = ws['speech_mediathek']
-    me = ws['mediathek']
     for item in spme.traverse(wahlperiode=zitat.sitzung.wahlperiode,
             sitzung=zitat.sitzung.nummer, sequence=zitat.sequenz):
-        sp = me.find_one(speech_source_url=item['mediathek_url'])
+        sp = mediathek[item['mediathek_url']]
         debatte = Debatte.query.filter_by(
                 source_url=sp['top_source_url']).first()
         dz = DebatteZitat.query.filter_by(zitat=zitat,

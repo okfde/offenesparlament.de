@@ -90,7 +90,7 @@ class SolrSearcher(object):
             'rows': self._limit,
             'start': self._offset,
             'facet': 'true',
-            'facet_limit': 50,
+            'facet_limit': 100,
             'facet_mincount': 1,
             'facet_sort': 'count',
             'facet_field': self._facets,
@@ -106,6 +106,8 @@ class SolrSearcher(object):
             self._run()
         docs = self.results.get('response', {}).get('docs')
         ids = [int(d['id']) for d in docs]
+        if not len(ids):
+            return []
         objs = self.type_.query.filter(
                 self.type_.id.in_(ids)).all()
         objs = dict([(o.id, o) for o in objs])

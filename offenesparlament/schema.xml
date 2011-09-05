@@ -181,7 +181,6 @@
    <field name="mdb_id" type="string" indexed="true" stored="true" />
    <field name="nachname" type="string" indexed="true" stored="true" />
    <field name="name" type="string" indexed="true" stored="true" />
-   <field name="nummer" type="string" indexed="true" stored="true" />
    <field name="ort" type="string" indexed="true" stored="true" />
    <field name="partei" type="string" indexed="true" stored="true" />
    <field name="quelle" type="string" indexed="true" stored="true" />
@@ -281,9 +280,13 @@
 
    <field name="schlagworte" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="sachgebiet" type="string" indexed="true" stored="true" />
+   <field name="nummer" type="string" indexed="true" stored="true" />
    <field name="signatur" type="string" indexed="true" stored="true" />
    <field name="slug" type="string" indexed="true" stored="true" />
    <field name="source_url" type="string" indexed="true" stored="true" />
+   <field name="pdf_url" type="string" indexed="true" stored="true" />
+   <field name="pdf_page" type="string" indexed="true" stored="true" />
+   <field name="video_url" type="string" indexed="true" stored="true" />
    <field name="stand" type="string" indexed="true" stored="true" />
    
    <field name="stellv_vorsitz" type="string" indexed="true" stored="true" />
@@ -295,6 +298,17 @@
    <field name="vorsitz.name" type="string" indexed="true" stored="true" />
    <field name="vorsitz.slug" type="string" indexed="true" stored="true" />
    
+   <field name="person" type="string" indexed="true" stored="true" />
+   <field name="person.id" type="string" indexed="true" stored="true" />
+   <field name="person.name" type="string" indexed="true" stored="true" />
+   <field name="person.slug" type="string" indexed="true" stored="true" />
+
+   <field name="sitzung" type="string" indexed="true" stored="true" />
+   <field name="sitzung.id" type="string" indexed="true" stored="true" />
+   <field name="sitzung.nummer" type="string" indexed="true" stored="true" />
+   <field name="sitzung.wahlperiode" type="string" indexed="true" stored="true" />
+   <field name="sitzung.titel" type="string" indexed="true" stored="true" />
+
    <field name="telefon" type="string" indexed="true" stored="true" />
    <field name="titel" type="string" indexed="true" stored="true" />
    <field name="typ" type="string" indexed="true" stored="true" />
@@ -305,29 +319,54 @@
    <field name="wissenswertes" type="string" indexed="true" stored="true" />
    <field name="zurodnung" type="string" indexed="true" stored="true" />
    <field name="zustimmungsbeduerftig" type="string" indexed="true" stored="true" />
+   <field name="sequenz" type="int" indexed="true" stored="true" />
+   
+   <field name="zitate.id" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.sequenz" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.sprecher" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.typ" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.text" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.source_url" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.created_at" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.updated_at" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="zitate.sitzung" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.sitzung.id" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.sitzung.nummer" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.sitzung.wahlperiode" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.sitzung.titel" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.person" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.person.id" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.person.name" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.person.slug" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="zitate.debatten_zitate*" type="string" indexed="true" stored="true" multiValued="true" />
+   
+   <field name="debatten.titel" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="debatten.nummer" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="debatten.id" type="string" indexed="true" stored="false" multiValued="true"/>
 
-   <field name="zuweisungen.federfuehrung" type="string" indexed="true" stored="false" multiValued="true"/>
-   <field name="zuweisungen.gremium" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="zuweisungen.nummer" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="zuweisungen.id" type="string" indexed="true" stored="false" multiValued="true"/>
-   <field name="zuweisungen.position" type="string" indexed="true" stored="false" multiValued="true"/>
+   <field name="zuweisungen.titel" type="string" indexed="true" stored="false" multiValued="true"/>
    <field name="zuweisungen.text" type="string" indexed="true" stored="false" multiValued="true"/>
+   
+   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 
    <!-- catchall field, containing all other searchable text fields (implemented
         via copyField further on in this schema  -->
-   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+   <field name="_text" type="text" indexed="true" stored="false" multiValued="true"/>
 
    <field name="indexed_at" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
    <field name="created_at" type="date" indexed="true" stored="false" />
    <field name="updated_at" type="date" indexed="true" stored="false" />
-   <dynamicField name="*" type="text" indexed="true"  stored="true" />
+   <dynamicField name="*" type="string" indexed="true"  stored="true" multiValued="true" />
    
  </fields>
 
  <uniqueKey>typed_id</uniqueKey>
- <defaultSearchField>text</defaultSearchField>
+ <defaultSearchField>_text</defaultSearchField>
  <solrQueryParser defaultOperator="AND"/>
 
- <copyField source="*" dest="text"/>
+ <copyField source="*" dest="_text"/>
 </schema>
 
 

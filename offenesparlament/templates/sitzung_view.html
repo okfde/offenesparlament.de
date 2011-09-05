@@ -1,0 +1,50 @@
+{% import "searches.html" as macros %}
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ sitzung.titel }} - Sitzungen
+{% endblock %}
+
+{% block content %}
+  <h1>{{ sitzung.titel }}</h1>
+  <div class="box">
+    {{ macros.search(searcher, pager) }}
+    
+    <div class="sidebar">
+      {% if searcher.has_facet('debatten_zitate.debatte.titel') %}
+        <h3>Tagesordnung</h3>
+        {{ macros.facet_list(searcher, pager, 'debatten_zitate.debatte.titel',
+                             limit=500) }}
+      {% endif %}
+      {% if searcher.has_facet('person.name') %}
+        <h3>Sprecher</h3>
+        {{ macros.facet_list(searcher, pager, 'person.name', limit=100) }}
+      {% endif %}
+    </div>
+    <div class="mainbar">
+      <table class="search-results zitate">
+      {% for zitat in pager %}
+      <tr class="{{ zitat.typ }}">
+        <td class="speaker" width="40%">
+          {% if zitat.person %}
+          <a href="{{ url_for('person', slug=zitat.person.slug) }}">{{
+            zitat.person.name }}</a>
+          {% elif zitat.sprecher %}
+            {{ zitat.sprecher }}
+          {% endif %}</td>
+        <td class="text">
+          {{ zitat.text | replace('\n\n', '<hr/>') | safe }}
+        </td>
+        <td class="details">
+          <code>{{ zitat.sequenz }}</code>
+        </td>
+      </tr>
+      {% endfor %}
+      </table>
+      {{ macros.pager(pager) }}
+    </div>
+  </div>
+{% endblock %}
+
+
+
