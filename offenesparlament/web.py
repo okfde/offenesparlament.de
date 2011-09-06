@@ -3,7 +3,7 @@ from flask import url_for, redirect, jsonify
 
 from offenesparlament.core import app
 from offenesparlament.model import Ablauf, Position
-from offenesparlament.model import Person
+from offenesparlament.model import Person, Gremium
 from offenesparlament.model import Sitzung, Zitat
 
 from offenesparlament.pager import Pager
@@ -64,6 +64,25 @@ def ablaeufe():
     pager = Pager(searcher, 'ablaeufe', request.args)
     return render_template('ablauf_search.html', 
             searcher=searcher, pager=pager)
+
+@app.route("/gremium")
+def gremien():
+    searcher = SolrSearcher(Gremium, request.args)
+    pager = Pager(searcher, 'gremien', request.args)
+    return render_template('gremium_search.html', 
+            searcher=searcher, pager=pager)
+
+@app.route("/gremium/<key>")
+def gremium(key):
+    gremium = Gremium.query.filter_by(key=key).first()
+    if gremium is None:
+        abort(404)
+    searcher = SolrSearcher(Position, request.args)
+    searcher.sort('date')
+    #searcher.filter('beitraege.gremium.id', str(gremium.id))
+    pager = Pager(searcher, 'gremium', request.args, key=key)
+    return render_template('gremium_view.html',
+            gremium=gremium, searcher=searcher, pager=pager)
 
 @app.route("/person")
 def persons():

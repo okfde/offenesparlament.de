@@ -9,12 +9,6 @@
 {% endblock %}
 
 {% block content %}
-  {% if person.foto_url %}
-    <div class="person-foto">
-      <img src="{{ person.foto_url }}">
-      <p>{{ person.foto_copyright }}</p>
-    </div>
-  {% endif %}
   <h1>{{ person.name }}</h1>
   <ul>
     {% for rolle in person.rollen %}
@@ -31,12 +25,66 @@
       </li>
     {% endfor %}
   </ul>
-  <div class="clearfix"></div>
+  <!--div class="clearfix"></div-->
   <div class="rightbar">
     {% if person.bio %}
       <h3>Biografie</h3>
+      {% if person.foto_url %}
+        <div class="person-foto">
+          <img src="{{ person.foto_url }}">
+          <p>{{ person.foto_copyright }}</p>
+        </div>
+      {% endif %}
       <p>{{person.bio | safe}}</p>
     {% endif %}
+    <h3>Gremien</h3>
+    <ul>
+      {% if person.vorsitze[0] %}
+      <li>Vorsitz
+      <ul>
+        {% for g in person.vorsitze %}
+          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+        {% endfor %}
+      </ul>
+      </li>
+      {% endif %}
+      {% if person.stellv_vorsitze[0] %}
+      <li>Stellvertretung
+      <ul>
+        {% for g in person.stellv_vorsitze %}
+          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+        {% endfor %}
+      </ul>
+      </li>
+      {% endif %}
+      {% if person.obleute[0] %}
+      <li>Obleute
+      <ul>
+        {% for g in person.obleute %}
+          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+        {% endfor %}
+      </ul>
+      </li>
+      {% endif %}
+      {% if person.mitglied[0] %}
+      <li>Mitgliedschaften
+      <ul>
+        {% for g in person.mitglied %}
+          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+        {% endfor %}
+      </ul>
+      </li>
+      {% endif %}
+      {% if person.stellvertreter[0] %}
+      <li>Stellvertretung
+      <ul>
+        {% for g in person.stellvertreter %}
+          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+        {% endfor %}
+      </ul>
+      </li>
+      {% endif %}
+    </ul>
   </div>
   <div class="leftbar">
     <h3>Arbeit</h3>

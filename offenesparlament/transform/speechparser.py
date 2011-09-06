@@ -48,12 +48,14 @@ class SpeechParser(object):
                 speaker_name = sinfo[0]
                 text = sinfo[1]
                 speaker = speaker_name.replace('Gegenruf des Abg. ', '')
-                fingerprint = self.identify_speaker(speaker)
+                try:
+                    fingerprint = self.identify_speaker(speaker)
+                except ValueError:
+                    pass
             yield (speaker_name, fingerprint, text)
 
     def __iter__(self):
         self.in_session = False
-        sequence = [0]
         speaker = None
         fingerprint = None
         chair_ = [False]
@@ -63,10 +65,8 @@ class SpeechParser(object):
                 'speaker': speaker,
                 'type': 'chair' if chair_[0] else 'speech',
                 'fingerprint': fingerprint,
-                'sequence': sequence[0],
                 'text': "\n\n".join(text).strip()
                 }
-            sequence[0] += 1
             chair_[0] = False
             _ = [text.pop() for i in xrange(len(text))]
             return data
@@ -92,11 +92,7 @@ class SpeechParser(object):
             m = SPEAKER_MARK.match(line)
             if m is not None and not is_top:
                 if speaker is not None:
-                    data = emit()
-                    if len(data['text'].strip()):
-                        yield data
-                    else:
-                        sequence[0] -= 1
+                    yield emit()
                 speaker = m.group(1)
                 try:
                     fingerprint = self.identify_speaker(speaker)
@@ -108,24 +104,15 @@ class SpeechParser(object):
             
             m = POI_MARK.match(line)
             if m is not None:
-                data = emit()
-                if len(data['text'].strip()):
-                    yield data
-                else:
-                    sequence[0] -= 1
-                try:
-                    for _speaker, _fingerprint, _text in self.parse_pois(m.group(1)):
-                        yield {
-                            'speaker': _speaker,
-                            'type': 'poi',
-                            'fingerprint': _fingerprint,
-                            'sequence': sequence[0],
-                            'text': _text
-                                }
-                        sequence[0] += 1
-                    continue
-                except ValueError:
-                    pass
+                yield emit()
+                for _speaker, _fingerprint, _text in self.parse_pois(m.group(1)):
+                    yield {
+                        'speaker': _speaker,
+                        'type': 'poi',
+                        'fingerprint': _fingerprint,
+                        'text': _text
+                            }
+                continue
             
             text.append(line)
         yield emit()
@@ -137,12 +124,17 @@ def load_transcript(db, master, wp, session):
     fh.close()
     log.info("Loading transcript: %s/%s" % (wp, session))
     Speech = db['speech']
+    seq = 0
     for contrib in SpeechParser(master_data(), db, sio):
+        if not len(contrib['text'].strip()):
+            continue
         contrib['sitzung'] = session
+        contrib['sequence'] = seq
         contrib['wahlperiode'] = wp
         contrib['source_url'] = url
         Speech.writerow(contrib, 
                 unique_columns=['sequence', 'sitzung', 'wahlperiode'])
+        seq += 1
 
 def load_transcripts(db, master):
     for i in count(33):

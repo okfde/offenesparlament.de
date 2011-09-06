@@ -305,6 +305,12 @@ table.zitate td.speaker {
   font-weight: bold;
 }
 
+table.zitate td.speaker .meta {
+  padding-top: 0.3em;
+  font-size: 0.8em;
+  color: #666;
+}
+
 table.zitate td.text {
   font-family: Georgia;
   font-size: 1.2em;
@@ -335,12 +341,18 @@ table.zitate tr.chair {
 /* Persons */
 
 .person-foto {
-  float: left;
-  margin-right: 2em;
+  float: right;
+  margin-left: 1em;
 }
 
 .person-foto img {
   height: 200px;
+}
+
+.person-foto p {
+  font-size: 0.5em;
+  color: #666;
+  overflow: hidden;
 }
 
 /* Forms */

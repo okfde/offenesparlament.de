@@ -162,5 +162,5 @@ if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
-    #extend_speeches(db, master_data())
+    extend_speeches(db, master_data())
     merge_speech(db, master_data(), 17, 121)

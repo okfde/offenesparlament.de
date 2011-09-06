@@ -40,7 +40,7 @@
           <th>Schlagworte:</th>
           <td>
             {% for wort in ablauf.schlagworte %}
-              <a href="{{ url_for('search', schlagworte=wort.name) }}">
+            <a href="{{ url_for('ablauf', schlagworte=wort.name) }}">
                 {{ wort.name }}</a>{% if not loop.last %},{% endif %}
             {% endfor %}
           </td>
