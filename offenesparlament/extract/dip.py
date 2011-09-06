@@ -200,7 +200,7 @@ def dokument_by_name(name):
         log.warn("NO DATE: %s" % name)
     if ',' in name or '\n' in name:
         name, remainder = END_ID.split(name, 1)
-    typ, nummer = name.strip().split(" ")
+    typ, nummer = name.strip().split(" ", 1)
     hrsg, typ = {
             "BT-Plenarprotokoll": ("BT", "plpr"), 
             "BT-Drucksache": ("BT", "drs"), 
@@ -209,6 +209,7 @@ def dokument_by_name(name):
             }.get(typ)
     if hrsg == 'BT' and typ == 'drs':
         f, s = nummer.split("/")
+        s = s.split(" ")[0]
         s = s.zfill(5)
         link = "http://dipbt.bundestag.de:80/dip21/btd/%s/%s/%s%s.pdf" % (f, s[:3], f, s)
     return _get_dokument(hrsg, typ, nummer, link=link)
