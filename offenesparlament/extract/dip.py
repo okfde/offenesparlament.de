@@ -208,7 +208,7 @@ def dokument_by_name(name):
             "BR-Drucksache": ("BR", "drs")
             }.get(typ)
     if hrsg == 'BT' and typ == 'drs':
-        f, s = nummer.split("/")
+        f, s = nummer.split("/", 1)
         s = s.split(" ")[0]
         s = s.zfill(5)
         link = "http://dipbt.bundestag.de:80/dip21/btd/%s/%s/%s%s.pdf" % (f, s[:3], f, s)
