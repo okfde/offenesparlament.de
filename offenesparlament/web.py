@@ -67,19 +67,18 @@ def ablaeufe():
 
 @app.route("/gremium")
 def gremien():
-    searcher = SolrSearcher(Gremium, request.args)
-    pager = Pager(searcher, 'gremien', request.args)
-    return render_template('gremium_search.html', 
-            searcher=searcher, pager=pager)
+    gremien = Gremium.query.order_by(Gremium.name.asc()).all()
+    return render_template('gremium_list.html', 
+            gremien=gremien)
 
 @app.route("/gremium/<key>")
 def gremium(key):
     gremium = Gremium.query.filter_by(key=key).first()
     if gremium is None:
         abort(404)
-    searcher = SolrSearcher(Position, request.args)
-    searcher.sort('date')
-    #searcher.filter('beitraege.gremium.id', str(gremium.id))
+    searcher = SolrSearcher(Ablauf, request.args)
+    #searcher.sort('positionen.date')
+    searcher.filter('positionen.zuweisungen.gremium', gremium.key)
     pager = Pager(searcher, 'gremium', request.args, key=key)
     return render_template('gremium_view.html',
             gremium=gremium, searcher=searcher, pager=pager)

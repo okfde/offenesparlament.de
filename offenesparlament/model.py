@@ -608,6 +608,7 @@ class Ablauf(db.Model):
     source_url = db.Column(db.Unicode())
     wahlperiode = db.Column(db.Unicode())
     typ = db.Column(db.Unicode())
+    klasse = db.Column(db.Unicode())
     titel = db.Column(db.Unicode())
     initiative = db.Column(db.Unicode())
     stand = db.Column(db.Unicode())
@@ -646,6 +647,7 @@ class Ablauf(db.Model):
         data = self.to_ref()
         data.update({
             'typ': self.typ,
+            'klasse': self.klasse,
             'initiative': self.initiative,
             'stand': self.stand,
             'signatur': self.signatur,
@@ -681,10 +683,10 @@ class Sitzung(db.Model):
     source_url = db.Column(db.Unicode())
 
     debatten = db.relationship('Debatte', backref='sitzung',
-                           lazy='dynamic', order_by='Debatte.nummer.desc()')
+                           lazy='dynamic', order_by='Debatte.nummer.asc()')
 
     zitate = db.relationship('Zitat', backref='sitzung',
-                           lazy='dynamic', order_by='Zitat.sequenz.desc()')
+                           lazy='dynamic', order_by='Zitat.sequenz.asc()')
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
@@ -727,7 +729,7 @@ class Debatte(db.Model):
     sitzung_id = db.Column(db.Integer, db.ForeignKey('sitzung.id'))
 
     debatten_zitate = db.relationship('DebatteZitat', backref='debatte',
-                           lazy='dynamic', order_by='DebatteZitat.nummer.desc()')
+                           lazy='dynamic', order_by='DebatteZitat.nummer.asc()')
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,

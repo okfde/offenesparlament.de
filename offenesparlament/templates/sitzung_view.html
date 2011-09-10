@@ -43,7 +43,7 @@
           {{ zitat.text | replace('\n\n', '<hr/>') | safe }}
         </td>
         <td class="details">
-          <code>{{ zitat.sequenz }}</code>
+          <a name="z{{zitat.sequenz}}" title="#{{ zitat.sequenz }}">&para;</a>
         </td>
       </tr>
       {% endfor %}

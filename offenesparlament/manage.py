@@ -27,6 +27,8 @@ def transform():
     master = master_data()
     from offenesparlament.transform import persons
     persons.generate_person_long_names(db)
+    from offenesparlament.transform import ablaeufe
+    ablaeufe.extend_ablaeufe(db, master)
     from offenesparlament.transform import positions
     positions.extend_positions(db)
     from offenesparlament.transform import namematch

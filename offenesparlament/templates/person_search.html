@@ -32,7 +32,12 @@
           <a href="{{ url_for('person', slug=person.slug) }}">{{ person.name }}</a>
         </h3>
         <p>{% for rolle in person.rollen %}
-          {{ rolle.funktion }}
+          {{ rolle.funktion }} 
+          {% if rolle.fraktion %}
+            &middot;
+            {{ rolle.fraktion }}
+            &middot;
+          {% endif %}
           ({{ rolle.ressort or rolle.wahlkreis.name or 'Liste' }}){% if not loop.last %},{% endif %}
         {% endfor %}</p>
       </li>

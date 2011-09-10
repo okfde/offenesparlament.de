@@ -94,7 +94,7 @@ body, input {
 }
 
 .container {
-  padding: 2em 0 2em 0;
+  padding: 4em 0 2em 0;
   background-color: #E2DCC5;
   margin: 0px;
 }
@@ -196,6 +196,35 @@ h1#site-title a {
   font-weight: normal;
   font-variant: small-caps !important;
   color: #000;
+}
+
+ul.menu {
+  float: right;
+  list-style-type: none;
+  margin-top: -3.3em;
+  margin-right: -2em;
+}
+
+ul.menu li {
+  padding: 1em;
+  min-width: 6em;
+  display: inline-block;
+  text-align: center;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+ul.menu li a {
+  text-decoration: none;
+  color: #000;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+p.hint {
+  margin-bottom: 1em;
+  font-size: 0.9em;
+  color: #666;
 }
 
 /* Flash messages */
@@ -314,7 +343,11 @@ table.zitate td.speaker .meta {
 table.zitate td.text {
   font-family: Georgia;
   font-size: 1.2em;
-  padding-right: 1em;
+  /*padding-right: 1em;*/
+}
+
+table.zitate tr.poi td.details {
+  font-style: normal;
 }
 
 table.zitate td.text hr {
@@ -352,7 +385,31 @@ table.zitate tr.chair {
 .person-foto p {
   font-size: 0.5em;
   color: #666;
+  display: block;
+  width: 130px;
   overflow: hidden;
+}
+
+/* Gremien */
+
+ul.gremien-list {
+  list-style-type: none;
+  margin: 0;
+}
+
+ul.gremien-list li {
+  min-height: 2.2em;
+  padding-bottom: 0.5em;
+}
+
+ul.gremien-list li.ausschuss {
+  font-weight: bold;
+}
+
+ul.gremien-list a {
+  display: block;
+  font-size: 1.2em;
+  text-decoration: none;
 }
 
 /* Forms */
@@ -542,7 +599,7 @@ ul.search-results p {
 }
 
 ul.search-results.ablauf h3 a {
-  color: #333;
+  /*color: #333;*/
 }
 
 ul.search-results.person p,

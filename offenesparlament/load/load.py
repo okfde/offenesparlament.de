@@ -29,7 +29,7 @@ def load_gremien(ws):
         gremium.key = data.get('key')
         gremium.source_url = data.get('source_url')
         gremium.name = data.get('name')
-        gremium.typ = data.get('typ')
+        gremium.typ = data.get('type')
         gremium.url = data.get('url')
         gremium.aufgabe = data.get('aufgabe')
         gremium.rss_url = data.get('rss_url')
@@ -193,6 +193,7 @@ def load_ablauf(ws, data):
     ablauf.source_url = data.get('source_url')
     ablauf.wahlperiode = data.get('wahlperiode')
     ablauf.typ = data.get('typ')
+    ablauf.klasse = data.get('class')
     ablauf.titel = data.get('titel')
     ablauf.initiative = data.get('initiative')
     ablauf.stand = data.get('stand')
@@ -435,10 +436,10 @@ def load_debatte_zitate(ws, zitat, mediathek):
 
 
 def load(ws):
-    #load_gremien(ws)
+    load_gremien(ws)
     #load_news(ws)
-    #load_persons(ws)
-    #load_ablaeufe(ws)
+    load_persons(ws)
+    load_ablaeufe(ws)
     load_debatten(ws)
     load_zitate(ws)
 

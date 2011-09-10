@@ -1,0 +1,72 @@
+{% import "searches.html" as macros %}
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ gremium.name }} - Gremien
+{% endblock %}
+
+{% block content %}
+  <h1>{{ gremium.name }}</h1>
+  <div class="box">
+    <!--
+    {% if gremium.aufgabe %}
+      {{ gremium.aufgabe | safe }}
+      <hr/>
+      {% endif %}
+    -->
+    <div class="sidebar">
+      <h3>Vorsitz</h3>
+      <ul>
+        {% if gremium.vorsitz %}
+        <li><a href="{{ url_for('person', key=gremium.vorsitz.slug) }}">{{ gremium.vorsitz.name }}</a></li>
+        {% endif %}
+        {% if gremium.stellv_vorsitz %}
+        <li><a href="{{ url_for('person', key=gremium.stellv_vorsitz.slug)
+          }}">{{ gremium.stellv_vorsitz.name }}</a></li>
+        {% endif %}
+      </ul>
+      {% if gremium.obleute[0] %}
+        <h3>Obleute</h3>
+        <ul>
+          {% for p in gremium.obleute %}
+            <li><a href="{{ url_for('person', key=p.slug) }}">{{ p.name }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if gremium.mitglieder[0] %}
+        <h3>Mitglieder</h3>
+        <ul>
+          {% for p in gremium.mitglieder %}
+            <li><a href="{{ url_for('person', key=p.slug) }}">{{ p.name }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if gremium.stellvertreter[0] %}
+        <h3>Stellv. Mitglieder</h3>
+        <ul>
+          {% for p in gremium.stellvertreter %}
+            <li><a href="{{ url_for('person', key=p.slug) }}">{{ p.name }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+    <div class="mainbar">
+      <h3>Abläufe</h3>
+      {{ macros.search(searcher, pager) }}
+      <ul class="search-results ablauf">
+      {% for ablauf in pager %}
+      <li>
+        <h3><a href="{{ url_for('ablauf', wahlperiode=ablauf.wahlperiode,
+            key=ablauf.key) }}">{{ ablauf.titel }}</a></h3>
+        <p><strong>{{ ablauf.typ }}</strong> &mdash; {{ ablauf.initiative or
+        ablauf.sachgebiet or ablauf.stand }}</p>
+      </li>
+      {% endfor %}
+      </ul>
+      {{ macros.pager(pager) }}
+    </div>
+  </div>
+{% endblock %}
+
+
+

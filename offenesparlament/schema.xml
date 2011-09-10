@@ -312,6 +312,7 @@
    <field name="telefon" type="string" indexed="true" stored="true" />
    <field name="titel" type="string" indexed="true" stored="true" />
    <field name="typ" type="string" indexed="true" stored="true" />
+   <field name="klasse" type="string" indexed="true" stored="true" />
    <field name="urheber" type="string" indexed="true" stored="true" />
    <field name="url" type="string" indexed="true" stored="true" />
    <field name="vorname" type="string" indexed="true" stored="true" />
