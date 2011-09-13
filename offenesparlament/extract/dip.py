@@ -281,16 +281,19 @@ def scrape_activity(ablauf, elem, db):
         b['dokument_text'] = belem.findtext("BEZUGSDOKUMENT")
         b['tenor'] = belem.findtext("BESCHLUSSTENOR")
         Beschluss.writerow(b)
-    
-    dokument = dokument_by_url(p['fundstelle_url']) or \
-        dokument_by_name(p['fundstelle'])
-    dokument.update(pos_keys)
-    dokument['ablauf_key'] = ablauf['key']
-    dokument['wahlperiode'] = ablauf['wahlperiode']
-    db['referenz'].writerow(dokument, unique_columns=[
-            'link', 'wahlperiode', 'ablauf_key', 'seiten'
-            ])
-    
+
+    try:
+        dokument = dokument_by_url(p['fundstelle_url']) or \
+            dokument_by_name(p['fundstelle'])
+        dokument.update(pos_keys)
+        dokument['ablauf_key'] = ablauf['key']
+        dokument['wahlperiode'] = ablauf['wahlperiode']
+        db['referenz'].writerow(dokument, unique_columns=[
+                'link', 'wahlperiode', 'ablauf_key', 'seiten'
+                ])
+    except Exception, e:
+        log.exception(e)
+
     Position.writerow(p)
     Person = db['person']
     Beitrag = db['beitrag']
