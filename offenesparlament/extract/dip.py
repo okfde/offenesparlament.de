@@ -207,6 +207,7 @@ def dokument_by_name(name):
             "BR-Plenarprotokoll": ("BR", "plpr"),
             "BR-Drucksache": ("BR", "drs")
             }.get(typ, ('BT', 'drs'))
+    link = None
     if hrsg == 'BT' and typ == 'drs':
         f, s = nummer.split("/", 1)
         s = s.split(" ")[0]
