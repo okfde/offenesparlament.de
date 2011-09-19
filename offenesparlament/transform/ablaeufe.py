@@ -13,7 +13,7 @@ def extend_ablaeufe(db, master):
     Ablauf = db['ablauf']
     typen = [(t.get('typ'), t.get('class')) for t in master['ablauf_typ']]
     typen = dict(typen)
-    for data in Ablauf.distict('typ'):
+    for data in Ablauf.distinct('typ'):
         klass = typen.get(data.get('typ'))
         Ablauf.writerow({'typ': data.get('typ'),
                          'class': klass}, 
