@@ -18,10 +18,10 @@
       <h3>Vorsitz</h3>
       <ul>
         {% if gremium.vorsitz %}
-        <li><a href="{{ url_for('person', key=gremium.vorsitz.slug) }}">{{ gremium.vorsitz.name }}</a></li>
+        <li><a href="{{ url_for('person', slug=gremium.vorsitz.slug) }}">{{ gremium.vorsitz.name }}</a></li>
         {% endif %}
         {% if gremium.stellv_vorsitz %}
-        <li><a href="{{ url_for('person', key=gremium.stellv_vorsitz.slug)
+        <li><a href="{{ url_for('person', slug=gremium.stellv_vorsitz.slug)
           }}">{{ gremium.stellv_vorsitz.name }}</a></li>
         {% endif %}
       </ul>
@@ -29,7 +29,7 @@
         <h3>Obleute</h3>
         <ul>
           {% for p in gremium.obleute %}
-            <li><a href="{{ url_for('person', key=p.slug) }}">{{ p.name }}</a></li>
+            <li><a href="{{ url_for('person', slug=p.slug) }}">{{ p.name }}</a></li>
           {% endfor %}
         </ul>
       {% endif %}
@@ -37,7 +37,7 @@
         <h3>Mitglieder</h3>
         <ul>
           {% for p in gremium.mitglieder %}
-            <li><a href="{{ url_for('person', key=p.slug) }}">{{ p.name }}</a></li>
+            <li><a href="{{ url_for('person', slug=p.slug) }}">{{ p.name }}</a></li>
           {% endfor %}
         </ul>
       {% endif %}
@@ -45,7 +45,7 @@
         <h3>Stellv. Mitglieder</h3>
         <ul>
           {% for p in gremium.stellvertreter %}
-            <li><a href="{{ url_for('person', key=p.slug) }}">{{ p.name }}</a></li>
+            <li><a href="{{ url_for('person', slug=p.slug) }}">{{ p.name }}</a></li>
           {% endfor %}
         </ul>
       {% endif %}

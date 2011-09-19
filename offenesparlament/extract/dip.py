@@ -266,6 +266,7 @@ def scrape_activity(ablauf, elem, db):
          'fundstelle': fundstelle}
     pos_keys = p.copy()
     p['zuordnung'] = elem.findtext("ZUORDNUNG")
+    p['abstrakt'] = elem.findtext("VP_ABSTRAKT")
     p['fundstelle_url'] = elem.findtext("FUNDSTELLE_LINK")
     
     for zelem in elem.findall("ZUWEISUNG"):
@@ -281,6 +282,7 @@ def scrape_activity(ablauf, elem, db):
         b['seite'] = belem.findtext("BESCHLUSSSEITE")
         b['dokument_text'] = belem.findtext("BEZUGSDOKUMENT")
         b['tenor'] = belem.findtext("BESCHLUSSTENOR")
+        b['grundlage'] = belem.findtext("GRUNDLAGE")
         Beschluss.writerow(b)
 
     try:
