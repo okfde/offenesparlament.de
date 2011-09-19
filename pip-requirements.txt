@@ -3,6 +3,7 @@ ipdb
 flask 
 flask-sqlalchemy
 flask-script
+flask-flatpages
 lxml
 webstore-client
 python-Levenshtein
