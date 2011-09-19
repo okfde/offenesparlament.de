@@ -1,7 +1,7 @@
 from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify
 
-from offenesparlament.core import app
+from offenesparlament.core import app, pages
 from offenesparlament.model import Ablauf, Position
 from offenesparlament.model import Person, Gremium
 from offenesparlament.model import Sitzung, Zitat
@@ -104,6 +104,12 @@ def person(slug):
     pager = Pager(searcher, 'person', request.args, slug=slug)
     return render_template('person_view.html',
             person=person, searcher=searcher, pager=pager)
+
+@app.route("/pages/<path:path>")
+def page(path):
+    page = pages.get_or_404(path)
+    template = page.meta.get('template', 'page.html')
+    return render_template(template, page=page)
 
 @app.route("/")
 def index():

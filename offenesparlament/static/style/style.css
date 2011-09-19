@@ -87,6 +87,7 @@ html, body {
 body {
   font-size: 0.8em;
   background-color: #CBC4A7;
+  line-height: 1.5em;
 }
 
 body, input {
@@ -94,7 +95,7 @@ body, input {
 }
 
 .container {
-  padding: 4em 0 2em 0;
+  padding: 5em 0 2em 0;
   background-color: #E2DCC5;
   margin: 0px;
 }
@@ -108,7 +109,49 @@ body, input {
   background-color: white;
   /*background-image: url(/static/img/inner_bg.png);*/
   border: 1px solid #D3CCB0;
-  padding: 10px 15px 10px 15px;
+  padding: 20px 20px 15px 20px;
+}
+
+.banner {
+  margin: -20px;
+  position: relative;
+  margin-bottom: 1em;
+}
+
+.banner h1 {
+  position: absolute;
+  bottom: 1em;
+  right: 2em;
+  background-color: #fff;
+  padding: 1em;
+}
+
+.banner.gremien {
+  height: 180px;
+  background: url(/static/img/gremien.png);
+}
+
+.banner.sitzungen {
+  height: 180px;
+  background: url(/static/img/plenum.png);
+}
+
+.banner.faq {
+  height: 180px;
+  background: url(/static/img/faq.png);
+}
+
+.banner.home {
+  height: 290px;
+  background: url(/static/img/home.png);
+}
+
+.banner.home h1 {
+  right: auto; 
+  padding: 0.8em;
+  left: 1em;
+  bottom: 0.2em;
+  font-size: 2.8em;
 }
 
 h1, h2, h3, h4 {
@@ -147,17 +190,29 @@ a:hover {
 footer {
   margin: 10px 0 0 0;
   padding-bottom: 10em;
+  color: #666;
+  font-size: 0.9em;
+}
+
+footer a, footer a:visited {
+  color: #666;
 }
 
 footer ul {
   list-style-type: none;
-  padding: 0;
+  padding: 1em 0 0 55px;
   margin: 0;
 }
 
 footer ul li {
   display: inline-block;
   padding-right: 1em;
+}
+
+footer .logo {
+  display: block;
+  float: left;
+  padding-right: 2em;
 }
 
 .mainbar {
@@ -186,8 +241,8 @@ header {
 }
 
 h1#site-title {
-  margin-bottom: 0.2em;
-  font-size: 3em;
+  margin-bottom: 0.5em;
+  font-size: 3.2em;
 }
 
 h1#site-title a {
@@ -329,25 +384,29 @@ table.zitate td {
 }
 
 table.zitate td.speaker {
-  width: 40%;
+  width: 30%;
+  font-size: 1.1em;
   padding-left: 1em;
   font-weight: bold;
 }
 
 table.zitate td.speaker .meta {
   padding-top: 0.3em;
-  font-size: 0.8em;
+  font-size: 0.7em;
   color: #666;
 }
 
 table.zitate td.text {
-  font-family: Georgia;
+  font-family: Georgia, 'Times New Roman', serif;
+  
+  line-height: 1.4em;
   font-size: 1.2em;
   /*padding-right: 1em;*/
 }
 
 table.zitate tr.poi td.details {
   font-style: normal;
+  padding-right: 0.5em;
 }
 
 table.zitate td.text hr {
@@ -613,6 +672,21 @@ ul.search-results.person p {
 
 ul.search-results.person li {
   padding-bottom: 1em;
+}
+
+ul.search-results.sitzung li {
+  list-style-type: none;
+}
+
+ul.search-results.sitzung li a {
+  text-decoration: none;
+}
+
+ul.search-results.sitzung li p {
+  color: #666;
+  display: block;
+  font-size: 0.8em;
+  margin-left: 4em;
 }
 
 /** More Boilerplate 

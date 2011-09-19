@@ -6,7 +6,10 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Sitzungen des Bundestags</h1>
+  <div class="banner sitzungen">
+    <h1>Sitzungen des Bundestags</h1>
+  </div>
+
   <div class="box">
     
     <div class="sidebar">
@@ -26,7 +29,10 @@
             nummer=sitzung.nummer) }}">{{ sitzung.titel }}</a></h3>
         <ul>
           {% for d in sitzung.debatten %}
-            <li>{{ d.titel }}</li>
+            <li><a href="{{ url_for('sitzung', wahlperiode=sitzung.wahlperiode,
+              nummer=sitzung.nummer) }}?debatten_zitate.debatte.titel={{d.titel}}">{{ d.titel.split("TOP",1)[-1] }}</a>
+              <!--p>{{d.text|safe}}</p-->
+            </li>
           {% endfor %}
         </ul>
       </li>
