@@ -404,9 +404,21 @@ table.zitate td.text {
   /*padding-right: 1em;*/
 }
 
+table.zitate tr.poi {
+  font-size: 0.9em;
+}
+
 table.zitate tr.poi td.details {
   font-style: normal;
   padding-right: 0.5em;
+}
+
+table.zitate tr td.details a {
+  visibility: hidden;
+}
+
+table.zitate tr:hover td.details a {
+  visibility: visible;
 }
 
 table.zitate td.text hr {

@@ -32,7 +32,9 @@ def extend_positions(db):
                 + data['urheber'].encode('utf-8') + \
                 data['ablauf_source_url'].encode('utf-8')).hexdigest()
         data['hash'] = hash[:7]
-        Position.writerow(data, unique_columns=UNIQUE)
+        Position.writerow(data, unique_columns=UNIQUE,
+                          bufferlen=2000)
+    Position.flush()
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"

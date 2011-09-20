@@ -38,7 +38,9 @@ def extend_speeches(db, master):
     
         #pprint(speech)
         #print "Speaker", speech['speech_title'].encode('utf-8')
-        Speech.writerow(speech, unique_columns=['speech_source_url'])
+        Speech.writerow(speech, unique_columns=['speech_source_url'],
+                bufferlen=2000)
+    Speech.flush()
 
 QUERY = '''SELECT DISTINCT wahlperiode, sitzung FROM speech;'''
 
@@ -86,7 +88,8 @@ def merge_speech(db, master, wp, session):
                 'sitzung': session,
                 'mediathek_url': med[idx]['speech_source_url'],
                 'sequence': speech['sequence']
-                }, unique_columns=['wahlperiode', 'sitzung', 'sequence'])
+                }, unique_columns=['wahlperiode', 'sitzung', 'sequence'],
+                bufferlen=2000)
 
     spch = []
     for speech in db['speech'].traverse(wahlperiode=wp, sitzung=session):
@@ -156,6 +159,8 @@ def merge_speech(db, master, wp, session):
                     # -> use current
                     emit(speech, speech_idx)
                     break
+    
+    SpeechMediathek.flush()
 
 
 if __name__ == '__main__':
