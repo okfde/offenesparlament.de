@@ -57,7 +57,7 @@ def match_beitrag(db, master, beitrag, prints):
     beitrag_print = make_long_name(beitrag)
     print "Matching:", beitrag_print.encode('utf-8')
     matches = [(p, levenshtein(p, beitrag_print)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)[:10]
+    matches = sorted(matches, key=lambda (p,d): d)[:40]
     if not len(matches):
         # create new
         return make_person(beitrag, beitrag_print, db)
