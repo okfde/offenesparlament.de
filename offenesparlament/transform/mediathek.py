@@ -14,7 +14,10 @@ logging.basicConfig(level=logging.NOTSET)
 def extend_speeches(db, master):
     Speech = db['mediathek']
     log.info("Post-processing speeches from mediathek...")
-    for speech in Speech:
+    for i, speech in enumerate(Speech):
+        if i % 1000 == 0:
+            sys.stdout.write('.')
+            sys.stdout.flush()
         for k, v in speech.items():
             if not k.endswith('pdf_url') or v is None:
                 continue
@@ -92,9 +95,7 @@ def merge_speech(db, master, wp, session):
     for speech in db['speech'].traverse(wahlperiode=wp, sitzung=session):
         spch_i = (speech['wahlperiode'], speech['sitzung'], speech['sequence'])
         if spch_i in spch:
-            #print "FAIL", speech
             continue
-            #return
         spch.append(spch_i)
 
         if speech['type'] == 'poi':
@@ -104,7 +105,6 @@ def merge_speech(db, master, wp, session):
         if speech['type'] == 'chair':
             tops = top_calls(speech['text'])
             if len(tops):
-                #print tops
                 j = int(top_idx)
                 last_title = 'xxx'
                 while True:
@@ -115,15 +115,8 @@ def merge_speech(db, master, wp, session):
                     if last_title == title:
                         continue
                     calls = top_calls(title) - top_calls(med[top_idx]['top_title'])
-                    #print tops, med[j]['top_title'].encode("utf-8"), top_calls(med[j]['top_title'])
                     if len(tops.intersection(calls)) > 0:
                         log.debug("TOP --- %s" % title)
-                        #pprint({
-                        #        "text": len(speech['text']),
-                        #        "text_tops": tops,
-                        #        "top_tops": top_calls(title),
-                        #        "top": med[j]['top_title']
-                        #    })
                         speech_idx = top_idx = j
                         break
                     last_title = title

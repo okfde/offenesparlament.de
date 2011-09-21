@@ -125,7 +125,10 @@ def _match_speaker(master, speaker, prints):
 
 def match_speakers(db, master, prints):
     Speech = db['mediathek']
-    for speech in Speech.distinct('speech_title'):
+    for i, speech in enumerate(Speech.distinct('speech_title')):
+        if i % 1000 == 0:
+            sys.stdout.write('.')
+            sys.stdout.flush()
         if speech['speech_title'] is None:
             continue
         speaker = speaker_name_transform(speech['speech_title'])
@@ -142,7 +145,10 @@ QUERY = '''SELECT DISTINCT vorname, nachname, funktion, land, fraktion,
 
 def match_beitraege(db, master, prints):
     Beitrag = db['beitrag']
-    for beitrag in db.query(QUERY):
+    for i, beitrag in enumerate(db.query(QUERY)):
+        if i % 1000 == 0:
+            sys.stdout.write('.')
+            sys.stdout.flush()
         match = match_beitrag(db, master, beitrag, prints)
         ensure_rolle(beitrag, match, db)
         beitrag['fingerprint'] = match

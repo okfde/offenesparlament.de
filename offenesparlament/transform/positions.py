@@ -14,7 +14,10 @@ UNIQUE = ['__id__']
 def extend_positions(db):
     log.info("Amending positions ...")
     Position = db['position']
-    for data in Position:
+    for i, data in enumerate(Position):
+        if i % 2000 == 0:
+            sys.stdout.write('.')
+            sys.stdout.flush()
         dt, rest = data['fundstelle'].split("-", 1)
         data['date'] = datetime.strptime(dt.strip(), "%d.%m.%Y").isoformat()
         if ',' in data['urheber']:

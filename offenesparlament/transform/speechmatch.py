@@ -18,9 +18,12 @@ def extend_speeches(db, master, wahlperiode=17):
     drs_match = re.compile(DRS_MATCH % (wahlperiode, wahlperiode))
     Speech = db['speech']
     SpeechDocument = db['speech_document']
-    for data in Speech:
+    for i, data in enumerate(Speech):
         if data.get('type') != 'chair':
             continue
+        if i % 1000 == 0:
+            sys.stdout.write('.')
+            sys.stdout.flush()
         m = drs_match.search(data.get('text'))
         if m is None:
             continue
@@ -35,7 +38,7 @@ def extend_speeches(db, master, wahlperiode=17):
                     'dok_nummer': nummer},
                     unique_columns=['sequence', 'sitzung', 'wahlperiode',
                         'group'],
-                    bufferlen=2000)
+                    bufferlen=5000)
     SpeechDocument.flush()
 
 if __name__ == '__main__':
