@@ -25,26 +25,27 @@ def handle_xml(xml, db):
     subject = ''
     def handle_list(page):
         texts = page.findall('text')[2:]
-        fraktion = texts[0].text.replace(u"ÜNDNIS`", "")
-        columns = texts[1:6]
-        columns = [(int(c.get('left')), c.text) for c in columns]
+        fraktion = texts[0].xpath("string()").replace(u"ÜNDNIS`", "")
+        columns = [c.xpath("string()") for c in texts[1:6]]
         texts = texts[7:]
-        for i, t in enumerate(texts[::2]):
-            if t.text.strip() == 'Summe':
+        for i, t in enumerate(texts[::6]):
+            if t.xpath('string()').strip() == 'Summe':
                 break
-            person = t.text + ' ' + fraktion
-            vote = texts[i*2+1]
-            l, match = min(columns, key=lambda (l, t): abs(l-int(vote.get('left'))))
-            data = {'subject': subject, 
-                    'person': person, 
-                    'vote': match}
-            Vote.writerow(data, unique_columns=['subject', 'person'])
+            person = t.xpath("string()") + ' ' + fraktion
+            ts = [c.xpath("string()") for c in texts[i*6+1:i*6+6]]
+            for col, val in zip(columns, ts):
+                if val == 'X':
+                    data = {'subject': subject, 
+                            'person': person, 
+                            'vote': col}
+                    Vote.writerow(data, unique_columns=['subject', 'person'],
+                                  bufferlen=2000)
 
     for page in doc.findall(".//page"):
         if page.get('number') == "1":
             for t in page.findall('text'):
                 if int(t.get('left')) < 120:
-                    subject += t.text + "\n"
+                    subject += t.xpath("string()") + "\n"
             subject = subject.strip()
             if u'Es entfielen auf die Gesetzentwürfe' in subject:
                 log.error("Mehrfachabstimmung WTF. Bailing...")
@@ -52,6 +53,8 @@ def handle_xml(xml, db):
             log.info("Abstimmung: %s", subject)
         else:
             handle_list(page)
+
+    Vote.flush()
 
 def load_vote(url, db):
     fh, path = tempfile.mkstemp('.pdf')
