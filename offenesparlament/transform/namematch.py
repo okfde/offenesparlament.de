@@ -132,7 +132,9 @@ def match_speakers(db, master, prints):
         fp = match_speaker(master, speaker, prints)
         Speech.writerow({'fingerprint': fp, 
                          'speech_title': speech['speech_title']},
-                    unique_columns=['speech_title'])
+                    unique_columns=['speech_title'],
+                    bufferlen=2000)
+    Speech.flush()
 
 
 QUERY = '''SELECT DISTINCT vorname, nachname, funktion, land, fraktion, 
@@ -145,7 +147,9 @@ def match_beitraege(db, master, prints):
         ensure_rolle(beitrag, match, db)
         beitrag['fingerprint'] = match
         Beitrag.writerow(beitrag, unique_columns=['vorname', 'nachname',
-            'funktion', 'land', 'fraktion', 'ressort', 'ort'])
+            'funktion', 'land', 'fraktion', 'ressort', 'ort'],
+            bufferlen=2000)
+    Beitrag.flush()
 
 def make_prints(db):
     return [p.get('fingerprint') for p in db['person'].distinct('fingerprint') \
@@ -154,7 +158,7 @@ def make_prints(db):
 
 def match_persons(db, master):
     prints = make_prints(db)
-    #match_beitraege(db, master, prints)
+    match_beitraege(db, master, prints)
     match_speakers(db, master, prints)
 
 if __name__ == '__main__':

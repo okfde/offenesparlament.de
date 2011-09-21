@@ -33,6 +33,8 @@ def transform():
     positions.extend_positions(db)
     from offenesparlament.transform import namematch
     namematch.match_persons(db, master)
+    from offenesparlament.transform import abstimmungen
+    abstimmungen.extend_abstimmungen(db, master)
     #persons.generate_person_long_names(db)
     from offenesparlament.transform import mediathek
     mediathek.extend_speeches(db, master)
