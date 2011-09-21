@@ -1,5 +1,6 @@
 import sys
 import logging
+from pprint import pprint
 
 from webstore.client import URL as WebStore
 
@@ -14,11 +15,15 @@ def extend_abstimmungen(db, master):
     Abstimmung = db['abstimmung']
     prints = make_prints(db)
     for data in Abstimmung.distinct('person'):
-        fp = match_speaker(master, data['person'], prints)
-        Abstimmung.writerow({'person': data.get('person'),
-                             'fingerprint': fp}, 
-                            unique_columns=['person'],
-                            bufferlen=2000)
+        try:
+            fp = match_speaker(master, data['person'], prints)
+            if fp is not None:
+                Abstimmung.writerow({'person': data.get('person'),
+                                     'fingerprint': fp}, 
+                                    unique_columns=['person'],
+                                    bufferlen=2000)
+        except ValueError, ve:
+            log.exception(ve)
     Abstimmung.flush()
 
 if __name__ == '__main__':

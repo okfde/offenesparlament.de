@@ -105,7 +105,7 @@ def _match_speaker(master, speaker, prints):
         raise ValueError()
 
     matches = [(p, levenshtein(p, speaker)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)[:10]
+    matches = sorted(matches, key=lambda (p,d): d)[:40]
     if not len(matches):
         return
     first, dist = matches[0]
@@ -148,7 +148,8 @@ def match_beitraege(db, master, prints):
             'funktion', 'land', 'fraktion', 'ressort', 'ort'])
 
 def make_prints(db):
-    return [p.get('fingerprint') for p in db['person'].distinct('fingerprint')]
+    return [p.get('fingerprint') for p in db['person'].distinct('fingerprint') \
+            if p.get('fingerprint')]
 
 
 def match_persons(db, master):
