@@ -93,6 +93,7 @@ def load_tops(wp, session, context, db):
 
 def load_speeches(url, context, db):
     fails = 0
+    Mediathek = db['mediathek']
     for speech_id in count(1):
         url_ = url + "/" + str(speech_id)
         doc = get_doc(url_)
@@ -112,12 +113,13 @@ def load_speeches(url, context, db):
                 spch['speech_duration'] = spch['speech_duration'].split(": ")[-1]
                 spch['speech_time'] = spch['speech_time'].split(" ")[0]
             spch['speech_nr'] = speech_id
-            #db['mediathek'].writerow(spch, 
-            #        unique_columns=['speech_source_url'])
+            Mediathek.writerow(spch, 
+                    unique_columns=['speech_source_url'],
+                    bufferlen=5000)
             if not 'speech_title' in spch or not spch['speech_title']:
                 pprint(spch)
             #name_transform(spch['speech_title'])
-
+    Mediathek.flush()
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
