@@ -33,7 +33,7 @@ def ensure_rolle(beitrag, fp, db):
             unique_columns=['fingerprint', 'funktion'])
 
 def ask_user(beitrag, beitrag_print, matches, db):
-    for i, (fp, dist) in enumerate(matches):
+    for i, (fp, dist) in enumerate(matches[:20]):
         m = " %s: %s (%s)" % (i, fp, dist)
         print m.encode('utf-8')
     sys.stdout.write("Enter choice or 'n' for new, 'x' for non-speaker [0]: ")
@@ -47,6 +47,8 @@ def ask_user(beitrag, beitrag_print, matches, db):
         return ma
     except ValueError:
         line = line.lower().strip()
+        if line == 'm':
+            return ask_user(beitrag, beitrag_print, matches[20:], db)
         if line == 'x':
             raise ValueError()
         if line == 'n' and beitrag is not None:
@@ -57,7 +59,7 @@ def match_beitrag(db, master, beitrag, prints):
     beitrag_print = make_long_name(beitrag)
     print "Matching:", beitrag_print.encode('utf-8')
     matches = [(p, levenshtein(p, beitrag_print)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)[:40]
+    matches = sorted(matches, key=lambda (p,d): d)
     if not len(matches):
         # create new
         return make_person(beitrag, beitrag_print, db)
@@ -105,7 +107,7 @@ def _match_speaker(master, speaker, prints):
         raise ValueError()
 
     matches = [(p, levenshtein(p, speaker)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)[:40]
+    matches = sorted(matches, key=lambda (p,d): d)
     if not len(matches):
         return
     first, dist = matches[0]
