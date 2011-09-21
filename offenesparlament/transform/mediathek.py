@@ -35,11 +35,8 @@ def extend_speeches(db, master):
         ctx = speech['meeting_context']
         if ctx is not None:
             speech['wahlperiode'], text = ctx.split('.', 1)
-    
-        #pprint(speech)
-        #print "Speaker", speech['speech_title'].encode('utf-8')
         Speech.writerow(speech, unique_columns=['speech_source_url'],
-                bufferlen=2000)
+                bufferlen=5000)
     Speech.flush()
 
 QUERY = '''SELECT DISTINCT wahlperiode, sitzung FROM speech;'''
