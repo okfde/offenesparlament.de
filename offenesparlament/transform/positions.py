@@ -41,7 +41,7 @@ def extend_positions(db):
                 data['ablauf_source_url'].encode('utf-8')).hexdigest()
         data['hash'] = hash[:7]
         Position.writerow(data, unique_columns=UNIQUE,
-                          bufferlen=5000)
+                          bufferlen=2000)
     Position.flush()
 
 if __name__ == '__main__':
