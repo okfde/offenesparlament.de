@@ -41,6 +41,8 @@ def transform():
     from offenesparlament.transform import speechparser
     speechparser.load_transcripts(db, master)
     mediathek.merge_speeches(db, master)
+    from offenesparlament.transform import speechmatch
+    speechmatch.extend_speeches(db, master)
 
 @manager.command
 def load():

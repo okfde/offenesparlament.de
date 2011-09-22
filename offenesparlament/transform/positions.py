@@ -15,7 +15,7 @@ def extend_positions(db):
     log.info("Amending positions ...")
     Position = db['position']
     for i, data in enumerate(Position):
-        if i % 2000 == 0:
+        if i % 1000 == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
         dt, rest = data['fundstelle'].split("-", 1)
@@ -31,12 +31,17 @@ def extend_positions(db):
         if data['urheber'].startswith(br):
             data['urheber'] = data['urheber'][len(br):]
 
+        if len(data['fundstelle_url']) and \
+                'btp' in data['fundstelle_url']:
+            data['fundstelle_doc'] = data['fundstelle_url']\
+                    .rsplit('#',1)[0]
+
         hash = sha1(data['fundstelle'].encode('utf-8') \
                 + data['urheber'].encode('utf-8') + \
                 data['ablauf_source_url'].encode('utf-8')).hexdigest()
         data['hash'] = hash[:7]
         Position.writerow(data, unique_columns=UNIQUE,
-                          bufferlen=2000)
+                          bufferlen=5000)
     Position.flush()
 
 if __name__ == '__main__':

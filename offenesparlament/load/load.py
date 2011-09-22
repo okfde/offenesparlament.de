@@ -8,7 +8,8 @@ from offenesparlament.core import db
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
         Wahlkreis, obleute, mitglieder, stellvertreter, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
-        Schlagwort, Sitzung, Debatte, Zitat, DebatteZitat
+        Schlagwort, Sitzung, Debatte, Zitat, DebatteZitat, Stimme, \
+        Abstimmung
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
@@ -434,6 +435,22 @@ def load_debatte_zitate(ws, zitat, mediathek):
         dz.video_url = sp['speech_mp4_url']
         db.session.add(dz)
 
+def load_abstimmungen(ws):
+    for thema in ws['abstimmung'].distinct('subject'):
+        thema = thema.get('subject')
+        abst = Abstimmung.query.filter_by(thema=thema).first()
+        if abst is None:
+            abst = Abstimmung()
+            abst.thema = thema
+        db.session.add(abst)
+        for stimme_ in ws['abstimmung'].traverse(subject=thema):
+            stimme = Stimme()
+            stimme.abstimmung = abst
+            stimme.entscheidung = stimme_['vote']
+            stimme.person = Person.query.filter_by(
+                fingerprint=stimme_['fingerprint']).first()
+            db.session.add(stimme)
+        db.session.commit()
 
 def load(ws):
     load_gremien(ws)
@@ -442,6 +459,7 @@ def load(ws):
     load_ablaeufe(ws)
     load_debatten(ws)
     load_zitate(ws)
+    load_abstimmungen(ws)
 
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"

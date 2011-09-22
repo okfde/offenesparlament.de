@@ -174,6 +174,9 @@ class Person(db.Model):
     zitate = db.relationship('Zitat', backref='person',
                            lazy='dynamic')
     
+    stimmen = db.relationship('Stimme', backref='person',
+                           lazy='dynamic')
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
@@ -757,6 +760,62 @@ class Debatte(db.Model):
             'pdf_page': self.pdf_page,
             'video_url': self.video_url,
             'debatten_zitate': [dz.to_ref() for dz in self.debatten_zitate],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
+class Abstimmung(db.Model):
+    __tablename__ = 'abstimmung'
+
+    id = db.Column(db.Integer, primary_key=True)
+    thema = db.Column(db.Unicode())
+    
+    stimmen = db.relationship('Stimme', backref='abstimmung',
+                              lazy='dynamic')
+    
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'thema': self.thema,
+            }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'stimmen': [s.to_ref() for s in self.stimmen],
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+            })
+        return data
+
+class Stimme(db.Model):
+    __tablename__ = 'stimme'
+
+    id = db.Column(db.Integer, primary_key=True)
+    entscheidung = db.Column(db.Unicode())
+
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), 
+            nullable=True)
+    abstimmung_id = db.Column(db.Integer, db.ForeignKey('abstimmung.id'), 
+            nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def to_ref(self):
+        return {
+            'id': self.id,
+            'abstimmung': self.abstimmung.thema,
+            'person': self.person.to_ref(),
+            }
+
+    def to_dict(self):
+        data = self.to_ref()
+        data.update({
+            'abstimmung': self.abstimmung.to_ref(),
+            'person': self.person.to_ref(),
             'created_at': self.created_at,
             'updated_at': self.updated_at
             })

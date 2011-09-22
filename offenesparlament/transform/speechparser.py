@@ -78,7 +78,11 @@ class SpeechParser(object):
             return data
 
         for line in self.fh:
-            line = line.decode('latin-1').replace(u'–', '-')
+            line = line.decode('latin-1')
+            line = line.replace(u'\u2014', '-')
+            line = line.replace(u'\x96', '-')
+            #if 'Iris Gleicke [SPD]' in line:
+            #    import ipdb; ipdb.set_trace()
             if not self.in_session and BEGIN_MARK.match(line):
                 self.in_session = True
                 continue
