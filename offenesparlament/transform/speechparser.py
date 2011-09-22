@@ -26,7 +26,6 @@ END_MARK = re.compile('\(Schluss: \d{1,2}.\d{1,2} Uhr\).*')
 SPEAKER_MARK = re.compile('  (.{5,140}):\s*$')
 TOP_MARK = re.compile('.*(rufe.*die Frage|zur Frage|Tagesordnungspunkt|Zusatzpunkt).*')
 POI_MARK = re.compile('\((.*)\)\s*$')
-POI_SPLIT = re.compile(u' [-–] ')
 
 SPEAKER_STOPWORDS = ['ich zitiere', 'zitieren', 'Zitat', 'zitiert',
                      'ich rufe den', 'ich rufe die',
@@ -46,7 +45,7 @@ class SpeechParser(object):
         return match_speaker(self.master, match, self.prints)
     
     def parse_pois(self, group):
-        for poi in POI_SPLIT.split(group):
+        for poi in group.split(' - '):
             text = poi
             speaker_name = None
             fingerprint = None
@@ -79,7 +78,7 @@ class SpeechParser(object):
             return data
 
         for line in self.fh:
-            line = line.decode('latin-1')
+            line = line.decode('latin-1').replace(u'–', '-')
             if not self.in_session and BEGIN_MARK.match(line):
                 self.in_session = True
                 continue
