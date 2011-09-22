@@ -31,7 +31,7 @@ def extend_positions(db):
         if data['urheber'].startswith(br):
             data['urheber'] = data['urheber'][len(br):]
 
-        if len(data['fundstelle_url']) and \
+        if data['fundstelle_url'] and \
                 'btp' in data['fundstelle_url']:
             data['fundstelle_doc'] = data['fundstelle_url']\
                     .rsplit('#',1)[0]
