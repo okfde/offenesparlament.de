@@ -21,11 +21,18 @@ URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarproto
 
 CHAIRS = [u'Vizepräsidentin', u'Vizepräsident', u'Präsident']
 
-BEGIN_MARK = re.compile('Beginn: \d{1,2}.\d{1,2} Uhr')
+BEGIN_MARK = re.compile('Beginn: [X\d]{1,2}.\d{1,2} Uhr')
 END_MARK = re.compile('\(Schluss: \d{1,2}.\d{1,2} Uhr\).*')
 SPEAKER_MARK = re.compile('  (.{5,140}):\s*$')
 TOP_MARK = re.compile('.*(rufe.*die Frage|zur Frage|Tagesordnungspunkt|Zusatzpunkt).*')
 POI_MARK = re.compile('\((.*)\)\s*$')
+POI_SPLIT = re.compile(u' [-–] ')
+
+SPEAKER_STOPWORDS = ['ich zitiere', 'zitieren', 'Zitat', 'zitiert',
+                     'ich rufe den', 'ich rufe die',
+                     'wir kommen zur Frage', 'kommen wir zu Frage', 'bei Frage',
+                     'fordert', 'fordern', u'Ich möchte', 
+                     'Darin steht', ' Aspekte ', ' Punkte ']
 
 class SpeechParser(object):
 
@@ -39,7 +46,7 @@ class SpeechParser(object):
         return match_speaker(self.master, match, self.prints)
     
     def parse_pois(self, group):
-        for poi in group.split(' - '):
+        for poi in POI_SPLIT.split(group):
             text = poi
             speaker_name = None
             fingerprint = None
@@ -89,8 +96,13 @@ class SpeechParser(object):
             if TOP_MARK.match(line):
                 is_top = True
             
+            has_stopword = False
+            for sw in SPEAKER_STOPWORDS:
+                if sw.lower() in line.lower():
+                    has_stopword = True
+
             m = SPEAKER_MARK.match(line)
-            if m is not None and not is_top:
+            if m is not None and not is_top and not has_stopword:
                 if speaker is not None:
                     yield emit()
                 speaker = m.group(1)
@@ -147,8 +159,12 @@ if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
-    load_transcripts(db, master_data())
-    #load_transcript(db, master_data(), 17, 123)
+    #load_transcripts(db, master_data())
+    load_transcript(db, master_data(), 17, 72)
+    load_transcript(db, master_data(), 17, 93)
+    load_transcript(db, master_data(), 17, 101)
+    load_transcript(db, master_data(), 17, 103)
+    load_transcript(db, master_data(), 17, 126)
     #sp = SpeechParser(master_data(), db, fp)
     #for l in sp:
     #    pprint(l)

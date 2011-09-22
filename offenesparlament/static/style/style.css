@@ -141,6 +141,16 @@ body, input {
   background: url(/static/img/faq.png);
 }
 
+.banner.intro {
+  height: 180px;
+  background: url(/static/img/intro.png);
+}
+
+.banner.ablaeufe {
+  height: 180px;
+  background: url(/static/img/ablaeufe.png);
+}
+
 .banner.home {
   height: 290px;
   background: url(/static/img/home.png);
@@ -445,8 +455,8 @@ table.zitate tr.chair {
 /* Persons */
 
 .person-foto {
-  float: right;
-  margin-left: 1em;
+  float: left;
+  margin-right: 1em;
 }
 
 .person-foto img {
@@ -456,9 +466,22 @@ table.zitate tr.chair {
 .person-foto p {
   font-size: 0.5em;
   color: #666;
+  line-height: 1.1em;
   display: block;
   width: 130px;
   overflow: hidden;
+}
+
+ul.rollen {
+  list-style-type: none;
+}
+
+.teaser {
+  cursor: pointer;
+}
+
+.teaser-fulltext {
+  display: none;
 }
 
 /* Gremien */

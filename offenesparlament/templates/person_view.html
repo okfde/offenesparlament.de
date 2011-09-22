@@ -9,34 +9,36 @@
 {% endblock %}
 
 {% block content %}
-  <h1>{{ person.name }}</h1>
-  <ul>
-    {% for rolle in person.rollen %}
-      <li>{{ rolle.funktion }} 
-        {% if rolle.wahlkreis %}
-        &mdash; {{rolle.wahlkreis.name}} (Wahlkreis {{rolle.wahlkreis.nummer}})
-        {% endif %}  
-        {% if rolle.ressort %}
-          &mdash; {{rolle.ressort}}
-        {% endif %}  
-        {% if rolle.land %}
-          &mdash; {{rolle.land}}
-        {% endif %}  
-      </li>
-    {% endfor %}
-  </ul>
-  <!--div class="clearfix"></div-->
-  <div class="rightbar">
-    {% if person.bio %}
-      <h3>Biografie</h3>
-      {% if person.foto_url %}
-        <div class="person-foto">
-          <img src="{{ person.foto_url }}">
-          <p>{{ person.foto_copyright }}</p>
-        </div>
-      {% endif %}
-      <p>{{person.bio | safe}}</p>
+  {% if person.foto_url %}
+    <div class="person-foto">
+      <img src="{{ person.foto_url }}">
+      <p>{{ person.foto_copyright }}</p>
+    </div>
+  {% endif %}
+  <h1>{{ person.name }} 
+    {% if person.partei %}
+      ({{ person.partei }})
     {% endif %}
+  </h1>
+  <div class="sidebar">
+    <h3>Details</h3>
+    <ul> 
+      {% if person.beruf %}
+        <li>{{ person.beruf }}</li>
+      {% endif %}
+      {% if person.homepage_url %}
+        <li><a href="{{ person.homepage_url }}">Homepage</a></li>
+      {% endif %}
+      {% if person.twitter_url %}
+        <li><a href="{{ person.twitter_url }}">Twitter</a></li>
+      {% endif %}
+      {% if person.facebook_url %}
+        <li><a href="{{ person.facebook_url }}">Facebook</a></li>
+      {% endif %}
+      {% if person.bio_url %}
+        <li><a href="{{ person.bio_url }}">Bundestag</a></li>
+      {% endif %}
+    </ul>
     <h3>Gremien</h3>
     <ul>
       {% if person.vorsitze[0] %}
@@ -58,7 +60,7 @@
       </li>
       {% endif %}
       {% if person.obleute[0] %}
-      <li>Obleute
+      <li>ObmannIn
       <ul>
         {% for g in person.obleute %}
           <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
@@ -86,7 +88,30 @@
       {% endif %}
     </ul>
   </div>
-  <div class="leftbar">
+  <div class="mainbar">
+    <ul class="rollen">
+      {% for rolle in person.rollen %}
+        <li><strong>{{ rolle.funktion }}</strong>
+          {% if rolle.wahlkreis %}
+          &mdash; {{rolle.wahlkreis.name}} (Wahlkreis {{rolle.wahlkreis.nummer}})
+          {% endif %}  
+          {% if rolle.ressort %}
+            &mdash; {{rolle.ressort}}
+          {% endif %}  
+          {% if rolle.land %}
+            &mdash; {{rolle.land}}
+            {% endif %}  
+          <sup><a href="{{ url_for('page', path='rollen')
+              }}">falsch?</a></sup>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if person.bio %}
+      <h3>Biografie</h3>
+      <span class="teaser">{{person.bio_teaser | safe}} <a href="#">Mehr...</a></span>
+      <span class="teaser-fulltext">{{person.bio | safe}}</span>
+    {% endif %}
+    <!--div class="clearfix"></div-->
     <h3>Arbeit</h3>
     <ul class="position-list">
       {% for position in pager %}

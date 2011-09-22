@@ -186,6 +186,12 @@ class Person(db.Model):
             name += " (%s)" % self.ort
         return name.strip()
 
+    @property
+    def bio_teaser(self):
+        if not self.bio:
+            return ""
+        return self.bio.split("<")[0]
+
     def to_dict(self):
         data = {
                 'id': self.id,
