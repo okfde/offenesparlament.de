@@ -159,10 +159,10 @@ if __name__ == '__main__':
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
     #load_transcripts(db, master_data())
-    load_transcript(db, master_data(), 17, 72)
-    load_transcript(db, master_data(), 17, 93)
-    load_transcript(db, master_data(), 17, 101)
-    load_transcript(db, master_data(), 17, 103)
+    #load_transcript(db, master_data(), 17, 72)
+    #load_transcript(db, master_data(), 17, 93)
+    #load_transcript(db, master_data(), 17, 101)
+    #load_transcript(db, master_data(), 17, 103)
     load_transcript(db, master_data(), 17, 126)
     #sp = SpeechParser(master_data(), db, fp)
     #for l in sp:
