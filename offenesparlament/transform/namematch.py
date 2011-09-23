@@ -134,7 +134,10 @@ def match_speakers(db, master, prints):
         if speech['speech_title'] is None:
             continue
         speaker = speaker_name_transform(speech['speech_title'])
-        fp = match_speaker(master, speaker, prints)
+        try:
+            fp = match_speaker(master, speaker, prints)
+        except ValueError:
+            fp = None
         Speech.writerow({'fingerprint': fp, 
                          'speech_title': speech['speech_title']},
                     unique_columns=['speech_title'],

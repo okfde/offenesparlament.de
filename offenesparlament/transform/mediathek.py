@@ -98,6 +98,9 @@ def merge_speech(db, master, wp, session):
             continue
         spch.append(spch_i)
 
+        if not speech['fingerprint']:
+            continue
+
         if speech['type'] == 'poi':
             emit(speech, speech_idx)
             continue
