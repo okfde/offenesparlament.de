@@ -19,6 +19,8 @@ def extract():
     dip.load_dip(db)
     from offenesparlament.extract import mediathek
     mediathek.load_sessions(db)
+    from offenesparlament.extract import abstimmungen
+    abstimmungen.load_index(db)
 
 @manager.command
 def transform():

@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.NOTSET)
 PLPR_URL = "http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=details&isLinkCallPlenar=1"
 MEDIATHEK_URL = "http://www.bundestag.de/Mediathek/index.jsp"
 MIN_WP = 17
-MAX_FAIL = 2
+MAX_FAIL = 4
 SHORT_URL = "http://dbtg.tv/vid/"
 
 def get_doc(url):
@@ -28,7 +28,7 @@ def get_doc(url):
             return doc
         except Exception, e:
             log.exception(e)
-            time.sleep(i)
+            time.sleep(i**2)
 
 def no_results(doc):
     err = doc.find('//p[@class="error"]')
