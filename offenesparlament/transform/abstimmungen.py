@@ -21,7 +21,7 @@ def extend_abstimmungen(db, master):
                 Abstimmung.writerow({'person': data.get('person'),
                                      'fingerprint': fp}, 
                                     unique_columns=['person'],
-                                    bufferlen=2000)
+                                    bufferlen=100)
         except ValueError, ve:
             log.exception(ve)
     Abstimmung.flush()

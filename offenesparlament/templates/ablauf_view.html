@@ -88,9 +88,15 @@
           <span class="body">
             <ul>
               {% for beitrag in position.beitraege %}
+                {% if beitrag.person.name %}
               <li><strong>{{ beitrag.art }}:</strong> 
                 <a href="{{ url_for('person', slug=beitrag.person.slug) }}">{{ beitrag.person.name
-                }} ({{ (beitrag.rolle.fraktion or beitrag.rolle.ressort) + ', ' + beitrag.rolle.funktion }})</a></li>
+                  }} 
+                  {% if beitrag.rolle %}
+                  ({{ (beitrag.rolle.fraktion or beitrag.rolle.ressort or '') + ', ' + beitrag.rolle.funktion }})
+                  {% endif %}
+                </a></li>
+                {% endif %}
               {% endfor %}
             </ul>
           </span>

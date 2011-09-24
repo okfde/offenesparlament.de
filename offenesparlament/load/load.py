@@ -1,5 +1,6 @@
 import sys
 import logging
+from collections import defaultdict
 from datetime import datetime
 
 from webstore.client import WebstoreClientException, URL as WebStore
@@ -147,7 +148,6 @@ def load_rollen(ws, person, data):
         rolle.funktion = rdata.get('funktion')
         rolle.fraktion = rdata.get('fraktion')
         rolle.gewaehlt = rdata.get('gewaehlt')
-        rolle.rolle = rdata.get('rolle')
         rolle.ressort = rdata.get('ressort')
         rolle.land = rdata.get('land')
         rolle.austritt = date(rdata.get('austritt'))
@@ -179,7 +179,7 @@ def load_gremium_mitglieder(ws, person, rolle):
             raise TypeError("Invalid ms type: %s" % role)
 
 def load_ablaeufe(ws):
-    for data in ws['ablauf']:
+    for data in ws['ablauf'].traverse(wahlperiode=17):
         log.info("Loading Ablauf: %s..." % data['titel'])
         load_ablauf(ws, data)
 
@@ -196,6 +196,10 @@ def load_ablauf(ws, data):
     ablauf.typ = data.get('typ')
     ablauf.klasse = data.get('class')
     ablauf.titel = data.get('titel')
+    if not len(ablauf.titel):
+        log.error("No titel!")
+        return
+
     ablauf.initiative = data.get('initiative')
     ablauf.stand = data.get('stand')
     ablauf.signatur = data.get('signatur')
@@ -280,9 +284,15 @@ def load_position(data, ablauf, ws):
         for bdata in ws['beschluss'].traverse(fundstelle=position.fundstelle,
                 urheber=position.urheber, ablauf_source_url=ablauf.source_url):
             beschluss = Beschluss()
+            beschluss.position = position
             beschluss.seite = bdata['seite']
             beschluss.tenor = bdata['tenor']
             beschluss.dokument_text = bdata['dokument_text']
+            for dokument_name in beschluss.dokument_text.split(','):
+                dokument_name = dokument_name.strip()
+                dok = Dokument.query.filter_by(nummer=dokument_name).first()
+                if dok is not None:
+                    beschluss.dokumente.append(dok)
             db.session.add(beschluss)
     except WebstoreClientException:
         pass
@@ -375,14 +385,16 @@ def load_sitzung(ws, speech):
     db.session.flush()
     return sitzung
 
+SPME_CACHE = defaultdict(list)
 def load_zitate(ws):
     sitzungen = {}
     mediathek = dict([(m['speech_source_url'], m) for m in ws['mediathek']])
     sys.stdout.write("Loading transcripts")
     sys.stdout.flush()
-    for speech in ws['speech']:
-        sys.stdout.write(".")
-        sys.stdout.flush()
+    for i, speech in enumerate(ws['speech']):
+        if i % 1000 == 0:
+            sys.stdout.write(".")
+            sys.stdout.flush()
         s = (speech['wahlperiode'], speech['sitzung'])
         if s not in sitzungen:
             sitzungen[s] = Sitzung.query.filter_by(
@@ -412,14 +424,22 @@ def load_zitate(ws):
         db.session.flush()
         load_debatte_zitate(ws, zitat, mediathek)
 
-        db.session.commit()
+    db.session.commit()
+    SPME_CACHE.clear()
 
 def load_debatte_zitate(ws, zitat, mediathek):
     if zitat.sitzung is None:
         return
-    spme = ws['speech_mediathek']
-    for item in spme.traverse(wahlperiode=zitat.sitzung.wahlperiode,
-            sitzung=zitat.sitzung.nummer, sequence=zitat.sequenz):
+    if not len(SPME_CACHE):
+        for spme in ws['speech_mediathek']:
+            SPME_CACHE[(spme['wahlperiode'],
+                        spme['sitzung'],
+                        spme['sequence'])].append(spme)
+    for item in SPME_CACHE[(zitat.sitzung.wahlperiode,
+                            zitat.sitzung.nummer,
+                            zitat.sequenz)]:
+        #spme.traverse(wahlperiode=zitat.sitzung.wahlperiode,
+        #    sitzung=zitat.sitzung.nummer, sequence=zitat.sequenz):
         sp = mediathek[item['mediathek_url']]
         debatte = Debatte.query.filter_by(
                 source_url=sp['top_source_url']).first()
@@ -444,11 +464,14 @@ def load_abstimmungen(ws):
             abst.thema = thema
         db.session.add(abst)
         for stimme_ in ws['abstimmung'].traverse(subject=thema):
+            person = Person.query.filter_by(
+                fingerprint=stimme_.get('fingerprint')).first()
+            if person is None:
+                continue
             stimme = Stimme()
-            stimme.abstimmung = abst
             stimme.entscheidung = stimme_['vote']
-            stimme.person = Person.query.filter_by(
-                fingerprint=stimme_['fingerprint']).first()
+            stimme.person = person
+            stimme.abstimmung = abst
             db.session.add(stimme)
         db.session.commit()
 

@@ -13,9 +13,9 @@
     {{ macros.search(searcher, pager) }}
     
     <div class="sidebar">
-      {% if searcher.has_facet('typ') %}
+      {% if searcher.has_facet('klasse') %}
         <h3>Typ</h3>
-        {{ macros.facet_list(searcher, pager, 'typ') }}
+        {{ macros.facet_list(searcher, pager, 'klasse') }}
       {% endif %}
       {% if searcher.has_facet('sachgebiet') %}
         <h3>Sachgebiet</h3>

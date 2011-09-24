@@ -1,8 +1,9 @@
-import sys
+import sys, re
 import logging
 from pprint import pprint
 from datetime import datetime
 from dateutil import tz
+from sqlalchemy.orm import eagerload_all
 
 from offenesparlament.core import db, solr
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
@@ -65,6 +66,14 @@ def gather_index_fields():
     pprint(dict([(f, [t for t in v if t is not type(None)]) \
             for (f, v) in fields.items()]))
 
+def strip_control_characters(text):  
+    _filtered = []
+    from unicodedata import category
+    for c in text:
+        if not category(c).startswith('C'):
+            _filtered.append(c)
+    return _filtered
+
 def type_info(entity):
     name = entity.__class__.__name__.lower()
     return {
@@ -81,6 +90,18 @@ def convert_dates(data):
             for e in v:
                 if isinstance(e, datetime):
                     e = datetime_add_tz(e)
+                _v.append(e)
+            data[k] = _v
+    return data
+
+def convert_text(data):
+    for k, v in data.items():
+        if isinstance(v, datetime):
+            data[k] = strip_control_characters(v)
+        elif isinstance(v, (list, tuple, set)):
+            _v = []
+            for e in v:
+                e = strip_control_characters(e)
                 _v.append(e)
             data[k] = _v
     return data
@@ -133,7 +154,7 @@ def index_ablaeufe():
         data = ablauf.to_dict()
         data['positionen'] = [p.to_dict() for p in \
                 ablauf.positionen]
-        data['date'] = max([p.date for p in data['positionen']])
+        data['date'] = max([p['date'] for p in data['positionen']])
         data = flatten(data)
         data.update(type_info(ablauf))
         data = convert_dates(data)
@@ -143,43 +164,66 @@ def index_ablaeufe():
 
 def index_sitzungen():
     _solr = solr()
+    datas = []
     for sitzung in Sitzung.query:
         log.info("indexing %s..." % sitzung.titel)
         data = sitzung.to_dict()
-        data['zitate'] = [z.to_dict() for z in sitzung.zitate]
+        #data['zitate'] = [z.to_dict() for z in sitzung.zitate]
         data = flatten(data)
         data.update(type_info(sitzung))
         data = convert_dates(data)
-        _solr.add_many([data])
+        data = convert_text(data)
+        datas.append(data)
+        if len(datas) % 5 == 0:
+            _solr.add_many(datas)
+            datas = []
+    _solr.add_many(datas)
     _solr.commit()
 
 def index_debatten():
     _solr = solr()
+    datas = []
     for debatte in Debatte.query:
         log.info("indexing %s..." % debatte.titel)
         data = debatte.to_dict()
-        #data['zitate'] = []
-        #for dz in debatte.debatten_zitate:
-        data['zitate'] = [dz.zitat.to_dict() for dz in \
-            debatte.debatten_zitate]
+        #data['zitate'] = [dz.zitat.to_dict() for dz in \
+        #    debatte.debatten_zitate]
         data = flatten(data)
         data.update(type_info(debatte))
         data = convert_dates(data)
-        _solr.add_many([data])
+        data = convert_text(data)
+        datas.append(data)
+        if len(datas) % 20 == 0:
+            _solr.add_many(datas)
+            datas = []
+    _solr.add_many(datas)
     _solr.commit()
 
 def index_zitate():
     _solr = solr()
     log.info("indexing transcripts...")
-    for zitat in Zitat.query:
+    datas = []
+    for zitat in Zitat.query.options(
+        eagerload_all(Zitat.person, Zitat.sitzung, 
+                      Zitat.debatten_zitate)):
         data = zitat.to_dict()
         data = flatten(data)
         data.update(type_info(zitat))
         data = convert_dates(data)
-        _solr.add_many([data])
+        data = convert_text(data)
+        datas.append(data)
+        if len(datas) % 1000 == 0:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            _solr.add_many(datas)
+            _solr.commit()
+            datas = []
+    _solr.add_many(datas)
     _solr.commit()
 
 def index():
+    _solr = solr()
+    _solr.delete_query("*:*")
     index_persons()
     index_gremien()
     index_positionen()

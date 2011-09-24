@@ -327,7 +327,10 @@ def scrape_activity(ablauf, elem, db):
         b['art'] = belem.findtext("AKTIVITAETSART")
         Beitrag.writerow(b)
 
-def scrape_ablauf(url, db):
+class TooFarInThePastException(Exception): pass
+
+
+def scrape_ablauf(url, db, wahlperiode=17):
     Ablauf = db['ablauf']
     a = Ablauf.find_one(source_url=url)
     if a is not None and a['abgeschlossen'] == 'True':
@@ -345,6 +348,9 @@ def scrape_ablauf(url, db):
         log.warn("Could not find embedded XML in Ablauf: %s", a['key'])
         return
     a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
+    if int(wp) != wahlperiode:
+        raise TooFarInThePastException()
+
     a['typ'] = doc.findtext("VORGANGSTYP")
     a['titel'] = doc.findtext("TITEL")
 
@@ -356,6 +362,7 @@ def scrape_ablauf(url, db):
         k = k.strip()
         if k.startswith('KOM') or k.startswith('SEK'):
             a['titel'] = t
+
     a['initiative'] = doc.findtext("INITIATIVE")
     a['stand'] = doc.findtext("AKTUELLER_STAND")
     a['signatur'] = doc.findtext("SIGNATUR")
@@ -410,8 +417,11 @@ def scrape_ablauf(url, db):
 
 
 def load_dip(db):
-    for url in load_dip_index():
-        scrape_ablauf(url, db)
+    try:
+        for url in load_dip_index():
+            scrape_ablauf(url, db)
+    except TooFarInThePastException:
+        pass
     #def bound_scrape(url):
     #    scrape_ablauf(url, db)
     #threaded(load_dip_index(), bound_scrape)

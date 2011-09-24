@@ -173,6 +173,7 @@ h1, h2, h3, h4 {
 
 h1 {
   font-size: 1.7em;
+  line-height: 1.3em;
   color: black;
   font-weight: bold;
 }
@@ -243,6 +244,23 @@ footer .logo {
 .rightbar {
   width: 460px;
   float: right;
+}
+
+.lleftbar {
+  width: 460px;
+  margin-right: 10px;
+  float: left;
+}
+
+.lrightbar {
+  width: 460px;
+  float: right;
+}
+
+.halfwidth {
+  float: left;
+  width: 460px;
+  margin-right: 10px;
 }
 
 /* Header */

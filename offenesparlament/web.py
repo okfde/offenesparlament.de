@@ -31,6 +31,7 @@ def sitzung(wahlperiode, nummer):
 def sitzungen():
     searcher = SolrSearcher(Sitzung, request.args)
     searcher.add_facet('wahlperiode')
+    searcher.sort('nummer', 'desc')
     pager = Pager(searcher, 'sitzungen', request.args)
     return render_template('sitzung_search.html', 
             searcher=searcher, pager=pager)
@@ -57,7 +58,7 @@ def ablauf(wahlperiode, key):
 def ablaeufe():
     searcher = SolrSearcher(Ablauf, request.args)
     searcher.add_facet('initiative')
-    searcher.add_facet('typ')
+    searcher.add_facet('klasse')
     searcher.add_facet('stand')
     searcher.add_facet('sachgebiet')
     searcher.add_facet('schlagworte')

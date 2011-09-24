@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 from offenesparlament.core import db
 
 class NewsItem(db.Model):
@@ -193,7 +194,7 @@ class Person(db.Model):
     def bio_teaser(self):
         if not self.bio:
             return ""
-        return self.bio.split("<")[0]
+        return re.split("(\n|<br)", self.bio)[0]
 
     def to_dict(self):
         data = {
@@ -253,7 +254,6 @@ class Rolle(db.Model):
     funktion = db.Column(db.Unicode)
     fraktion = db.Column(db.Unicode)
     gewaehlt = db.Column(db.Unicode)
-    rolle = db.Column(db.Unicode)
     ressort = db.Column(db.Unicode)
     land = db.Column(db.Unicode)
     austritt = db.Column(db.DateTime)
@@ -350,6 +350,11 @@ class Schlagwort(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode())
 
+beschluesse_dokumente = db.Table('beschluesse_dokumente',
+    db.Column('dokument_id', db.Integer, db.ForeignKey('beschluss.id')),
+    db.Column('beschluss_id', db.Integer, db.ForeignKey('dokument.id'))
+)
+
 class Dokument(db.Model):
     __tablename__ = 'dokument'
     
@@ -364,10 +369,10 @@ class Dokument(db.Model):
     
     positionen = db.relationship('Position', backref='dokument',
                            lazy='dynamic')
-    
-    beschluesse = db.relationship('Beschluss', backref='dokument',
-                           lazy='dynamic')
 
+    beschluesse = db.relationship('Beschluss', secondary=beschluesse_dokumente,
+        backref=db.backref('dokumente', lazy='dynamic'))
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
@@ -523,7 +528,6 @@ class Beschluss(db.Model):
     tenor = db.Column(db.Unicode())
     seite = db.Column(db.Unicode())
 
-    dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

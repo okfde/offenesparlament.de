@@ -45,6 +45,10 @@ def extend_positions(db):
                           bufferlen=2000)
     Position.flush()
 
+def generate_beschluss_referenzen(db):
+    log.info("Generating document references for 'beschluss'....")
+
+
 if __name__ == '__main__':
     assert len(sys.argv)==2, "Need argument: webstore-url!"
     db, _ = WebStore(sys.argv[1])

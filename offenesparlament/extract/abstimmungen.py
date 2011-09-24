@@ -24,22 +24,41 @@ def handle_xml(xml, db):
     Vote = db['abstimmung']
     subject = ''
     def handle_list(page):
-        texts = page.findall('text')[2:]
-        fraktion = texts[0].xpath("string()").replace(u"ÜNDNIS`", "")
-        columns = [c.xpath("string()") for c in texts[1:6]]
-        texts = texts[7:]
-        for i, t in enumerate(texts[::6]):
-            if t.xpath('string()').strip() == 'Summe':
+        texts = page.findall('text')
+        header = [c.xpath("string()") for c in texts[:20]]
+        if header[1].strip() == 'Seite:':
+            col_offset = 3
+        else:
+            for i, h in enumerate(header):
+                if 'Name' in h:
+                    col_offset = i
+                    break
+        fraktion = texts[col_offset-1].xpath("string()")
+        fraktion = fraktion.replace(u"ÜNDNIS`", "")
+        fraktion = fraktion.replace(u"ÜNDNIS'", "")
+        columns = [(int(c.get('left')), c.xpath("string()")) for c in \
+                   texts[col_offset:col_offset+6]]
+        texts = texts[col_offset+6:]
+        name = u''
+        print columns
+        for i, t in enumerate(texts):
+            txt = t.xpath('string()').strip()
+            if txt == 'Summe':
                 break
-            person = t.xpath("string()") + ' ' + fraktion
-            ts = [c.xpath("string()") for c in texts[i*6+1:i*6+6]]
-            for col, val in zip(columns, ts):
-                if val == 'X':
-                    data = {'subject': subject, 
-                            'person': person, 
-                            'vote': col}
-                    Vote.writerow(data, unique_columns=['subject', 'person'],
-                                  bufferlen=2000)
+            if not len(txt):
+                continue
+            left, field = min(columns, key=lambda c: abs(int(t.get('left')) - c[0]))
+            if 'Name' in field:
+                name += ' ' + txt
+            if txt == 'X':
+                data = {'subject': subject, 
+                        'person': name.strip() + ' ' + fraktion, 
+                        'vote': field}
+                Vote.writerow(data, unique_columns=['subject', 'person'],
+                              bufferlen=2000)
+                pprint({'person': name.strip() + ' ' + fraktion, 
+                        'vote': field})
+                name = u''
 
     for page in doc.findall(".//page"):
         if page.get('number') == "1":
@@ -73,4 +92,8 @@ if __name__ == '__main__':
     db, _ = WebStore(sys.argv[1])
     print "DESTINATION", db
     load_index(db)
+    #xml = open('/Users/fl/20091203_isaf.xml', 'r').read()
+    #handle_xml(xml, db)
+    #xml = open('/Users/fl/20100617_unifil.xml', 'r').read()
+    ##handle_xml(xml, db)
 
