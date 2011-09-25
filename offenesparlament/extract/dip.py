@@ -335,7 +335,7 @@ def scrape_ablauf(url, db, wahlperiode=17):
     Ablauf = db['ablauf']
     a = Ablauf.find_one(source_url=url)
     if a is not None and a['abgeschlossen'] == 'True':
-        log.info("Skipping: %s" % a['titel'])
+        log.info("Skipping: %s" % a['key'])
         return
     if a is None:
         a = {}
@@ -378,7 +378,7 @@ def scrape_ablauf(url, db, wahlperiode=17):
     for sw in doc.findall("SCHLAGWORT"):
         wort = {'wort': sw.text, 'key': key, 'wahlperiode': wp}
         db['schlagwort'].writerow(wort, unique_columns=wort.keys())
-    log.info("Ablauf %s: %s" % (key, a['titel'].encode('ascii', 'ignore')))
+    log.info("Ablauf %s" % key)
     a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
     a['abgeschlossen'] = DIP_ABLAUF_STATES_FINISHED.get(a['stand'], False)
