@@ -8,8 +8,8 @@ $(document).ready(function() {
     $(".teaser-fulltext").slideDown('slow');
   });
   $(".teaser-fulltext").click(function(e) {
-    $(".teaser-fulltext").slideUp();
     $(".teaser").show();
+    $(".teaser-fulltext").hide();
   });
 });
 

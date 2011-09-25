@@ -378,7 +378,7 @@ def scrape_ablauf(url, db, wahlperiode=17):
     for sw in doc.findall("SCHLAGWORT"):
         wort = {'wort': sw.text, 'key': key, 'wahlperiode': wp}
         db['schlagwort'].writerow(wort, unique_columns=wort.keys())
-    log.info("Ablauf %s: %s" % (key, a['titel']))
+    log.info("Ablauf %s: %s" % (key, a['titel'].encode('ascii', 'ignore')))
     a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
     a['abgeschlossen'] = DIP_ABLAUF_STATES_FINISHED.get(a['stand'], False)
@@ -419,21 +419,21 @@ def scrape_ablauf(url, db, wahlperiode=17):
 
 
 def load_dip(db):
-    try:
-        for url in load_dip_index():
-            for i in range(4):
-                try:
-                    scrape_ablauf(url, db)
-                    break
-                except NoContentException:
-                    global jar
-                    jar = None
-                    time.sleep(i**2)
-    except TooFarInThePastException:
-        pass
-    #def bound_scrape(url):
-    #    scrape_ablauf(url, db)
-    #threaded(load_dip_index(), bound_scrape)
+    #try:
+    #except TooFarInThePastException:
+    #    pass
+    def bound_scrape(url):
+        #for url in load_dip_index():
+        for i in range(4):
+            try:
+                scrape_ablauf(url, db)
+                break
+            except NoContentException:
+                global jar
+                jar = None
+                time.sleep(i**2)
+        #scrape_ablauf(url, db)
+    threaded(load_dip_index(), bound_scrape)
 
 def load_dip_index():
     for offset in count():

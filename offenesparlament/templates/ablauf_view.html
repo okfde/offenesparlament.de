@@ -59,10 +59,10 @@
     </table>
     <h3>Dokumente</h3>
     <ul>
-      {% for ref in ablauf.referenzen %}
+      {% for dokument, seiten in referenzen %}
         <li>
-        <strong><a href="{{ref.dokument.link}}">{{ ref.dokument.name }}</a>:</strong> {{ ref.seiten or
-        '(gesamtes Dokument)' }} </li>
+        <strong><a href="{{dokument.link}}">{{ dokument.name }}</a></strong> 
+        {{ ", ".join(seiten) }}</li>
       {% endfor %}
     </ul>
   </div>
@@ -101,8 +101,15 @@
             </ul>
           </span>
           <span class="bottom">
-            Quelle: {{position.quelle}} &middot;
-            <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+            Quelle: 
+            {% if position.quelle %}
+              {{position.quelle}} &middot;
+            {% endif %}
+            {% if position.dokument %}
+              <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+            {% else %}
+              {{position.fundstelle}}
+            {% endif %}
           </span>
         </li>
       {% endfor %}
@@ -111,7 +118,7 @@
   <div class="clearfix"></div>
   <hr/>
   Die dargestellten Daten entstammen dem Dokumentensystem des Bundestags. 
-  <a href="{{ ablauf.source_url }}">Quelle</a> &middot; <b>TODO: JSON</b>
-{% endblock %}
+  <a href="{{ ablauf.source_url }}">Quelle</a>
+  {% endblock %}
 
 

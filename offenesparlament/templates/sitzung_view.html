@@ -35,8 +35,10 @@
           {% if zitat.typ == 'chair' %}
             <div class="meta">Sitzungsleitung</div>
           {% elif zitat.typ == 'speech' %}
-            <div class="meta">{{ zitat.person.partei or
-              zitat.person.rollen[0].ressort }}</div>
+            {% if zitat.person %}
+              <div class="meta">{{ zitat.person.partei or
+                zitat.person.rollen[0].ressort }}</div>
+            {% endif %}
           {% endif %}
           </td>
         <td class="text">

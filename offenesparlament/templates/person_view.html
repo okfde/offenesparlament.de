@@ -107,15 +107,25 @@
       {% endfor %}
     </ul>
     {% if person.bio %}
-      <h3>Biografie</h3>
-      <span class="teaser">{{person.bio_teaser | safe}} <a href="#">Mehr...</a></span>
-      <span class="teaser-fulltext">{{person.bio | safe}}</span>
-    {% endif %}
+    <span class="teaser"><br/>{{person.bio_teaser | safe}} <a>Mehr...</a></span>
+      <span class="teaser-fulltext">
+        <h3>Biografie</h3>
+        {{person.bio | safe}}</span>
+      {% endif %}
+    <h3>Themen</h3>
+    <div>  
+    {% for sw in schlagworte %}
+      <a href="{{ url_for('ablaeufe', schlagworte=sw['schlagwort']) }}">
+      {{sw['schlagwort']}}</a> 
+      <span class="facet-count">({{sw['num']}})</span>{% if not loop.last %},{% endif %}
+    {% endfor %}
+    </div>
     <!--div class="clearfix"></div-->
-    <h3 style="clear: left;">Arbeit</h3>
+    <h3 style="clear: left;">Beiträge zu einzelnen
+      Vorgängen</h3>
     <ul class="position-list">
       {% for position in pager %}
-        <li>
+        <li class="position">
           <span class="header">
             <span class="date">
               {{position.date.strftime("%d.%m.%Y")}}</span>
@@ -127,9 +137,14 @@
                 {{position.ablauf.titel}}</a></h4>
           </span>
           <span class="bottom">
-            {{position.ablauf.initiative}} &mdash; {{position.ablauf.typ}}
-            &mdash;
-            <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+            {% if position.ablauf.initiative %}
+              {{position.ablauf.initiative }} &mdash; 
+            {% endif %}
+            {{position.ablauf.typ}}
+            {% if position.dokument %}
+              &mdash;
+              <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+            {% endif %}
           </span>
         </li>
       {% endfor %}

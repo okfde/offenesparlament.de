@@ -138,7 +138,11 @@ def load_rollen(ws, person, data):
     mdb_rolle = None
     for rdata in RolleSource.traverse(fingerprint=data['fingerprint']):
         rolle = Rolle.query.filter_by(
-                person=person, funktion=rdata.get('funktion')).first()
+                person=person, 
+                funktion=rdata.get('funktion'),
+                ressort=rdata.get('ressort'),
+                fraktion=rdata.get('fraktion'),
+                land=rdata.get('land')).first()
         if rolle is None:
             rolle = Rolle()
 
@@ -313,7 +317,9 @@ def load_beitrag(data, position, ws):
             ).first()
     beitrag.rolle = Rolle.query.filter_by(
             person=beitrag.person,
-            funktion=data.get('funktion')).first()
+            funktion=data.get('funktion'),
+            ressort=data.get('ressort'),
+            land=data.get('land')).first()
     db.session.add(beitrag)
 
 def load_dokument(data, ws):

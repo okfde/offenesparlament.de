@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify
 
@@ -8,6 +10,7 @@ from offenesparlament.model import Sitzung, Zitat
 
 from offenesparlament.pager import Pager
 from offenesparlament.searcher import SolrSearcher
+from offenesparlament import aggregates
 
 @app.route("/plenum/<wahlperiode>/<nummer>")
 def sitzung(wahlperiode, nummer):
@@ -51,12 +54,20 @@ def ablauf(wahlperiode, key):
                                     key=key).first()
     if ablauf is None:
         abort(404)
+    referenzen = defaultdict(set)
+    for ref in ablauf.referenzen:
+        if ref.seiten:
+            referenzen[ref.dokument].add(ref.seiten)
+        else:
+            referenzen[ref.dokument] = referenzen[ref.dokument] or set()
+    referenzen = sorted(referenzen.items(), key=lambda (r, s): r.name)
     return render_template('ablauf_view.html',
-            ablauf=ablauf)
+            ablauf=ablauf, referenzen=referenzen)
 
 @app.route("/ablauf")
 def ablaeufe():
     searcher = SolrSearcher(Ablauf, request.args)
+    searcher.sort('date', 'desc')
     searcher.add_facet('initiative')
     searcher.add_facet('klasse')
     searcher.add_facet('stand')
@@ -103,8 +114,10 @@ def person(slug):
     searcher.sort('date')
     searcher.filter('beitraege.person.id', str(person.id))
     pager = Pager(searcher, 'person', request.args, slug=slug)
+    schlagworte = aggregates.person_schlagworte(person)
     return render_template('person_view.html',
-            person=person, searcher=searcher, pager=pager)
+            person=person, searcher=searcher, 
+            pager=pager, schlagworte=schlagworte)
 
 @app.route("/pages/<path:path>")
 def page(path):

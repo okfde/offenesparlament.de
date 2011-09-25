@@ -357,10 +357,11 @@ p.hint {
 ul.position-list {
   list-style-type: none;
   margin: 0;
+  margin-bottom: 0.5em;
 }
 
 ul.position-list li {
-  margin-bottom: 0.4em;
+  margin-bottom: 0em;
 }
 
 ul.position-list li.position {
@@ -391,11 +392,13 @@ ul.position-list .body {
 
 ul.position-list .ablauf {
   display: block;
+  margin-bottom: -5px;
   font-size: 1.2em;
-  padding: 5px;
+  padding: 5px 5px 0px 5px;
 }
 
 ul.position-list .ablauf a {
+  font-weight: bold;
   text-decoration: none;
 }
 
@@ -426,7 +429,7 @@ table.zitate td.speaker .meta {
 
 table.zitate td.text {
   font-family: Georgia, 'Times New Roman', serif;
-  
+  padding-left: 1em;
   line-height: 1.4em;
   font-size: 1.2em;
   /*padding-right: 1em;*/
@@ -488,6 +491,7 @@ table.zitate tr.chair {
   display: block;
   width: 130px;
   overflow: hidden;
+  margin-bottom: 0.7em;
 }
 
 ul.rollen {
@@ -666,7 +670,8 @@ ul.facets li {
   padding-bottom: 0.2em; 
 }
   
-ul.facets .count {
+ul.facets .count,
+.facet-count {
   color: #999;
   font-size: 0.8em;
 }

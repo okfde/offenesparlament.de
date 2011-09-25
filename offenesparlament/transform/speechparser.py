@@ -25,7 +25,7 @@ BEGIN_MARK = re.compile('Beginn: [X\d]{1,2}.\d{1,2} Uhr')
 END_MARK = re.compile('\(Schluss: \d{1,2}.\d{1,2} Uhr\).*')
 SPEAKER_MARK = re.compile('  (.{5,140}):\s*$')
 TOP_MARK = re.compile('.*(rufe.*die Frage|zur Frage|Tagesordnungspunkt|Zusatzpunkt).*')
-POI_MARK = re.compile('\((.*)\)\s*$')
+POI_MARK = re.compile('\((.*)\)\s*$', re.M)
 
 SPEAKER_STOPWORDS = ['ich zitiere', 'zitieren', 'Zitat', 'zitiert',
                      'ich rufe den', 'ich rufe die',
@@ -66,14 +66,15 @@ class SpeechParser(object):
         fingerprint = None
         chair_ = [False]
         text = []
-        def emit():
+        def emit(reset_chair=True):
             data = {
                 'speaker': speaker,
                 'type': 'chair' if chair_[0] else 'speech',
                 'fingerprint': fingerprint,
                 'text': "\n\n".join(text).strip()
                 }
-            chair_[0] = False
+            if reset_chair:
+                chair_[0] = False
             _ = [text.pop() for i in xrange(len(text))]
             return data
 
@@ -108,26 +109,28 @@ class SpeechParser(object):
             if m is not None and not is_top and not has_stopword:
                 if speaker is not None:
                     yield emit()
-                speaker = m.group(1)
+                _speaker = m.group(1)
                 try:
-                    fingerprint = self.identify_speaker(speaker)
+                    fingerprint = self.identify_speaker(_speaker)
                     role = line.strip().split(' ')[0]
                     chair_[0] = role in CHAIRS
+                    speaker = _speaker
                     continue
                 except ValueError:
                     pass
             
             m = POI_MARK.match(line)
             if m is not None:
-                yield emit()
-                for _speaker, _fingerprint, _text in self.parse_pois(m.group(1)):
-                    yield {
-                        'speaker': _speaker,
-                        'type': 'poi',
-                        'fingerprint': _fingerprint,
-                        'text': _text
-                            }
-                continue
+                if not m.group(1).lower().strip().startswith('siehe'):
+                    yield emit(reset_chair=False)
+                    for _speaker, _fingerprint, _text in self.parse_pois(m.group(1)):
+                        yield {
+                            'speaker': _speaker,
+                            'type': 'poi',
+                            'fingerprint': _fingerprint,
+                            'text': _text
+                                }
+                    continue
             
             text.append(line)
         yield emit()
