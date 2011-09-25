@@ -66,7 +66,9 @@ def gather_index_fields():
     pprint(dict([(f, [t for t in v if t is not type(None)]) \
             for (f, v) in fields.items()]))
 
-def strip_control_characters(text):  
+def strip_control_characters(text):
+    if isinstance(text, basestring):
+        return text
     _filtered = []
     from unicodedata import category
     for c in text:
@@ -223,14 +225,14 @@ def index_zitate():
 
 def index():
     _solr = solr()
-    _solr.delete_query("*:*")
-    index_persons()
-    index_gremien()
-    index_positionen()
-    index_dokumente()
-    index_ablaeufe()
-    index_sitzungen()
-    index_debatten()
+    #_solr.delete_query("*:*")
+    #index_persons()
+    #index_gremien()
+    #index_positionen()
+    #index_dokumente()
+    #index_ablaeufe()
+    #index_sitzungen()
+    #index_debatten()
     index_zitate()
 
 if __name__ == '__main__':

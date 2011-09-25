@@ -329,6 +329,7 @@ def scrape_activity(ablauf, elem, db):
 
 class TooFarInThePastException(Exception): pass
 
+class NoContentException(Exception): pass
 
 def scrape_ablauf(url, db, wahlperiode=17):
     Ablauf = db['ablauf']
@@ -345,8 +346,8 @@ def scrape_ablauf(url, db, wahlperiode=17):
     doc = inline_xml_from_page(urlfp.read())
     urlfp.close()
     if doc is None: 
-        log.warn("Could not find embedded XML in Ablauf: %s", a['key'])
-        return
+        raise NoContentException()
+
     a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
     if int(wp) != wahlperiode:
         raise TooFarInThePastException()
@@ -355,7 +356,7 @@ def scrape_ablauf(url, db, wahlperiode=17):
     a['titel'] = doc.findtext("TITEL")
 
     if not a['titel'] or not len(a['titel'].strip()):
-        return
+        raise NoContentException()
 
     if '\n' in a['titel']:
         t, k = a['titel'].rsplit('\n', 1)
@@ -419,7 +420,14 @@ def scrape_ablauf(url, db, wahlperiode=17):
 def load_dip(db):
     try:
         for url in load_dip_index():
-            scrape_ablauf(url, db)
+            for i in range(4):
+                try:
+                    scrape_ablauf(url, db)
+                    break
+                except NoContentException:
+                    global jar
+                    jar = None
+                    time.sleep(i**2)
     except TooFarInThePastException:
         pass
     #def bound_scrape(url):
