@@ -67,7 +67,7 @@ def gather_index_fields():
             for (f, v) in fields.items()]))
 
 def strip_control_characters(text):
-    if isinstance(text, basestring):
+    if not isinstance(text, basestring):
         return text
     _filtered = []
     from unicodedata import category

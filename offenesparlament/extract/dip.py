@@ -258,10 +258,10 @@ def scrape_activity(ablauf, elem, db):
     Position = db['position']
     p = Position.find_one(urheber=urheber, 
                           fundstelle=fundstelle, 
-                          ablauf_source_url=ablauf['source_url'])
+                          ablauf_id=ablauf['ablauf_id'])
     if p is not None:
         return 
-    p = {'ablauf_source_url': ablauf['source_url'], 
+    p = {'ablauf_id': ablauf['ablauf_id'], 
          'urheber': urheber,
          'fundstelle': fundstelle}
     pos_keys = p.copy()
@@ -351,7 +351,8 @@ def scrape_ablauf(url, db, wahlperiode=17):
     a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
     if int(wp) != wahlperiode:
         raise TooFarInThePastException()
-
+    
+    a['ablauf_id'] = "%s/%s" % (wp, a['key'])
     a['typ'] = doc.findtext("VORGANGSTYP")
     a['titel'] = doc.findtext("TITEL")
 

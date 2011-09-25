@@ -39,7 +39,7 @@ def extend_positions(db):
 
         hash = sha1(data['fundstelle'].encode('utf-8') \
                 + data['urheber'].encode('utf-8') + \
-                data['ablauf_source_url'].encode('utf-8')).hexdigest()
+                data['ablauf_id'].encode('utf-8')).hexdigest()
         data['hash'] = hash[:7]
         Position.writerow(data, unique_columns=UNIQUE,
                           bufferlen=2000)

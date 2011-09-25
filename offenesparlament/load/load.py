@@ -189,7 +189,8 @@ def load_ablauf(ws, data):
             key=data.get('key')).first()
     if ablauf is None:
         ablauf = Ablauf()
-
+    
+    ablauf_id = data.get('ablauf_id')
     ablauf.key = data.get('key')
     ablauf.source_url = data.get('source_url')
     ablauf.wahlperiode = data.get('wahlperiode')
@@ -240,12 +241,12 @@ def load_ablauf(ws, data):
         referenz.text = ddata.get('text')
 
     for position in ws['position'].traverse(
-            ablauf_source_url=ablauf.source_url):
-        load_position(position, ablauf, ws)
+            ablauf_id=ablauf_id):
+        load_position(position, ablauf_id, ablauf, ws)
 
     db.session.commit()
 
-def load_position(data, ablauf, ws):
+def load_position(data, ablauf_id, ablauf, ws):
     position = Position.query.filter_by(
             ablauf=ablauf,
             urheber=data.get('urheber'), 
@@ -264,13 +265,13 @@ def load_position(data, ablauf, ws):
     position.ablauf = ablauf
 
     for ddata in ws['referenz'].traverse(fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_source_url=ablauf.source_url):
+            urheber=position.urheber, ablauf_id=ablauf_id):
         position.dokument = load_dokument(ddata, ws)
 
     db.session.add(position)
 
     for zdata in ws['zuweisung'].traverse(fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_source_url=ablauf.source_url):
+            urheber=position.urheber, ablauf_id=ablauf_id):
         zuweisung = Zuweisung()
         zuweisung.text = zdata['text']
         zuweisung.federfuehrung = True if \
@@ -282,7 +283,7 @@ def load_position(data, ablauf, ws):
     
     try:
         for bdata in ws['beschluss'].traverse(fundstelle=position.fundstelle,
-                urheber=position.urheber, ablauf_source_url=ablauf.source_url):
+                urheber=position.urheber, ablauf_id=ablauf_id):
             beschluss = Beschluss()
             beschluss.position = position
             beschluss.seite = bdata['seite']
@@ -297,9 +298,8 @@ def load_position(data, ablauf, ws):
     except WebstoreClientException:
         pass
 
-
     for bdata in ws['beitrag'].traverse(fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_source_url=ablauf.source_url):
+            urheber=position.urheber, ablauf_id=ablauf_id):
         load_beitrag(bdata, position, ws)
 
 def load_beitrag(data, position, ws):
