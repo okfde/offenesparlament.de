@@ -15,12 +15,12 @@ def extract():
     news.load_index(db)
     from offenesparlament.extract.xml import mdb
     mdb.load_index(db)
-    from offenesparlament.extract import dip
-    dip.load_dip(db)
     from offenesparlament.extract import mediathek
     mediathek.load_sessions(db)
     from offenesparlament.extract import abstimmungen
     abstimmungen.load_index(db)
+    from offenesparlament.extract import dip
+    dip.load_dip(db)
 
 @manager.command
 def transform():
