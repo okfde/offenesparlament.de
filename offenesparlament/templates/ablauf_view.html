@@ -70,7 +70,7 @@
     {% if ablauf.abstrakt %}
       <h3>Beschreibung</h3>
       <p>
-        {{ ablauf.abstrakt }}
+        {{ ablauf.abstrakt | safe }}
         </p>
     {% endif %}
     <h3>Verlauf</h3>

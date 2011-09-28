@@ -59,7 +59,7 @@ def handle_xml(xml, db):
                    texts[col_offset:col_offset+6]]
         texts = texts[col_offset+6:]
         name = u''
-        print columns
+        #print columns
         for i, t in enumerate(texts):
             txt = t.xpath('string()').strip()
             if txt == 'Summe':
@@ -76,8 +76,8 @@ def handle_xml(xml, db):
                         'vote': field}
                 Vote.writerow(data, unique_columns=['subject', 'person'],
                               bufferlen=2000)
-                pprint({'person': name.strip() + ' ' + fraktion, 
-                        'vote': field})
+                #pprint({'person': name.strip() + ' ' + fraktion, 
+                #        'vote': field})
                 name = u''
 
     for page in doc.findall(".//page"):

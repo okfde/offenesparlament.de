@@ -24,7 +24,7 @@
     <h3>Details</h3>
     <ul> 
       {% if person.beruf %}
-        <li>{{ person.beruf }}</li>
+        <li>Beruf: {{ person.beruf }}</li>
       {% endif %}
       {% if person.homepage_url %}
         <li><a href="{{ person.homepage_url }}">Homepage</a></li>
@@ -39,54 +39,76 @@
         <li><a href="{{ person.bio_url }}">Bundestag</a></li>
       {% endif %}
     </ul>
-    <h3>Gremien</h3>
-    <ul>
-      {% if person.vorsitze[0] %}
-      <li>Vorsitz
+    {% if person.vorsitze[0] or person.stellv_vorsitze[0] or person.obleute[0] or person.mitglied[0] or person.stellvertreter[0] %}
+      <h3>Gremien</h3>
       <ul>
-        {% for g in person.vorsitze %}
-          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+        {% if person.vorsitze[0] %}
+        <li>Vorsitz
+        <ul>
+          {% for g in person.vorsitze %}
+            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+          {% endfor %}
+        </ul>
+        </li>
+        {% endif %}
+        {% if person.stellv_vorsitze[0] %}
+        <li>Stellvertretung
+        <ul>
+          {% for g in person.stellv_vorsitze %}
+            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+          {% endfor %}
+        </ul>
+        </li>
+        {% endif %}
+        {% if person.obleute[0] %}
+        <li>ObmannIn
+        <ul>
+          {% for g in person.obleute %}
+            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+          {% endfor %}
+        </ul>
+        </li>
+        {% endif %}
+        {% if person.mitglied[0] %}
+        <li>Mitgliedschaften
+        <ul>
+          {% for g in person.mitglied %}
+            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+          {% endfor %}
+        </ul>
+        </li>
+        {% endif %}
+        {% if person.stellvertreter[0] %}
+        <li>Stellvertretung
+        <ul>
+          {% for g in person.stellvertreter %}
+            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+          {% endfor %}
+        </ul>
+        </li>
+        {% endif %}
+      </ul>
+    {% endif %}
+    {% if debatten[0] %}
+      <h3>Reden im Plenum</h3>
+      <ul>
+        {% for debatte in debatten %}
+          <li><a href="{{ url_for('sitzung',
+            wahlperiode=debatte.sitzung.wahlperiode,
+            nummer=debatte.sitzung.nummer) }}?debatten_zitate.debatte.titel={{
+            debatte.titel }}">
+            {{ debatte.sitzung.date.strftime('%d.%m.%Y') }}: 
+            {{ debatte.titel }}</a></li>
         {% endfor %}
       </ul>
-      </li>
-      {% endif %}
-      {% if person.stellv_vorsitze[0] %}
-      <li>Stellvertretung
+    {% endif %}
+    {% if person.stimmen %}
+      <h3>Abstimmungen</h3>
       <ul>
-        {% for g in person.stellv_vorsitze %}
-          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+        {% for stimme in person.stimmen %}
+          <li>{{stimme.entscheidung}}</li>
         {% endfor %}
-      </ul>
-      </li>
-      {% endif %}
-      {% if person.obleute[0] %}
-      <li>ObmannIn
-      <ul>
-        {% for g in person.obleute %}
-          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
-        {% endfor %}
-      </ul>
-      </li>
-      {% endif %}
-      {% if person.mitglied[0] %}
-      <li>Mitgliedschaften
-      <ul>
-        {% for g in person.mitglied %}
-          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
-        {% endfor %}
-      </ul>
-      </li>
-      {% endif %}
-      {% if person.stellvertreter[0] %}
-      <li>Stellvertretung
-      <ul>
-        {% for g in person.stellvertreter %}
-          <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
-        {% endfor %}
-      </ul>
-      </li>
-      {% endif %}
-    </ul>
+    {% endif %}
   </div>
   <div class="mainbar">
     <ul class="rollen">

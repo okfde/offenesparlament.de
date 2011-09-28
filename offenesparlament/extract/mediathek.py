@@ -115,7 +115,7 @@ def load_speeches(url, context, db):
             spch['speech_nr'] = speech_id
             Mediathek.writerow(spch, 
                     unique_columns=['speech_source_url'],
-                    bufferlen=5000)
+                    bufferlen=50)
             if not 'speech_title' in spch or not spch['speech_title']:
                 pprint(spch)
             #name_transform(spch['speech_title'])

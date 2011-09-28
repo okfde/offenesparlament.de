@@ -169,24 +169,26 @@ h1, h2, h3, h4 {
   font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
   color: #00636A;
   margin-bottom: 0.5em;
+  font-weight: bold;
 }
 
 h1 {
   font-size: 1.7em;
   line-height: 1.3em;
   color: black;
-  font-weight: bold;
 }
 
 h2 {
-  font-weight: bold;
   font-size: 1.5em;
 }
 
 h3 {
   margin-top: 1em;
-  font-weight: bold;
   font-size: 1.3em;
+}
+
+h4 {
+  margin-top: 1em;
 }
 
 a, a:visited, a:active {
@@ -269,14 +271,14 @@ header {
 }
 
 h1#site-title {
-  margin-bottom: 0.5em;
+  margin-bottom: 0.1em;
   font-size: 3.2em;
 }
 
 h1#site-title a {
   text-decoration: none;
   font-family: Cochin, Baskerville, Georgia;
-  font-weight: normal;
+  font-weight: bold;
   font-variant: small-caps !important;
   color: #000;
 }
@@ -331,6 +333,26 @@ p.hint {
   background-color: #63a62f;
 }
 
+/* Home page */
+p.claim {
+  color: #666;
+  padding-top: 1em;
+  font-family: Georgia, serif;
+  line-height: 1.5em;
+  font-size: 1.4em;
+  font-style: italic;
+}
+
+#_tooltip {
+  color: white;
+  background-color: #222;
+  padding: 0.3em;
+}
+
+ul.debates {
+  padding: 1em 0em 1em 1em;
+}
+
 /* Ablauf Details */
 #factsheet {
 }
@@ -379,6 +401,10 @@ ul.position-list .header .zuordnung {
   float: right; 
 }
 
+ul.position-list h4 {
+  margin-top: 0;
+}
+
 ul.position-list .header .typ {
   float: right;
   margin-right: 10px;
@@ -406,6 +432,10 @@ ul.position-list .bottom {
   display: block;
   padding: 0 5px 0 5px;
   font-size: 0.8em;
+}
+
+ul.position-list .ablauf h3 {
+  margin-top: 0em;
 }
 
 table.zitate td {
@@ -704,6 +734,7 @@ ul.search-results.ablauf li {
 
 ul.search-results.ablauf h3 {
   font-size: 1.3em;
+  margin-top: 0em;
   margin-bottom: 0.3em;
 }
 

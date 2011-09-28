@@ -1,4 +1,5 @@
 {% import "searches.html" as macros %}
+{% import "snippets.html" as snippets %}
 {% extends "layout.html" %}
 
 {% block title %}
@@ -17,16 +18,7 @@
       <ul class="search-results sitzung">
       {% for sitzung in pager %}
       <div class="{{ loop.cycle('lleftbar', 'lrightbar') }}">
-        <h3><a href="{{ url_for('sitzung', wahlperiode=sitzung.wahlperiode,
-            nummer=sitzung.nummer) }}">{{ sitzung.titel }}</a></h3>
-        <ul>
-          {% for d in sitzung.debatten %}
-            <li><a href="{{ url_for('sitzung', wahlperiode=sitzung.wahlperiode,
-              nummer=sitzung.nummer) }}?debatten_zitate.debatte.titel={{d.titel}}">{{ d.titel.split("TOP",1)[-1] }}</a>
-              <!--p>{{d.text|safe}}</p-->
-            </li>
-          {% endfor %}
-        </ul>
+        {{ snippets.sitzung_list_inner(sitzung) }}
       </div>
       {% if loop.index % 2 == 0 %}
         <div class="clearfix"></div>

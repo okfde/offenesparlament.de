@@ -6,7 +6,7 @@ from flask import url_for, redirect, jsonify
 from offenesparlament.core import app, pages
 from offenesparlament.model import Ablauf, Position
 from offenesparlament.model import Person, Gremium
-from offenesparlament.model import Sitzung, Zitat
+from offenesparlament.model import Sitzung, Zitat, Debatte, DebatteZitat
 
 from offenesparlament.pager import Pager
 from offenesparlament.searcher import SolrSearcher
@@ -115,9 +115,12 @@ def person(slug):
     searcher.filter('beitraege.person.id', str(person.id))
     pager = Pager(searcher, 'person', request.args, slug=slug)
     schlagworte = aggregates.person_schlagworte(person)
+    debatten = Debatte.query.join(DebatteZitat).join(Zitat).\
+            filter(Zitat.person==person).distinct().all()
     return render_template('person_view.html',
             person=person, searcher=searcher, 
-            pager=pager, schlagworte=schlagworte)
+            pager=pager, schlagworte=schlagworte,
+            debatten=debatten[::-1])
 
 @app.route("/pages/<path:path>")
 def page(path):
@@ -127,7 +130,11 @@ def page(path):
 
 @app.route("/")
 def index():
-    return render_template('home.html')
+    general = aggregates.current_schlagworte()
+    sachgebiete = aggregates.sachgebiete()
+    sitzung = Sitzung.query.order_by(Sitzung.date.desc()).first()
+    return render_template('home.html', general=general,
+            sachgebiete=sachgebiete, sitzung=sitzung)
 
 if __name__ == '__main__':
     app.debug = True
