@@ -11,24 +11,21 @@ from webstore.client import URL as WebStore
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
-#from offenesparlament.extract.util import threaded
-
-PLPR_URL = "http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=details&isLinkCallPlenar=1"
 MEDIATHEK_URL = "http://www.bundestag.de/Mediathek/index.jsp"
 MIN_WP = 17
-MAX_FAIL = 4
+MAX_FAIL = 3
 SHORT_URL = "http://dbtg.tv/vid/"
 
 def get_doc(url):
-    for i in range(4):
+    for i in range(MAX_FAIL):
         try:
-            doc = html.parse(url)
-            doc.find('//body')
             #print url
-            return doc
+            doc = html.parse(url)
+            if not no_results(doc):
+                return doc
         except Exception, e:
             log.exception(e)
-            time.sleep(i**2)
+        time.sleep(i**2)
 
 def no_results(doc):
     err = doc.find('//p[@class="error"]')
@@ -55,19 +52,15 @@ def video_box(doc, prefix):
 
 def load_sessions(db):
     wp_fails = 0
-    s_fails = 0
     for wp in count(MIN_WP):
         wp_fails += 1
         for session in count(1):
             url = SHORT_URL + str(wp) + "/" + str(session)
             doc = get_doc(url)
-            if doc is None or no_results(doc):
-                s_fails += 1
-                if s_fails > MAX_FAIL:
-                    break
+            if doc is None:
+                break
             else:
                 wp_fails = 0
-                s_fails = 0
                 ctx = video_box(doc, 'meeting')
                 ctx['meeting_url'] = url
                 load_tops(wp, session, ctx, db)
@@ -75,34 +68,26 @@ def load_sessions(db):
             break
 
 def load_tops(wp, session, context, db):
-    fails = 0
     for top_id in count(1):
         url = SHORT_URL + str(wp) + "/" + str(session) + "/" + str(top_id)
         doc = get_doc(url)
-        if doc is None or no_results(doc):
-            fails += 1
-            if fails >= MAX_FAIL:
-                return
+        if doc is None:
+            return
         else:
             log.info("Mediathek, WP %s - Session %s - TOP %s" % (wp, session, top_id))
-            fails = 0
             top = context.copy()
             top['top_nr'] = top_id
             top.update(video_box(doc, 'top'))
             load_speeches(url, top, db)
 
 def load_speeches(url, context, db):
-    fails = 0
     Mediathek = db['mediathek']
     for speech_id in count(1):
         url_ = url + "/" + str(speech_id)
         doc = get_doc(url_)
-        if doc is None or no_results(doc):
-            fails += 1
-            if fails >= MAX_FAIL:
-                return
+        if doc is None:
+            return
         else:
-            fails = 0
             spch = context.copy()
             spch.update(video_box(doc, 'speech'))
             ps = doc.findall('//div[@class="mediathekPlenarText"]/p')
