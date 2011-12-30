@@ -4,17 +4,19 @@ from hashlib import sha1
 from datetime import datetime
 import logging
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
+
+from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
-UNIQUE = ['__id__']
+UNIQUE = ['id']
 
-def extend_positions(db):
+def extend_positions(engine):
     log.info("Amending positions ...")
-    Position = db['position']
-    for i, data in enumerate(Position):
+    Position = sl.get_table(engine, 'position')
+    for i, data in enumerate(sl.find(engine, Position)):
         if i % 1000 == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
@@ -41,16 +43,13 @@ def extend_positions(db):
                 + data['urheber'].encode('utf-8') + \
                 data['ablauf_id'].encode('utf-8')).hexdigest()
         data['hash'] = hash[:10]
-        Position.writerow(data, unique_columns=UNIQUE,
-                          bufferlen=2000)
-    Position.flush()
+        sl.upsert(engine, Position, data, unique=UNIQUE)
 
-def generate_beschluss_referenzen(db):
+def generate_beschluss_referenzen(engine):
     log.info("Generating document references for 'beschluss'....")
 
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    extend_positions(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    extend_positions(engine)

@@ -2,8 +2,9 @@
 import sys
 import logging
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
 
+from offenesparlament.core import etl_engine
 from offenesparlament.transform.text import url_slug
 
 log = logging.getLogger(__name__)
@@ -19,7 +20,8 @@ def make_long_name(data):
             pg('vorname'), pg('nachname'), pg('ort'), 
             fraktion or ressort)
 
-def make_person(beitrag, fp, db):
+def make_person(beitrag, fp, engine):
+    Person = sl.get_table(engine, 'person')
     person = {
         'fingerprint': fp,
         'vorname': beitrag['vorname'],
@@ -29,44 +31,39 @@ def make_person(beitrag, fp, db):
         'land': beitrag.get('land'),
         'fraktion': beitrag.get('fraktion')
     }
-    db['person'].writerow(person,
-            unique_columns=['fingerprint'])
+    sl.upsert(engine, Person, person,
+              unique=['fingerprint'])
     return fp
 
-def generate_person_long_names(db):
+def generate_person_long_names(engine):
     log.info("Generating person fingerprints and slugs...")
-    Person = db['person']
-    for person in Person:
+    Person = sl.get_table(engine, 'person')
+    for person in sl.find(engine, Person):
         long_name = make_long_name(person)
         log.debug(" -> %s" % long_name.strip())
         slug = url_slug(long_name)
-        Person.writerow({'fingerprint': long_name,
+        sl.upsert(engine, Person, {
+                         'fingerprint': long_name,
                          'slug': slug,
-                         '__id__': person['__id__']}, 
-                         unique_columns=['__id__'])
-    for fp in Person.distinct('fingerprint'):
-        if fp['_count'] > 1:
-            raise ValueError("Partial fingerprint: %s" % fp['fingerprint'])
+                         'id': person['id']}, 
+                         unique=['id'])
 
     log.info("Updating 'rollen' to have fingerprints...")
-    Rolle = db['rolle']
-    for person in Person:
+    Rolle = sl.get_table(engine, 'rolle')
+    for person in sl.find(engine, Person):
         if person['mdb_id']:
-            Rolle.writerow({
+            sl.upsert(engine, Rolle, {
                 'mdb_id': person['mdb_id'],
                 'fingerprint': person['fingerprint']
-                }, unique_columns=['mdb_id'])
+                }, unique=['mdb_id'])
         elif person['source_url']:
-            Rolle.writerow({
+            sl.upsert(engine, Rolle, {
                 'person_source_url': person['person_source_url'],
                 'fingerprint': person['fingerprint']
-                }, unique_columns=['person_source_url'])
-
-
+                }, unique=['person_source_url'])
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    generate_person_long_names(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    generate_person_long_names(engine)
 

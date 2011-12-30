@@ -12,7 +12,7 @@ from StringIO import StringIO
 
 import sqlaload as sl
 
-#from offenesparlament.extract.util import threaded
+from offenesparlament.extract.util import threaded
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
@@ -310,7 +310,7 @@ def scrape_activity(ablauf, elem, engine):
         b['nachname'] = belem.findtext("NACHNAME")
         b['funktion'] = belem.findtext("FUNKTION")
         b['ort'] = belem.findtext('WAHLKREISZUSATZ')
-        sl.find_one(engine, Person, 
+        p = sl.find_one(engine, Person, 
                 vorname=b['vorname'],
                 nachname=b['nachname'],
                 ort=b['ort'])
@@ -426,21 +426,23 @@ def scrape_ablauf(url, engine, wahlperiode=17):
 
 
 def load_dip(engine):
-    try:
-        for url in load_dip_index():
-            for i in range(4):
-                try:
-                    scrape_ablauf(url, engine)
-                    break
-                except NoContentException:
-                    global jar
-                    jar = None
-                    time.sleep(i**2)
-    except TooFarInThePastException:
-        pass
-    #def bound_scrape(url):
-    #    scrape_ablauf(url, db)
-    #threaded(load_dip_index(), bound_scrape)
+    if True:
+        try:
+            for url in load_dip_index():
+                for i in range(4):
+                    try:
+                        scrape_ablauf(url, engine)
+                        break
+                    except NoContentException:
+                        global jar
+                        jar = None
+                        time.sleep(i**2)
+        except TooFarInThePastException:
+            pass
+    if False:
+        def bound_scrape(url):
+            scrape_ablauf(url, engine)
+        threaded(load_dip_index(), bound_scrape)
 
 def load_dip_index():
     for offset in count():

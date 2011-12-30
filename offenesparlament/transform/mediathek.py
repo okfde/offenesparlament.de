@@ -4,17 +4,18 @@ import logging
 from datetime import datetime
 import sys
 
-from offenesparlament.core import master_data
+import sqlaload as sl
 
-from webstore.client import URL as WebStore
+from offenesparlament.core import etl_engine
+from offenesparlament.core import master_data
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
-def extend_speeches(db, master):
-    Speech = db['mediathek']
+def extend_speeches(engine, master):
+    Speech = sl.get_table(engine, 'mediathek')
     log.info("Post-processing speeches from mediathek...")
-    for i, speech in enumerate(Speech):
+    for i, speech in enumerate(sl.find(engine, Speech)):
         if i % 1000 == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
@@ -38,15 +39,14 @@ def extend_speeches(db, master):
         ctx = speech['meeting_context']
         if ctx is not None:
             speech['wahlperiode'], text = ctx.split('.', 1)
-        Speech.writerow(speech, unique_columns=['speech_source_url'],
-                bufferlen=5000)
-    Speech.flush()
+        sl.upsert(engine, Speech, speech, unique=['speech_source_url'])
 
 QUERY = '''SELECT DISTINCT wahlperiode, sitzung FROM speech;'''
 
-def merge_speeches(db, master):
-    for combo in db.query(QUERY):
-        merge_speech(db, master, combo['wahlperiode'], 
+def merge_speeches(engine, master):
+    Speech = sl.get_table(engine, 'mediathek')
+    for combo in sl.distinct(engine, Speech, 'wahlperiode', 'sitzung'):
+        merge_speech(engine, master, combo['wahlperiode'], 
                 combo['sitzung'])
 
 
@@ -61,11 +61,13 @@ def top_calls(text):
         calls.append(('ZP', number))
     return set(calls)
 
-def merge_speech(db, master, wp, session):
+def merge_speech(engine, master, wp, session):
     log.info("Merging media + transcript: %s/%s" % (wp, session))
-    SpeechMediathek = db['speech_mediathek']
+    SpeechMediathek = sl.get_table(engine, 'speech_mediathek')
+    Mediathek = sl.get_table(engine, 'mediathek')
+    Speech = sl.get_table(engine, 'speech')
     sorter = lambda x: (int(x['top_nr']), int(x['speech_nr']))
-    med = sorted(db['mediathek'].traverse(wahlperiode=wp, meeting_nr=session),
+    med = sorted(sl.find(engine, Mediathek, wahlperiode=wp, meeting_nr=session),
             key=sorter)
 
     speech_idx = top_idx = 0
@@ -83,16 +85,15 @@ def merge_speech(db, master, wp, session):
         #    med[idx]['speech_duration'],
         #    )
         #print x.encode("utf-8")
-        SpeechMediathek.writerow({
+        sl.upsert(engine, SpeechMediathek, {
                 'wahlperiode': wp,
                 'sitzung': session,
                 'mediathek_url': med[idx]['speech_source_url'],
                 'sequence': speech['sequence']
-                }, unique_columns=['wahlperiode', 'sitzung', 'sequence'],
-                bufferlen=2000)
+                }, unique=['wahlperiode', 'sitzung', 'sequence'])
 
     spch = []
-    for speech in db['speech'].traverse(wahlperiode=wp, sitzung=session):
+    for speech in sl.find(engine, Speech, wahlperiode=wp, sitzung=session):
         spch_i = (speech['wahlperiode'], speech['sitzung'], speech['sequence'])
         if spch_i in spch:
             continue
@@ -152,13 +153,10 @@ def merge_speech(db, master, wp, session):
                     # -> use current
                     emit(speech, speech_idx)
                     break
-    
-    SpeechMediathek.flush()
 
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    extend_speeches(db, master_data())
-    merge_speech(db, master_data(), 17, 121)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    extend_speeches(engine, master_data())
+    merge_speech(engine, master_data(), 17, 121)

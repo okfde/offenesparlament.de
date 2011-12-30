@@ -4,28 +4,29 @@ from pprint import pprint
 from datetime import datetime
 from collections import defaultdict
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
 
+from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 from offenesparlament.transform.drs import drucksachen
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
-def cache_abstimmungen(db):
+def cache_abstimmungen(engine):
+    Abstimmung = sl.get_table(engine, 'abstimmung')
     data = defaultdict(dict)
-    q = db.query("SELECT DISTINCT subject, date FROM abstimmung;")
-    for e in q:
+    for e in sl.distinct(engine, Abstimmung, 'subject', 'date'):
         data[e['date']][e['subject']] = set(drucksachen(e['subject']))
     return dict(data.items())
 
 
-def extend_beschluesse(db, master):
+def extend_beschluesse(engine, master):
     log.info("Re-connecting beschluesse ...")
-    abstimmungen = cache_abstimmungen(db)
-    pprint(abstimmungen)
-    Beschluss = db['beschluss']
-    for data in Beschluss:
+    abstimmungen = cache_abstimmungen(engine)
+    #pprint(abstimmungen)
+    Beschluss = sl.get_table(engine, 'beschluss')
+    for data in sl.find(engine, Beschluss):
         date = data['fundstelle'].split(' ')[0]
         data['date'] = datetime.strptime(date, '%d.%m.%Y').isoformat()
         if not data['dokument_text']:
@@ -39,7 +40,6 @@ def extend_beschluesse(db, master):
 
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    extend_beschluesse(db, master_data())
+    engine = etl_engine()
+    print "DESTINATION", engine
+    extend_beschluesse(engine, master_data())

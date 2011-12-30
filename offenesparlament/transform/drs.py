@@ -12,13 +12,10 @@ logging.basicConfig(level=logging.NOTSET)
 
 import re
 
-
 def drucksachen(text, wahlperiode=17):
     pat = r"(%s/\d{1,6}(\s*\(.{1,10}\))?)" % wahlperiode
     for drs, sufx in re.findall(pat, text):
         yield drs
-
-
 
 def _foo(db, master):
     for subj in db['abstimmung'].distinct('subject'):

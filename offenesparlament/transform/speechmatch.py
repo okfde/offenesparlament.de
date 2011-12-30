@@ -2,8 +2,9 @@ import re
 import sys
 import logging
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
 
+from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 
 DRS_MATCH = "- Drucksachen? (%s/\\d{1,6})([,;/]? (%s/\\d{1,6}))* -"
@@ -13,12 +14,12 @@ logging.basicConfig(level=logging.NOTSET)
 
 UNIQUE = ['__id__']
 
-def extend_speeches(db, master, wahlperiode=17):
+def extend_speeches(engine, master, wahlperiode=17):
     log.info("Amending speeches with DRS ...")
     drs_match = re.compile(DRS_MATCH % (wahlperiode, wahlperiode))
-    Speech = db['speech']
-    SpeechDocument = db['speech_document']
-    for i, data in enumerate(Speech):
+    Speech = sl.get_table(engine, 'speech')
+    SpeechDocument = sl.get_table(engine, 'speech_document')
+    for i, data in enumerate(sl.find(engine, Speech)):
         if data.get('type') != 'chair':
             continue
         if i % 1000 == 0:
@@ -30,20 +31,16 @@ def extend_speeches(db, master, wahlperiode=17):
         for i, grp in enumerate(m.groups()):
             if grp and '/' in grp:
                 wp, nummer = grp.split('/', 1)
-                SpeechDocument.writerow({
+                sl.upsert(engine, SpeechDocument, {
                     'group': i,
                     'sequence': data['sequence'],
                     'sitzung': data['sitzung'],
                     'wahlperiode': wahlperiode,
                     'dok_nummer': nummer},
-                    unique_columns=['sequence', 'sitzung', 'wahlperiode',
-                        'group'],
-                    bufferlen=5000)
-    SpeechDocument.flush()
+                    unique=['sequence', 'sitzung', 'wahlperiode', 'group'])
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    extend_speeches(db, master_data())
+    engine = etl_engine()
+    print "DESTINATION", engine
+    extend_speeches(engine, master_data())
 

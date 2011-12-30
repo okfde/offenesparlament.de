@@ -7,8 +7,9 @@ from pprint import pprint
 import re
 import sys
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
 
+from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 from offenesparlament.transform.namematch import match_speaker, make_prints
 
@@ -35,11 +36,11 @@ SPEAKER_STOPWORDS = ['ich zitiere', 'zitieren', 'Zitat', 'zitiert',
 
 class SpeechParser(object):
 
-    def __init__(self, master, db, fh):
-        self.db = db
+    def __init__(self, master, engine, fh):
+        self.engine = engine
         self.master = master
         self.fh = fh
-        self.prints = make_prints(db)
+        self.prints = make_prints(engine)
 
     def identify_speaker(self, match):
         return match_speaker(self.master, match, self.prints)
@@ -135,43 +136,42 @@ class SpeechParser(object):
             text.append(line)
         yield emit()
 
-def load_transcript(db, master, wp, session):
+def load_transcript(engine, master, wp, session):
     url = URL % (wp, session)
     fh = urlopen(url)
     sio = StringIO(fh.read())
     fh.close()
     log.info("Loading transcript: %s/%s" % (wp, session))
-    Speech = db['speech']
+    Speech = sl.get_table(engine, 'speech')
     seq = 0
-    for contrib in SpeechParser(master_data(), db, sio):
+    for contrib in SpeechParser(master_data(), engine, sio):
         if not len(contrib['text'].strip()):
             continue
         contrib['sitzung'] = session
         contrib['sequence'] = seq
         contrib['wahlperiode'] = wp
         contrib['source_url'] = url
-        Speech.writerow(contrib, 
-                unique_columns=['sequence', 'sitzung', 'wahlperiode'])
+        sl.upsert(engine, Speech, contrib, 
+                  unique=['sequence', 'sitzung', 'wahlperiode'])
         seq += 1
 
-def load_transcripts(db, master):
+def load_transcripts(engine, master):
     for i in count(33):
         try:
-            load_transcript(db, master, 17, i)
+            load_transcript(engine, master, 17, i)
         except HTTPError:
             break
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    #load_transcripts(db, master_data())
-    #load_transcript(db, master_data(), 17, 72)
-    #load_transcript(db, master_data(), 17, 93)
-    #load_transcript(db, master_data(), 17, 101)
-    #load_transcript(db, master_data(), 17, 103)
-    load_transcript(db, master_data(), 17, 126)
-    #sp = SpeechParser(master_data(), db, fp)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    #load_transcripts(engine, master_data())
+    #load_transcript(engine, master_data(), 17, 72)
+    #load_transcript(engine, master_data(), 17, 93)
+    #load_transcript(engine, master_data(), 17, 101)
+    #load_transcript(engine, master_data(), 17, 103)
+    load_transcript(engine, master_data(), 17, 126)
+    #sp = SpeechParser(master_data(), engine, fp)
     #for l in sp:
     #    pprint(l)
         #pass

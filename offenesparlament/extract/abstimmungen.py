@@ -9,7 +9,8 @@ import sys
 import re
 import tempfile
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
+from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
@@ -37,9 +38,9 @@ def pdftoxml(file_path):
             file_path], shell=False, stdout=subprocess.PIPE)
     return process.stdout.read()
 
-def handle_xml(xml, db):
+def handle_xml(xml, engine):
     doc = etree.fromstring(xml)
-    Vote = db['abstimmung']
+    Vote = sl.get_table(engine, 'abstimmung')
     subject = ''
     date = None
     def handle_list(page):
@@ -74,8 +75,7 @@ def handle_xml(xml, db):
                         'person': name.strip() + ' ' + fraktion,
                         'date': date,
                         'vote': field}
-                Vote.writerow(data, unique_columns=['subject', 'person'],
-                              bufferlen=2000)
+                sl.upsert(engine, Vote, data, unique=['subject', 'person'])
                 #pprint({'person': name.strip() + ' ' + fraktion, 
                 #        'vote': field})
                 name = u''
@@ -100,25 +100,22 @@ def handle_xml(xml, db):
         else:
             handle_list(page)
 
-    Vote.flush()
-
-def load_vote(url, db):
+def load_vote(url, engine):
     fh, path = tempfile.mkstemp('.pdf')
     urllib.urlretrieve(url, path)
     xml = pdftoxml(path)
-    handle_xml(xml, db)
+    handle_xml(xml, engine)
 
-def load_index(db):
+def load_index(engine):
     doc = html.parse(INDEX)
     for a in doc.findall('//ul[@class="standardLinkliste"]//a'):
         url = urlparse.urljoin(INDEX, a.get('href'))
-        load_vote(url, db)
+        load_vote(url, engine)
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    load_index(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    load_index(engine)
     #xml = open('/Users/fl/20091203_isaf.xml', 'r').read()
     #handle_xml(xml, db)
     #xml = open('/Users/fl/20100617_unifil.xml', 'r').read()

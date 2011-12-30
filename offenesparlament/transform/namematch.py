@@ -3,9 +3,10 @@ import sys
 
 import Levenshtein
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
 
 from offenesparlament.transform.persons import make_person, make_long_name
+from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 
 CHOP_PARTS = [' ', ')', '(', '[', ']', u'Vizepräsidentin', u'Vizepräsident',
@@ -22,15 +23,16 @@ def levenshtein(a,b):
             chop(b).lower()
             )
 
-def ensure_rolle(beitrag, fp, db):
+def ensure_rolle(beitrag, fp, engine):
     rolle = {
         'fingerprint': fp,
         'ressort': beitrag.get('ressort'),
         'fraktion': beitrag.get('fraktion'),
         'funktion': beitrag.get('funktion')
         }
-    db['rolle'].writerow(rolle,
-            unique_columns=['fingerprint', 'funktion'])
+    Rolle = sl.get_table(engine, 'rolle')
+    sl.upsert(engine, Rolle, rolle,
+            unique=['fingerprint', 'funktion'])
 
 def ask_user(beitrag, beitrag_print, matches, db):
     for i, (fp, dist) in enumerate(matches[:20]):
@@ -55,7 +57,7 @@ def ask_user(beitrag, beitrag_print, matches, db):
             print "CREATING", beitrag_print.encode("utf-8")
             return make_person(beitrag, beitrag_print, db)
 
-def match_beitrag(db, master, beitrag, prints):
+def match_beitrag(engine, master, beitrag, prints):
     beitrag_print = make_long_name(beitrag)
     print "Matching:", beitrag_print.encode('utf-8')
     matches = [(p, levenshtein(p, beitrag_print)) for p in prints]
@@ -69,12 +71,12 @@ def match_beitrag(db, master, beitrag, prints):
     NameMatch = master['name_match']
     match = NameMatch.find_one(dirty=beitrag_print)
     if match is not None:
-        Person = db['person']
-        if Person.find_one(fingerprint=match.get('clean')) is None:
-            return make_person(beitrag, match.get('clean'), db)
+        Person = sl.get_table(engine, 'person')
+        if sl.find_one(engine, Person, fingerprint=match.get('clean')) is None:
+            return make_person(beitrag, match.get('clean'), engine)
         return match.get('clean')
     try:
-        user_res = ask_user(beitrag, beitrag_print, matches, db)
+        user_res = ask_user(beitrag, beitrag_print, matches, engine)
         NameMatch.writerow({'dirty': beitrag_print, 'clean': user_res})
         return user_res
     except ValueError: pass
@@ -125,9 +127,9 @@ def _match_speaker(master, speaker, prints):
     except ValueError:
         NonSpeaker.writerow({'text': speaker}, unique_columns=['text'])
 
-def match_speakers(db, master, prints):
-    Speech = db['mediathek']
-    for i, speech in enumerate(Speech.distinct('speech_title')):
+def match_speakers(engine, master, prints):
+    Speech = sl.get_table(engine, 'mediathek')
+    for i, speech in enumerate(sl.distinct(engine, Speech, 'speech_title')):
         if i % 1000 == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
@@ -138,29 +140,25 @@ def match_speakers(db, master, prints):
             fp = match_speaker(master, speaker, prints)
         except ValueError:
             fp = None
-        Speech.writerow({'fingerprint': fp, 
-                         'speech_title': speech['speech_title']},
-                    unique_columns=['speech_title'],
-                    bufferlen=2000)
-    Speech.flush()
-
+        sl.upsert(engine, Speech, {'fingerprint': fp, 
+                                   'speech_title': speech['speech_title']},
+                    unique=['speech_title'])
 
 QUERY = '''SELECT DISTINCT vorname, nachname, funktion, land, fraktion, 
            ressort, ort FROM beitrag;'''
 
-def match_beitraege(db, master, prints):
-    Beitrag = db['beitrag']
-    for i, beitrag in enumerate(db.query(QUERY)):
+def match_beitraege(engine, master, prints):
+    Beitrag = sl.get_table(engine, 'beitrag')
+    for i, beitrag in enumerate(sl.distinct(engine, Beitrag, 'vorname',
+        'nachname', 'funktion', 'land', 'fraktion', 'ressort', 'ort')):
         if i % 1000 == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
-        match = match_beitrag(db, master, beitrag, prints)
-        ensure_rolle(beitrag, match, db)
+        match = match_beitrag(engine, master, beitrag, prints)
+        ensure_rolle(beitrag, match, engine)
         beitrag['fingerprint'] = match
-        Beitrag.writerow(beitrag, unique_columns=['vorname', 'nachname',
-            'funktion', 'land', 'fraktion', 'ressort', 'ort'],
-            bufferlen=2000)
-    Beitrag.flush()
+        sl.upsert(engine, Beitrag, beitrag, unique=['vorname', 'nachname',
+            'funktion', 'land', 'fraktion', 'ressort', 'ort'])
 
 def make_prints(db):
     return [p.get('fingerprint') for p in db['person'].distinct('fingerprint') \
@@ -173,7 +171,6 @@ def match_persons(db, master):
     match_speakers(db, master, prints)
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    match_persons(db, master_data())
+    engine = etl_engine()
+    print "DESTINATION", engine
+    match_persons(engine, master_data())

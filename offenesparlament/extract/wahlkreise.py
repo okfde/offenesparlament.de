@@ -2,16 +2,17 @@
 import logging
 import urllib 
 from urlparse import urljoin
-import sys
 from lxml import html
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
+from offenesparlament.core import etl_engine
 
 RESOLVER = "http://www.bundestag.de/cgibin/wkreis2009neu.pl"
 
 log = logging.getLogger(__name__)
 
-def load_wahlkreise(db):
+def load_wahlkreise(engine):
+    Plz = sl.get_table(engine, 'plz')
     for i in xrange(10000, 100000):
         q = urllib.urlencode([("PLZ", str(i)), ("ORT", "")])
         urlfh = urllib.urlopen(RESOLVER, q)
@@ -30,10 +31,9 @@ def load_wahlkreise(db):
         plz['wk_id'] = plz['wk_url'].rsplit("=",1)[-1]
         plz['wk_url'] = urljoin(RESOLVER, plz['wk_url'])
         log.info("PLZ: %s, Wahlkreis: %s" % (plz['plz'], plz['wk_name']))
-        db['plz'].writerow(plz, unique_columns=['plz'])
+        sl.upsert(engine, Plz, plz, unique=['plz'])
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    load_wahlkreise(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    load_wahlkreise(engine)

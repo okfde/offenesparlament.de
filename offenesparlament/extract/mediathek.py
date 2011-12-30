@@ -6,7 +6,8 @@ from lxml import html
 from itertools import count
 from pprint import pprint
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
+from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
@@ -50,7 +51,7 @@ def video_box(doc, prefix):
             }
     return data
 
-def load_sessions(db):
+def load_sessions(engine):
     wp_fails = 0
     for wp in count(MIN_WP):
         wp_fails += 1
@@ -63,11 +64,11 @@ def load_sessions(db):
                 wp_fails = 0
                 ctx = video_box(doc, 'meeting')
                 ctx['meeting_url'] = url
-                load_tops(wp, session, ctx, db)
+                load_tops(wp, session, ctx, engine)
         if wp_fails > MAX_FAIL:
             break
 
-def load_tops(wp, session, context, db):
+def load_tops(wp, session, context, engine):
     for top_id in count(1):
         url = SHORT_URL + str(wp) + "/" + str(session) + "/" + str(top_id)
         doc = get_doc(url)
@@ -78,10 +79,10 @@ def load_tops(wp, session, context, db):
             top = context.copy()
             top['top_nr'] = top_id
             top.update(video_box(doc, 'top'))
-            load_speeches(url, top, db)
+            load_speeches(url, top, engine)
 
-def load_speeches(url, context, db):
-    Mediathek = db['mediathek']
+def load_speeches(url, context, engine):
+    Mediathek = sl.get_table(engine, 'mediathek')
     for speech_id in count(1):
         url_ = url + "/" + str(speech_id)
         doc = get_doc(url_)
@@ -98,16 +99,12 @@ def load_speeches(url, context, db):
                 spch['speech_duration'] = spch['speech_duration'].split(": ")[-1]
                 spch['speech_time'] = spch['speech_time'].split(" ")[0]
             spch['speech_nr'] = speech_id
-            Mediathek.writerow(spch, 
-                    unique_columns=['speech_source_url'],
-                    bufferlen=None)
+            sl.upsert(engine, Mediathek, spch, unique=['speech_source_url'])
             if not 'speech_title' in spch or not spch['speech_title']:
                 pprint(spch)
             #name_transform(spch['speech_title'])
-    Mediathek.flush()
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    load_sessions(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    load_sessions(engine)
