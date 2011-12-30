@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 import logging
-import re, sys
+import re
 import urllib2, urllib
 import cookielib
 import time
@@ -10,9 +10,10 @@ from itertools import count
 from urlparse import urlparse, urljoin, parse_qs
 from StringIO import StringIO
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
 
-from offenesparlament.extract.util import threaded
+#from offenesparlament.extract.util import threaded
+from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
@@ -242,7 +243,7 @@ def expand_dok_nr(ablauf):
     return ablauf
 
 
-def scrape_activities(ablauf, db):
+def scrape_activities(ablauf, engine):
     urlfp = get_dip_with_cookie(DETAIL_VP_URL % ablauf['key'])
     if urlfp is None:
         return
@@ -250,15 +251,16 @@ def scrape_activities(ablauf, db):
     urlfp.close()
     if xml is not None: 
         for elem in xml.findall(".//VORGANGSPOSITION"):
-            scrape_activity(ablauf, elem, db)
+            scrape_activity(ablauf, elem, engine)
 
-def scrape_activity(ablauf, elem, db):
+def scrape_activity(ablauf, elem, engine):
     urheber = elem.findtext("URHEBER")
     fundstelle = elem.findtext("FUNDSTELLE")
-    Position = db['position']
-    p = Position.find_one(urheber=urheber, 
-                          fundstelle=fundstelle, 
-                          ablauf_id=ablauf['ablauf_id'])
+    Position = sl.get_table(engine, 'position')
+    p = sl.find_one(engine, Position, 
+                    urheber=urheber, 
+                    fundstelle=fundstelle, 
+                    ablauf_id=ablauf['ablauf_id'])
     if p is not None:
         return 
     p = {'ablauf_id': ablauf['ablauf_id'], 
@@ -269,44 +271,47 @@ def scrape_activity(ablauf, elem, db):
     p['abstrakt'] = elem.findtext("VP_ABSTRAKT")
     p['fundstelle_url'] = elem.findtext("FUNDSTELLE_LINK")
     
+    Zuweisung = sl.get_table(engine, 'zuweisung')
     for zelem in elem.findall("ZUWEISUNG"):
         z = pos_keys.copy()
         z['text'] = zelem.findtext("AUSSCHUSS_KLARTEXT")
         z['federfuehrung'] = zelem.find("FEDERFUEHRUNG") is not None
         z['gremium_key'] = DIP_GREMIUM_TO_KEY.get(z['text'])
-        db['zuweisung'].writerow(z)
+        sl.upsert(engine, Zuweisung, z, unique=[])
         
-    Beschluss = db['beschluss']
+    Beschluss = sl.get_table(engine, 'beschluss')
     for belem in elem.findall("BESCHLUSS"):
         b = pos_keys.copy()
         b['seite'] = belem.findtext("BESCHLUSSSEITE")
         b['dokument_text'] = belem.findtext("BEZUGSDOKUMENT")
         b['tenor'] = belem.findtext("BESCHLUSSTENOR")
         b['grundlage'] = belem.findtext("GRUNDLAGE")
-        Beschluss.writerow(b)
+        sl.upsert(engine, Beschluss, b, unique=[])
 
+    Referenz = sl.get_table(engine, 'referenz')
     try:
         dokument = dokument_by_url(p['fundstelle_url']) or \
             dokument_by_name(p['fundstelle'])
         dokument.update(pos_keys)
         dokument['ablauf_key'] = ablauf['key']
         dokument['wahlperiode'] = ablauf['wahlperiode']
-        db['referenz'].writerow(dokument, unique_columns=[
+        sl.upsert(engine, Referenz, dokument, unique=[
                 'link', 'wahlperiode', 'ablauf_key', 'seiten'
                 ])
     except Exception, e:
         log.exception(e)
 
-    Position.writerow(p)
-    Person = db['person']
-    Beitrag = db['beitrag']
+    sl.upsert(engine, Position, p, unique=[])
+    Person = sl.get_table(engine, 'person')
+    Beitrag = sl.get_table(engine, 'beitrag')
     for belem in elem.findall("PERSOENLICHER_URHEBER"):
         b = pos_keys.copy()
         b['vorname'] = belem.findtext("VORNAME")
         b['nachname'] = belem.findtext("NACHNAME")
         b['funktion'] = belem.findtext("FUNKTION")
         b['ort'] = belem.findtext('WAHLKREISZUSATZ')
-        p = Person.find_one(vorname=b['vorname'],
+        sl.find_one(engine, Person, 
+                vorname=b['vorname'],
                 nachname=b['nachname'],
                 ort=b['ort'])
         if p is not None:
@@ -325,15 +330,15 @@ def scrape_activity(ablauf, elem, db):
 
         b['seite'] = belem.findtext("SEITE")
         b['art'] = belem.findtext("AKTIVITAETSART")
-        Beitrag.writerow(b)
+        sl.upsert(engine, Beitrag, b, unique=[])
 
 class TooFarInThePastException(Exception): pass
 
 class NoContentException(Exception): pass
 
-def scrape_ablauf(url, db, wahlperiode=17):
-    Ablauf = db['ablauf']
-    a = Ablauf.find_one(source_url=url)
+def scrape_ablauf(url, engine, wahlperiode=17):
+    Ablauf = sl.get_table(engine, 'ablauf')
+    a = sl.find_one(engine, Ablauf, source_url=url)
     if a is not None and a['abgeschlossen'] == 'True':
         log.info("Skipping: %s" % a['titel'])
         return
@@ -375,9 +380,10 @@ def scrape_ablauf(url, db, wahlperiode=17):
     a['zustimmungsbeduerftig'] = doc.findtext("ZUSTIMMUNGSBEDUERFTIGKEIT")
     a['source_url'] = url
     #a.schlagworte = []
+    Schlagwort = sl.get_table(engine, 'schlagwort')
     for sw in doc.findall("SCHLAGWORT"):
         wort = {'wort': sw.text, 'key': key, 'wahlperiode': wp}
-        db['schlagwort'].writerow(wort, unique_columns=wort.keys())
+        sl.upsert(engine, Schlagwort, wort, unique=wort.keys())
     log.info("Ablauf %s: %s" % (key, a['titel']))
     a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
@@ -385,6 +391,7 @@ def scrape_ablauf(url, db, wahlperiode=17):
     if 'Originaltext der Frage(n):' in a['abstrakt']:
         _, a['abstrakt'] = a['abstrakt'].split('Originaltext der Frage(n):', 1)
 
+    Referenz = sl.get_table(engine, 'referenz')
     for elem in doc.findall("WICHTIGE_DRUCKSACHE"):
         link = elem.findtext("DRS_LINK")
         hash = None
@@ -396,7 +403,7 @@ def scrape_ablauf(url, db, wahlperiode=17):
         dokument['seiten'] = hash
         dokument['wahlperiode'] = wp
         dokument['ablauf_key'] = key
-        db['referenz'].writerow(dokument, unique_columns=[
+        sl.upsert(engine, Referenz, dokument, unique=[
             'link', 'wahlperiode', 'ablauf_key', 'seiten'
             ])
 
@@ -410,20 +417,20 @@ def scrape_ablauf(url, db, wahlperiode=17):
         dokument['seiten'] = elem.findtext("PLPR_SEITEN")
         dokument['wahlperiode'] = wp
         dokument['ablauf_key'] = key
-        db['referenz'].writerow(dokument, unique_columns=[
+        sl.upsert(engine, Referenz, dokument, unique=[
             'link', 'wahlperiode', 'ablauf_key', 'seiten'
             ])
 
-    Ablauf.writerow(a, unique_columns=['key', 'wahlperiode'])
-    scrape_activities(a, db)
+    sl.upsert(engine, Ablauf, a, unique=['key', 'wahlperiode'])
+    scrape_activities(a, engine)
 
 
-def load_dip(db):
+def load_dip(engine):
     try:
         for url in load_dip_index():
             for i in range(4):
                 try:
-                    scrape_ablauf(url, db)
+                    scrape_ablauf(url, engine)
                     break
                 except NoContentException:
                     global jar
@@ -448,8 +455,7 @@ def load_dip_index():
             yield urljoin(BASE_URL, result.get('href'))
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    load_dip(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    load_dip(engine)
 

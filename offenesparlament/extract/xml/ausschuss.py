@@ -3,13 +3,13 @@ import sys
 from lxml import etree
 
 from webstore.client import URL as WebStore
+import sqlaload as sl
 
+from offenesparlament.core import etl_engine
 from offenesparlament.extract.xml import news
-
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
-
 
 AUSSCHUSS_INDEX_URL = "http://www.bundestag.de/xml/ausschuesse/index.xml"
 URL_PATTERN = "http://www.bundestag.de/bundestag/ausschuesse17/%s/index.jsp"
@@ -40,12 +40,13 @@ RSS_FEEDS = {
     }
 
 
-def load_index(db):
+def load_index(engine):
     doc = etree.parse(AUSSCHUSS_INDEX_URL)
+    table = sl.get_table(engine, 'gremium')
     for info_url in doc.findall("//ausschussDetailXML"):
-        load_ausschuss(info_url.text, db)
+        load_ausschuss(info_url.text, engine, table)
 
-def load_ausschuss(url, db):
+def load_ausschuss(url, engine, table):
     doc = etree.parse(url)
     a = {'source_url': url}
     a['key'] = doc.findtext('/ausschussId')
@@ -57,15 +58,13 @@ def load_ausschuss(url, db):
     a['rss_url'] = RSS_FEEDS.get(a['key'])
     a['url'] = URL_PATTERN % a['key']
     a['type'] = 'ausschuss'
-    table = db['gremium']
-    table.writerow(a, unique_columns=['key'])
+    sl.upsert(engine, table, a, unique=['key'])
     for url in doc.findall("//news/detailsXML"):
-        news.load_item(url.text, db, gremium=a)
+        news.load_item(url.text, engine, gremium=a)
 
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    load_index(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    load_index(engine)
 

@@ -26,3 +26,7 @@ def master_data():
     from webstore.client import URL as WebStore
     db, _ = WebStore(app.config['MASTER_URL'])
     return db
+
+def etl_engine():
+    from sqlaload import connect
+    return connect(app.config['ETL_URL'])

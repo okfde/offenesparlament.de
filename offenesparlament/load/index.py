@@ -71,10 +71,12 @@ def strip_control_characters(text):
         return text
     _filtered = []
     from unicodedata import category
-    for c in text:
-        if not category(c).startswith('C'):
+    for c in unicode(text):
+        cat = category(c)[:1]
+        if cat not in 'C':
             _filtered.append(c)
-    return _filtered
+    return ''.join(_filtered)
+    #.encode('ascii', 'ignore')
 
 def type_info(entity):
     name = entity.__class__.__name__.lower()
@@ -98,14 +100,14 @@ def convert_dates(data):
 
 def convert_text(data):
     for k, v in data.items():
-        if isinstance(v, datetime):
-            data[k] = strip_control_characters(v)
-        elif isinstance(v, (list, tuple, set)):
+        if isinstance(v, (list, tuple, set)):
             _v = []
             for e in v:
                 e = strip_control_characters(e)
                 _v.append(e)
             data[k] = _v
+        else:
+            data[k] = strip_control_characters(v)
     return data
 
 def index_persons():
@@ -217,8 +219,12 @@ def index_zitate():
         if len(datas) % 1000 == 0:
             sys.stdout.write(".")
             sys.stdout.flush()
-            _solr.add_many(datas)
-            _solr.commit()
+            try:
+                _solr.add_many(datas)
+                _solr.commit()
+            except:
+                pprint(datas)
+                raise
             datas = []
     _solr.add_many(datas)
     _solr.commit()

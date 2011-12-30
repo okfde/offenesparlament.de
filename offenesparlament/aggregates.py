@@ -29,11 +29,11 @@ def freq_diff(my, norm, limit):
 def current_schlagworte(limit=15):
     res = _run_raw("""SELECT sw.name, COUNT(pos.id) AS num, 
                         STRFTIME("%Y-%W", pos.date) AS period
-        FROM ablauf abl 
+        FROM ablauf abl
             JOIN position pos ON pos.ablauf_id = abl.id
             JOIN schlagworte swe ON swe.ablauf_id = abl.id 
             JOIN schlagwort sw ON swe.schlagwort_id = sw.id 
-        GROUP BY STRFTIME("%Y-%W", pos.date), sw.name
+        GROUP BY period, sw.name
         HAVING num > 1
         ORDER BY num DESC;""")
     #pprint(res)

@@ -1,48 +1,50 @@
 #coding: utf-8
 import logging
-import sys
 from lxml import etree
 from datetime import datetime
 
-from webstore.client import URL as WebStore
+import sqlaload as sl
+
+from offenesparlament.core import etl_engine
 
 MDB_INDEX_URL = "http://www.bundestag.de/xml/mdb/index.xml"
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
-def add_to_gremium(node, url, role, db):
+def add_to_gremium(node, url, role, engine):
     key = node.get('id')
-    table = db['gremium']
-    g = table.find_one(key=key)
+    table = sl.get_table(engine, 'gremium')
+    g = sl.find_one(engine, table, key=key)
     if g is None:
         g = {'key': key, 'type': 'sonstiges'}
         g['name'] = node.findtext('gremiumName')
         g['url'] = node.findtext('gremiumURL')
-        table.writerow(g, unique_columns=['key'])
-    db['gremium_mitglieder'].writerow({
+        sl.upsert(engine, table, g, unique=['key'])
+    table = sl.get_table(engine, 'gremium_mitglieder')
+    sl.upsert(engine, table, {
         'gremium_key': g['key'],
         'person_source_url': url,
         'role': role
-        }, unique_columns=['person_source_url', 'gremium_key', 'role'])
+        }, unique=['person_source_url', 'gremium_key', 'role'])
 
-def load_index(db): 
+def load_index(engine): 
     doc = etree.parse(MDB_INDEX_URL)
     for info_url in doc.findall("//mdbInfoXMLURL"):
-        load_mdb(info_url.text, db)
+        load_mdb(info_url.text, engine)
 
-def load_mdb(url, db):
+def load_mdb(url, engine):
     doc = etree.parse(url)
     id = int(doc.findtext('//mdbID'))
-    table_person = db['person']
-    table_rolle = db['rolle']
-    p = table_person.find_one(mdb_id=id)
+    table_person = sl.get_table(engine, 'person')
+    table_rolle = sl.get_table(engine, 'rolle')
+    p = sl.find_one(engine, table_person, mdb_id=id)
     r = {'person_source_url': url, 
          'funktion': 'MdB'}
     if p is None:
         p = {'source_url': url}
     else:
-        r_ = table_rolle.find_one(mdb_id=id, funktion='MdB')
+        r_ = sl.find_one(engine, table_rolle, mdb_id=id, funktion='MdB')
         if r_ is not None:
             r = r_
 
@@ -94,51 +96,50 @@ def load_mdb(url, db):
             p['facebook_url'] = ws_url
 
     if doc.findtext('//mdbBundestagspraesident'):
-        table_rolle.writerow({
+        sl.upsert(engine, table_rolle, {
             'person_source_url': url, 
             'funktion': u'Bundestagspräsident',
             }, 
-            unique_columns=['person_source_url', 'funktion'])
+            unique=['person_source_url', 'funktion'])
     if doc.findtext('//mdbBundestagsvizepraesident'):
-        table_rolle.writerow({
+        sl.upsert(engine, table_rolle, {
             'person_source_url': url, 
             'funktion': u'Bundestagsvizepräsident',
             }, 
-            unique_columns=['person_source_url', 'funktion'])
+            unique=['person_source_url', 'funktion'])
     
     for n in doc.findall('//mdbObleuteGremium'):
-        add_to_gremium(n, url, 'obleute', db)
+        add_to_gremium(n, url, 'obleute', engine)
     
     for n in doc.findall('//mdbVorsitzGremium'):
-        add_to_gremium(n, url, 'vorsitz', db)
+        add_to_gremium(n, url, 'vorsitz', engine)
     
     for n in doc.findall('//mdbStellvertretenderVorsitzGremium'):
-        add_to_gremium(n, url, 'stellv_vorsitz', db)
+        add_to_gremium(n, url, 'stellv_vorsitz', engine)
     
     for n in doc.findall('//mdbVorsitzSonstigesGremium'):
-        add_to_gremium(n, url, 'vorsitz', db)
+        add_to_gremium(n, url, 'vorsitz', engine)
     
     for n in doc.findall('//mdbStellvVorsitzSonstigesGremium'):
-        add_to_gremium(n, url, 'stellv_vorsitz', db)
+        add_to_gremium(n, url, 'stellv_vorsitz', engine)
     
     for n in doc.findall('//mdbOrdentlichesMitgliedGremium'):
-        add_to_gremium(n, url, 'mitglied', db)
+        add_to_gremium(n, url, 'mitglied', engine)
     
     for n in doc.findall('//mdbStellvertretendesMitgliedGremium'):
-        add_to_gremium(n, url, 'stellv_mitglied', db)
+        add_to_gremium(n, url, 'stellv_mitglied', engine)
     
     for n in doc.findall('//mdbOrdentlichesMitgliedSonstigesGremium'):
-        add_to_gremium(n, url, 'mitglied', db)
+        add_to_gremium(n, url, 'mitglied', engine)
     
     for n in doc.findall('//mdbStellvertretendesMitgliedSonstigesGremium'):
-        add_to_gremium(n, url, 'stellv_mitglied', db)
+        add_to_gremium(n, url, 'stellv_mitglied', engine)
     
-    table_person.writerow(p, unique_columns=['source_url'])
-    table_rolle.writerow(r, unique_columns=['person_source_url', 'funktion'])
+    sl.upsert(engine, table_person, p, unique=['source_url'])
+    sl.upsert(engine, table_rolle, r, unique=['person_source_url', 'funktion'])
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    db, _ = WebStore(sys.argv[1])
-    print "DESTINATION", db
-    load_index(db)
+    engine = etl_engine()
+    print "DESTINATION", engine
+    load_index(engine)
 
