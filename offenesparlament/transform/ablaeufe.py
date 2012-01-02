@@ -13,7 +13,7 @@ def extend_ablaeufe(engine, master):
     Ablauf = sl.get_table(engine, 'ablauf')
     typen = [(t.get('typ'), t.get('class')) for t in master['ablauf_typ']]
     typen = dict(typen)
-    for data in Ablauf.distinct('typ'):
+    for data in sl.distinct(engine, Ablauf, 'typ'):
         klass = typen.get(data.get('typ'))
         sl.upsert(engine, Ablauf, {'typ': data.get('typ'),
                          'class': klass}, 

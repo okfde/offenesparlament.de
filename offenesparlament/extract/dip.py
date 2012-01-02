@@ -1,10 +1,9 @@
 # -*- coding: UTF-8 -*-
 import logging
 import re
-import urllib2, urllib
-import cookielib
+import urllib
 import time
-from threading import Lock 
+import requests
 from lxml import etree
 from itertools import count
 from urlparse import urlparse, urljoin, parse_qs
@@ -114,8 +113,6 @@ DIP_ABLAUF_STATES_FINISHED = {
     u'Untersuchungsausschuss eingesetzt': False
 }
 
-jar = None
-lock = Lock()
 
 inline_re = re.compile(r"<!--(.*?)-->", re.M + re.S)
 inline_comments_re = re.compile(r"<-.*->", re.M + re.S)
@@ -124,37 +121,33 @@ def inline_xml_from_page(page):
     for comment in inline_re.findall(page):
         comment = comment.strip()
         if comment.startswith("<?xml"):
-            comment = inline_comments_re.sub('', comment)
-            return etree.parse(StringIO(comment))
+            comment = inline_comments_re.sub('', comment).split('>', 1)[-1]
+            #print comment.encode('utf-8')
+            return etree.fromstring(comment)
 
-def get_dip_with_cookie(url, method='GET', data={}):
-    class _Request(urllib2.Request):
-        def get_method(self): 
-            return method
+def init_session():
+    session = requests.session(config={
+        'max_retries': 5, 
+        'timeout': 2
+        })
+    session.get(MAKE_SESSION_URL)
+    return session
 
-    for i in range(3):
-        lock.acquire()
-        try:
-            def _req(url, jar, data={}):
-                _data = urllib.urlencode(data) 
-                req = _Request(url, _data)
-                jar.add_cookie_header(req)
-                fp = urllib2.urlopen(req)
-                jar.extract_cookies(fp, req)
-                return fp
-            global jar
-            if jar is None:
-                jar = cookielib.CookieJar()
-                fp = _req(MAKE_SESSION_URL, jar)
-                fp.read()
-                fp.close()
-            return _req(url, jar, data=data)
-        except urllib2.HTTPError, he:
-            log.exception(he)
-            time.sleep(2)
-        finally:
-            lock.release()
+def get_dip_with_cookie(url, data={}, session=None):
+    #time.sleep(1)
+    session = init_session()
+    res = session.get(url, params=data)
+    return StringIO(res.content)
 
+    if session is None:
+        session = init_session()
+    
+    while True:
+        res = session.get(url, params=data)
+        if not 'Sie wurden vom System abgemeldet' in res.content:
+            return StringIO(res.content)
+
+        session = init_session()
 
 def _get_dokument(hrsg, typ, nummer, link=None):
     nummer = nummer.lstrip("0")
@@ -426,7 +419,7 @@ def scrape_ablauf(url, engine, wahlperiode=17):
 
 
 def load_dip(engine):
-    if True:
+    if False:
         try:
             for url in load_dip_index():
                 for i in range(4):
@@ -439,7 +432,7 @@ def load_dip(engine):
                         time.sleep(i**2)
         except TooFarInThePastException:
             pass
-    if False:
+    if True:
         def bound_scrape(url):
             scrape_ablauf(url, engine)
         threaded(load_dip_index(), bound_scrape)

@@ -129,7 +129,8 @@ def _match_speaker(master, speaker, prints):
 
 def match_speakers(engine, master, prints):
     Speech = sl.get_table(engine, 'mediathek')
-    for i, speech in enumerate(sl.distinct(engine, Speech, 'speech_title')):
+    for i, speech in enumerate(sl.distinct(engine, Speech,
+        'speech_title')):
         if i % 1000 == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
@@ -144,9 +145,6 @@ def match_speakers(engine, master, prints):
                                    'speech_title': speech['speech_title']},
                     unique=['speech_title'])
 
-QUERY = '''SELECT DISTINCT vorname, nachname, funktion, land, fraktion, 
-           ressort, ort FROM beitrag;'''
-
 def match_beitraege(engine, master, prints):
     Beitrag = sl.get_table(engine, 'beitrag')
     for i, beitrag in enumerate(sl.distinct(engine, Beitrag, 'vorname',
@@ -160,8 +158,9 @@ def match_beitraege(engine, master, prints):
         sl.upsert(engine, Beitrag, beitrag, unique=['vorname', 'nachname',
             'funktion', 'land', 'fraktion', 'ressort', 'ort'])
 
-def make_prints(db):
-    return [p.get('fingerprint') for p in db['person'].distinct('fingerprint') \
+def make_prints(engine):
+    Person = sl.get_table(engine, 'person')
+    return [p.get('fingerprint') for p in sl.distinct(engine, Person, 'fingerprint') \
             if p.get('fingerprint')]
 
 
