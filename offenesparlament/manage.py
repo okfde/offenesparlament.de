@@ -6,19 +6,31 @@ from offenesparlament.core import app, master_data, etl_engine
 manager = Manager(app)
 
 @manager.command
-def extract():
+def extract_base():
     """ Run the extract stage """
     engine = etl_engine()
     from offenesparlament.extract.xml import ausschuss
-    #ausschuss.load_index(engine)
+    ausschuss.load_index(engine)
     from offenesparlament.extract.xml import news
-    #news.load_index(engine)
+    news.load_index(engine)
     from offenesparlament.extract.xml import mdb
-    #mdb.load_index(engine)
-    from offenesparlament.extract import mediathek
-    #mediathek.load_sessions(engine)
+    mdb.load_index(engine)
+
+@manager.command
+def extract_media():
+    """ Run the extract stage """
+    engine = etl_engine()
     from offenesparlament.extract import abstimmungen
-    #abstimmungen.load_index(engine)
+    abstimmungen.load_index(engine)
+    from offenesparlament.extract import mediathek
+    mediathek.load_sessions(engine)
+    from offenesparlament.extract import dip
+    dip.load_dip(engine)
+
+@manager.command
+def extract_docs():
+    """ Run the extract stage """
+    engine = etl_engine()
     from offenesparlament.extract import dip
     dip.load_dip(engine)
 
@@ -36,7 +48,7 @@ def transform():
     from offenesparlament.transform import namematch
     namematch.match_persons(engine, master)
     from offenesparlament.transform import abstimmungen
-    #abstimmungen.extend_abstimmungen(engine, master)
+    abstimmungen.extend_abstimmungen(engine, master)
     #persons.generate_person_long_names(engine)
     from offenesparlament.transform import mediathek
     mediathek.extend_speeches(engine, master)
