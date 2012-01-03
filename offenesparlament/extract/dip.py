@@ -15,7 +15,7 @@ from offenesparlament.extract.util import threaded
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
+logging.basicConfig(level=logging.INFO)
 
 MAKE_SESSION_URL = "http://dipbt.bundestag.de/dip21.web/bt"
 BASE_URL = "http://dipbt.bundestag.de/dip21.web/searchProcedures/simple_search.do?method=Suchen&offset=%s&anzahl=100"
@@ -133,20 +133,30 @@ def init_session():
     session.get(MAKE_SESSION_URL)
     return session
 
-def get_dip_with_cookie(url, data={}, session=None):
+session = None
+def get_dip_with_cookie(url, data={}):
+    global session
     #time.sleep(1)
-    session = init_session()
-    res = session.get(url, params=data)
-    return StringIO(res.content)
+    #session = init_session()
+    #url = url.replace('http://', 'https://')
+    #res = session.get(url, params=data)
+    #return StringIO(res.content)
 
     if session is None:
         session = init_session()
     
     while True:
-        res = session.get(url, params=data)
+        try:
+            res = session.get(url, params=data, timeout=1, 
+                    config={'max_retries': 10})
+        except requests.exceptions.Timeout:
+            log.error("REQUEST TIMEOUT")
+            time.sleep(1)
+            continue
         if not 'Sie wurden vom System abgemeldet' in res.content:
             return StringIO(res.content)
-
+    
+        log.error("LOGGED OUT")
         session = init_session()
 
 def _get_dokument(hrsg, typ, nummer, link=None):
@@ -329,7 +339,12 @@ class TooFarInThePastException(Exception): pass
 
 class NoContentException(Exception): pass
 
+from threading import local
+tl = local()
 def scrape_ablauf(url, engine, wahlperiode=17):
+    if not hasattr(tl, 'engine'):
+        tl.engine = etl_engine()
+    engine = tl.engine
     Ablauf = sl.get_table(engine, 'ablauf')
     a = sl.find_one(engine, Ablauf, source_url=url)
     if a is not None and a['abgeschlossen'] == 'True':
@@ -345,10 +360,12 @@ def scrape_ablauf(url, engine, wahlperiode=17):
     urlfp.close()
     if doc is None: 
         raise NoContentException()
-
-    a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
-    if int(wp) != wahlperiode:
-        raise TooFarInThePastException()
+    
+    wp = wahlperiode
+    if doc.findtext("WAHLPERIODE"):
+        a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
+        #if int(wp) != wahlperiode:
+        #    raise TooFarInThePastException()
     
     a['ablauf_id'] = "%s/%s" % (wp, a['key'])
     a['typ'] = doc.findtext("VORGANGSTYP")
@@ -416,10 +433,10 @@ def scrape_ablauf(url, engine, wahlperiode=17):
 
     sl.upsert(engine, Ablauf, a, unique=['key', 'wahlperiode'])
     scrape_activities(a, engine)
-
+    engine.dispose()
 
 def load_dip(engine):
-    if False:
+    if 0:
         try:
             for url in load_dip_index():
                 for i in range(4):

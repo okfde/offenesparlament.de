@@ -4,9 +4,10 @@ from datetime import datetime
 
 import sqlaload as sl
 
+from offenesparlament.load.fetch import _xml
 from offenesparlament.core import etl_engine
 
-AKTUELL_URL = "http://www.bundestag.de/xml/aktuell/index.xml"
+AKTUELL_URL = "https://www.bundestag.de/xml/aktuell/index.xml"
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def load_item(url, engine, gremium=None):
             sl.upsert(engine, table, item, unique=['source_url'])
         return
     try:
-        doc = etree.parse(url)
+        doc = _xml(url)
     except Exception, e:
         log.exception(e)
         return
@@ -46,7 +47,7 @@ def load_item(url, engine, gremium=None):
         load_item(prev, engine)
 
 def load_index(engine):
-    doc = etree.parse(AKTUELL_URL)
+    doc = _xml(AKTUELL_URL)
     for info_url in doc.findall("//detailsXML"):
         if not info_url.text or 'impressum' in info_url.text:
             continue

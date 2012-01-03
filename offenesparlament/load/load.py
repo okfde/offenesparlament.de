@@ -3,7 +3,9 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 
-from webstore.client import WebstoreClientException, URL as WebStore
+import sqlaload as sl
+
+from offenesparlament.core import etl_engine
 
 from offenesparlament.core import db
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
@@ -21,10 +23,10 @@ def date(text):
     except:
         pass
 
-def load_gremien(ws):
+def load_gremien(engine):
     log.info("Loading gremien into production DB...")
-    GremiumSource = ws['gremium']
-    for data in GremiumSource:
+    _GremiumSource = sl.get_table(engine, 'gremium')
+    for data in sl.all(engine, _GremiumSource):
         gremium = Gremium.query.filter_by(key=data.get('key')).first()
         if gremium is None:
             gremium = Gremium()
@@ -40,10 +42,10 @@ def load_gremien(ws):
         db.session.add(gremium)
     db.session.commit()
 
-def load_news(ws):
+def load_news(engine):
     log.info("Loading news into production DB...")
-    NewsSource = ws['news']
-    for data in NewsSource:
+    _NewsSource = sl.get_table(engine, 'news')
+    for data in sl.all(engine, _NewsSource):
         news = NewsItem.query.filter_by(
                 source_url=data.get('source_url')).first()
         if news is None:
@@ -67,15 +69,15 @@ def load_news(ws):
         db.session.add(news)
     db.session.commit()
 
-def load_persons(ws):
+def load_persons(engine):
     log.info("Loading persons into production DB...")
     db.session.commit()
     db.session.execute(obleute.delete())
     db.session.execute(mitglieder.delete())
     db.session.execute(stellvertreter.delete())
 
-    PersonSource = ws['person']
-    for data in PersonSource:
+    _PersonSource = sl.get_table(engine, 'person')
+    for data in sl.all(engine, _PersonSource):
         person = Person.query.filter_by(
                 source_url=data.get('source_url')).first()
         if person is None:
@@ -116,12 +118,12 @@ def load_persons(ws):
         person.facebook_url = data.get('facebook_url')
         db.session.add(person)
         db.session.flush()
-        mdb_rolle = load_rollen(ws, person, data)
-        load_gremium_mitglieder(ws, person, mdb_rolle)
+        mdb_rolle = load_rollen(engine, person, data)
+        load_gremium_mitglieder(engine, person, mdb_rolle)
         
         db.session.commit()
 
-def load_wahlkreis(ws, rolle, data):
+def load_wahlkreis(engine, rolle, data):
     if data.get('wk_nummer'):
         wk = Wahlkreis.query.filter_by(
             nummer=data.get('wk_nummer')).first()
@@ -133,10 +135,10 @@ def load_wahlkreis(ws, rolle, data):
         db.session.add(wk)
         return wk
 
-def load_rollen(ws, person, data):
-    RolleSource = ws['rolle']
+def load_rollen(engine, person, data):
+    _RolleSource = sl.get_table(engine, 'rolle')
     mdb_rolle = None
-    for rdata in RolleSource.traverse(fingerprint=data['fingerprint']):
+    for rdata in sl.find(engine, _RolleSource, fingerprint=data['fingerprint']):
         rolle = Rolle.query.filter_by(
                 person=person, 
                 funktion=rdata.get('funktion'),
@@ -157,14 +159,15 @@ def load_rollen(ws, person, data):
         rolle.austritt = date(rdata.get('austritt'))
 
         if rdata.get('mdb_id'):
-            rolle.wahlkreis = load_wahlkreis(ws, rolle, data)
+            rolle.wahlkreis = load_wahlkreis(engine, rolle, data)
             mdb_rolle = rolle
         db.session.add(rolle)
     return mdb_rolle
 
-def load_gremium_mitglieder(ws, person, rolle):
-    for gmdata in ws['gremium_mitglieder']\
-            .traverse(person_source_url=person.source_url):
+def load_gremium_mitglieder(engine, person, rolle):
+    _GremiumMitglieder = sl.get_table(engine, 'gremium_mitglieder')
+    for gmdata in sl.find(engine, _GremiumMitglieder,
+                          person_source_url=person.source_url):
         gremium = Gremium.query.filter_by(key=gmdata['gremium_key']).first()
         if gremium is None:
             log.error("Gremium not found: %s" % gmdata['gremium_key'])
@@ -182,12 +185,13 @@ def load_gremium_mitglieder(ws, person, rolle):
         else:
             raise TypeError("Invalid ms type: %s" % role)
 
-def load_ablaeufe(ws):
-    for data in ws['ablauf'].traverse(wahlperiode=17):
+def load_ablaeufe(engine):
+    _Ablauf = sl.get_table(engine, 'ablaud')
+    for data in sl.find(engine, _Ablauf, wahlperiode=17):
         log.info("Loading Ablauf: %s..." % data['titel'])
-        load_ablauf(ws, data)
+        load_ablauf(engine, data)
 
-def load_ablauf(ws, data):
+def load_ablauf(engine, data):
     ablauf = Ablauf.query.filter_by(
             wahlperiode=data.get('wahlperiode'), 
             key=data.get('key')).first()
@@ -222,17 +226,19 @@ def load_ablauf(ws, data):
     db.session.flush()
 
     worte = []
-    for sw in ws['schlagwort'].traverse(wahlperiode=ablauf.wahlperiode,
+    _Schlagwort = sl.get_table(engine, 'schlagwort')
+    for sw in sl.find(engine, _Schlagwort, wahlperiode=ablauf.wahlperiode,
             key=ablauf.key):
         wort = Schlagwort()
         wort.name = sw['wort']
         db.session.add(wort)
         worte.append(wort)
     ablauf.schlagworte = worte
-
-    for ddata in ws['referenz'].traverse(wahlperiode=ablauf.wahlperiode,
+    
+    _Referenz = sl.get_table(engine, 'referenz')
+    for ddata in sl.find(engine, _Referenz, wahlperiode=ablauf.wahlperiode,
             ablauf_key=ablauf.key):
-        dokument = load_dokument(ddata, ws)
+        dokument = load_dokument(ddata, engine)
         referenz = Referenz.query.filter_by(
                 dokument=dokument,
                 seiten=ddata.get('seiten'),
@@ -243,14 +249,14 @@ def load_ablauf(ws, data):
             referenz.dokument = dokument
         referenz.seiten = ddata.get('seiten')
         referenz.text = ddata.get('text')
-
-    for position in ws['position'].traverse(
-            ablauf_id=ablauf_id):
-        load_position(position, ablauf_id, ablauf, ws)
+    
+    _Position = sl.get_table(engine, 'position')
+    for position in sl.find(engine, _Position, ablauf_id=ablauf_id):
+        load_position(position, ablauf_id, ablauf, engine)
 
     db.session.commit()
 
-def load_position(data, ablauf_id, ablauf, ws):
+def load_position(data, ablauf_id, ablauf, engine):
     position = Position.query.filter_by(
             ablauf=ablauf,
             urheber=data.get('urheber'), 
@@ -267,14 +273,16 @@ def load_position(data, ablauf_id, ablauf, ws):
     position.quelle = data.get('quelle')
     position.typ = data.get('typ')
     position.ablauf = ablauf
-
-    for ddata in ws['referenz'].traverse(fundstelle=position.fundstelle,
+    
+    _Referenz = sl.get_table(engine, 'referenz')
+    for ddata in sl.find(engine, _Referenz, fundstelle=position.fundstelle,
             urheber=position.urheber, ablauf_id=ablauf_id):
-        position.dokument = load_dokument(ddata, ws)
+        position.dokument = load_dokument(ddata, engine)
 
     db.session.add(position)
-
-    for zdata in ws['zuweisung'].traverse(fundstelle=position.fundstelle,
+    
+    _Zuweisung = sl.get_table(engine, 'zuweisung')
+    for zdata in sl.find(engine, _Zuweisung, fundstelle=position.fundstelle,
             urheber=position.urheber, ablauf_id=ablauf_id):
         zuweisung = Zuweisung()
         zuweisung.text = zdata['text']
@@ -285,28 +293,27 @@ def load_position(data, ablauf_id, ablauf, ws):
         zuweisung.position = position
         db.session.add(zuweisung)
     
-    try:
-        for bdata in ws['beschluss'].traverse(fundstelle=position.fundstelle,
-                urheber=position.urheber, ablauf_id=ablauf_id):
-            beschluss = Beschluss()
-            beschluss.position = position
-            beschluss.seite = bdata['seite']
-            beschluss.tenor = bdata['tenor']
-            beschluss.dokument_text = bdata['dokument_text']
-            for dokument_name in beschluss.dokument_text.split(','):
-                dokument_name = dokument_name.strip()
-                dok = Dokument.query.filter_by(nummer=dokument_name).first()
-                if dok is not None:
-                    beschluss.dokumente.append(dok)
-            db.session.add(beschluss)
-    except WebstoreClientException:
-        pass
-
-    for bdata in ws['beitrag'].traverse(fundstelle=position.fundstelle,
+    _Beschluss = sl.get_table(engine, 'beschluss')
+    for bdata in sl.find(engine, _Beschluss, fundstelle=position.fundstelle,
             urheber=position.urheber, ablauf_id=ablauf_id):
-        load_beitrag(bdata, position, ws)
+        beschluss = Beschluss()
+        beschluss.position = position
+        beschluss.seite = bdata['seite']
+        beschluss.tenor = bdata['tenor']
+        beschluss.dokument_text = bdata['dokument_text']
+        for dokument_name in beschluss.dokument_text.split(','):
+            dokument_name = dokument_name.strip()
+            dok = Dokument.query.filter_by(nummer=dokument_name).first()
+            if dok is not None:
+                beschluss.dokumente.append(dok)
+        db.session.add(beschluss)
 
-def load_beitrag(data, position, ws):
+    _Beitrag = sl.get_table(engine, 'beitrag')
+    for bdata in sl.find(engine, _Beitrag, fundstelle=position.fundstelle,
+            urheber=position.urheber, ablauf_id=ablauf_id):
+        load_beitrag(bdata, position, engine)
+
+def load_beitrag(data, position, engine):
     beitrag = Beitrag()
     beitrag.seite = data.get('seite')
     beitrag.art = data.get('art')
@@ -322,7 +329,7 @@ def load_beitrag(data, position, ws):
             land=data.get('land')).first()
     db.session.add(beitrag)
 
-def load_dokument(data, ws):
+def load_dokument(data, engine):
     dokument = Dokument.query.filter_by(
             hrsg=data.get('hrsg'),
             typ=data.get('typ'), 
@@ -338,12 +345,13 @@ def load_dokument(data, ws):
     db.session.flush()
     return dokument
 
-def load_debatten(ws):
+def load_debatten(engine):
     sitzungen = {}
-    for speech in ws['mediathek']:
+    _Mediathek = sl.get_table(engine, 'mediathek')
+    for speech in sl.all(engine, _Mediathek):
         sitz = (speech['wahlperiode'], speech['meeting_nr'])
         if not sitz in sitzungen:
-            sitzungen[sitz] = load_sitzung(ws, speech)
+            sitzungen[sitz] = load_sitzung(engine, speech)
         sitzung = sitzungen[sitz]
         log.info("Loading Debatte: %s/%s - %s..." % (
             speech.get('wahlperiode'),
@@ -367,7 +375,7 @@ def load_debatten(ws):
         db.session.add(debatte)
         db.session.commit()
 
-def load_sitzung(ws, speech):
+def load_sitzung(engine, speech):
     log.info("Loading Sitzung: %s/%s..." % (speech.get('wahlperiode'),
         speech.get('meeting_nr')))
     sitzung = Sitzung.query.filter_by(
@@ -392,12 +400,15 @@ def load_sitzung(ws, speech):
     return sitzung
 
 SPME_CACHE = defaultdict(list)
-def load_zitate(ws):
+def load_zitate(engine):
     sitzungen = {}
-    mediathek = dict([(m['speech_source_url'], m) for m in ws['mediathek']])
+    _Mediathek = sl.get_table(engine, 'mediathek')
+    mediathek = dict([(m['speech_source_url'], m) for m in sl.all(engine,
+        _Mediathek)])
     sys.stdout.write("Loading transcripts")
     sys.stdout.flush()
-    for i, speech in enumerate(ws['speech']):
+    _Speech = sl.get_table(engine, 'speech')
+    for i, speech in enumerate(sl.all(engine, _Speech)):
         if i % 1000 == 0:
             sys.stdout.write(".")
             sys.stdout.flush()
@@ -428,16 +439,17 @@ def load_zitate(ws):
 
         db.session.add(zitat)
         db.session.flush()
-        load_debatte_zitate(ws, zitat, mediathek)
+        load_debatte_zitate(engine, zitat, mediathek)
 
     db.session.commit()
     SPME_CACHE.clear()
 
-def load_debatte_zitate(ws, zitat, mediathek):
+def load_debatte_zitate(engine, zitat, mediathek):
     if zitat.sitzung is None:
         return
     if not len(SPME_CACHE):
-        for spme in ws['speech_mediathek']:
+        _SpeechMediathek = sl.get_table(engine, 'speech_mediathek')
+        for spme in sl.all(engine, _SpeechMediathek):
             SPME_CACHE[(spme['wahlperiode'],
                         spme['sitzung'],
                         spme['sequence'])].append(spme)
@@ -461,15 +473,16 @@ def load_debatte_zitate(ws, zitat, mediathek):
         dz.video_url = sp['speech_mp4_url']
         db.session.add(dz)
 
-def load_abstimmungen(ws):
-    for thema in ws['abstimmung'].distinct('subject'):
+def load_abstimmungen(engine):
+    _Abstimmung = sl.get_table(engine, 'abstimmung')
+    for thema in sl.distinct(engine, _Abstimmung, 'subject'):
         thema = thema.get('subject')
         abst = Abstimmung.query.filter_by(thema=thema).first()
         if abst is None:
             abst = Abstimmung()
             abst.thema = thema
         db.session.add(abst)
-        for stimme_ in ws['abstimmung'].traverse(subject=thema):
+        for stimme_ in sl.find(engine, _Abstimmung, subject=thema):
             person = Person.query.filter_by(
                 fingerprint=stimme_.get('fingerprint')).first()
             if person is None:
@@ -481,19 +494,18 @@ def load_abstimmungen(ws):
             db.session.add(stimme)
         db.session.commit()
 
-def load(ws):
-    load_gremien(ws)
-    #load_news(ws)
-    load_persons(ws)
-    load_ablaeufe(ws)
-    load_debatten(ws)
-    load_zitate(ws)
-    load_abstimmungen(ws)
+def load(engine):
+    load_gremien(engine)
+    #load_news(engine)
+    load_persons(engine)
+    load_ablaeufe(engine)
+    load_debatten(engine)
+    load_zitate(engine)
+    load_abstimmungen(engine)
 
 if __name__ == '__main__':
-    assert len(sys.argv)==2, "Need argument: webstore-url!"
-    ws, _ = WebStore(sys.argv[1])
-    print "SOURCE", ws
-    load(ws)
+    engine = etl_engine()
+    print "SOURCE", engine
+    load(engine)
 
 

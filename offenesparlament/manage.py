@@ -1,64 +1,66 @@
 from flaskext.script import Manager
 from webstore.client import URL as WebStore
 
-from offenesparlament.core import app, master_data
+from offenesparlament.core import app, master_data, etl_engine
 
 manager = Manager(app)
 
 @manager.command
 def extract():
     """ Run the extract stage """
-    db, _ = WebStore(app.config['STAGING_URL'])
+    engine = etl_engine()
     from offenesparlament.extract.xml import ausschuss
-    ausschuss.load_index(db)
+    #ausschuss.load_index(engine)
     from offenesparlament.extract.xml import news
-    news.load_index(db)
+    #news.load_index(engine)
     from offenesparlament.extract.xml import mdb
-    mdb.load_index(db)
+    #mdb.load_index(engine)
     from offenesparlament.extract import mediathek
-    mediathek.load_sessions(db)
+    #mediathek.load_sessions(engine)
     from offenesparlament.extract import abstimmungen
-    abstimmungen.load_index(db)
+    #abstimmungen.load_index(engine)
     from offenesparlament.extract import dip
-    dip.load_dip(db)
+    dip.load_dip(engine)
 
 @manager.command
 def transform():
     """ Transform and clean up content """
-    db, _ = WebStore(app.config['STAGING_URL'])
+    engine = etl_engine()
     master = master_data()
     from offenesparlament.transform import persons
-    persons.generate_person_long_names(db)
+    persons.generate_person_long_names(engine)
     from offenesparlament.transform import ablaeufe
-    ablaeufe.extend_ablaeufe(db, master)
+    ablaeufe.extend_ablaeufe(engine, master)
     from offenesparlament.transform import positions
-    positions.extend_positions(db)
+    positions.extend_positions(engine)
     from offenesparlament.transform import namematch
-    namematch.match_persons(db, master)
+    namematch.match_persons(engine, master)
     from offenesparlament.transform import abstimmungen
-    abstimmungen.extend_abstimmungen(db, master)
-    #persons.generate_person_long_names(db)
+    #abstimmungen.extend_abstimmungen(engine, master)
+    #persons.generate_person_long_names(engine)
     from offenesparlament.transform import mediathek
-    mediathek.extend_speeches(db, master)
+    mediathek.extend_speeches(engine, master)
     from offenesparlament.transform import speechparser
-    speechparser.load_transcripts(db, master)
-    mediathek.merge_speeches(db, master)
+    speechparser.load_transcripts(engine, master)
+    mediathek.merge_speeches(engine, master)
     from offenesparlament.transform import speechmatch
-    speechmatch.extend_speeches(db, master)
+    speechmatch.extend_speeches(engine, master)
 
 @manager.command
 def load():
     """ Load and index staging DB into production """
-    db, _ = WebStore(app.config['STAGING_URL'])
+    engine = etl_engine()
     from offenesparlament.load import load
-    load.load(db)
+    load.load(engine)
     from offenesparlament.load import index
-    index.index(db)
+    index.index()
 
 @manager.command
 def longextract():
     """ Run the extract stage, including long-running tasks """
-    pass
+    engine = etl_engine()
+    from offenesparlament.extract import wahlkreise
+    wahlkreise.load_wahlkreise(engine)
 
 if __name__ == "__main__":
     manager.run()

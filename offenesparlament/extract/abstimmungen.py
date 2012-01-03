@@ -10,6 +10,7 @@ import re
 import tempfile
 
 import sqlaload as sl
+from offenesparlament.load.fetch import fetch
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
@@ -102,7 +103,10 @@ def handle_xml(xml, engine):
 
 def load_vote(url, engine):
     fh, path = tempfile.mkstemp('.pdf')
-    urllib.urlretrieve(url, path)
+    fo = open(path, 'wb')
+    fo.write(fetch(url))
+    fo.close()
+    #urllib.urlretrieve(url, path)
     xml = pdftoxml(path)
     handle_xml(xml, engine)
 

@@ -7,10 +7,11 @@ from itertools import count
 from pprint import pprint
 
 import sqlaload as sl
+from offenesparlament.load.fetch import _html
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
+logging.basicConfig(level=logging.INFO)
 
 MEDIATHEK_URL = "http://www.bundestag.de/Mediathek/index.jsp"
 MIN_WP = 17
@@ -18,17 +19,13 @@ MAX_FAIL = 3
 SHORT_URL = "http://dbtg.tv/vid/"
 
 def get_doc(url):
-    for i in range(MAX_FAIL):
-        try:
-            #print url
-            doc = html.parse(url)
-            if not no_results(doc):
-                return doc
-        except Exception, e:
-            log.exception(e)
-        time.sleep(i**2)
+    doc = _html(url)
+    if not no_results(doc):
+        return doc
 
 def no_results(doc):
+    if doc is None:
+        return False
     err = doc.find('//p[@class="error"]')
     if err is not None and err.text and 'keine Videos' in err.text:
         return True

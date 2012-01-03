@@ -5,6 +5,7 @@ from datetime import datetime
 
 import sqlaload as sl
 
+from offenesparlament.load.fetch import _xml
 from offenesparlament.core import etl_engine
 
 MDB_INDEX_URL = "http://www.bundestag.de/xml/mdb/index.xml"
@@ -29,12 +30,12 @@ def add_to_gremium(node, url, role, engine):
         }, unique=['person_source_url', 'gremium_key', 'role'])
 
 def load_index(engine): 
-    doc = etree.parse(MDB_INDEX_URL)
+    doc = _xml(MDB_INDEX_URL)
     for info_url in doc.findall("//mdbInfoXMLURL"):
         load_mdb(info_url.text, engine)
 
 def load_mdb(url, engine):
-    doc = etree.parse(url)
+    doc = _xml(url)
     id = int(doc.findtext('//mdbID'))
     table_person = sl.get_table(engine, 'person')
     table_rolle = sl.get_table(engine, 'rolle')

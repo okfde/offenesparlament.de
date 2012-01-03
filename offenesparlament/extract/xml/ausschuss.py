@@ -5,6 +5,7 @@ from lxml import etree
 from webstore.client import URL as WebStore
 import sqlaload as sl
 
+from offenesparlament.load.fetch import _xml
 from offenesparlament.core import etl_engine
 from offenesparlament.extract.xml import news
 
@@ -41,13 +42,13 @@ RSS_FEEDS = {
 
 
 def load_index(engine):
-    doc = etree.parse(AUSSCHUSS_INDEX_URL)
+    doc = _xml(AUSSCHUSS_INDEX_URL)
     table = sl.get_table(engine, 'gremium')
     for info_url in doc.findall("//ausschussDetailXML"):
         load_ausschuss(info_url.text, engine, table)
 
 def load_ausschuss(url, engine, table):
-    doc = etree.parse(url)
+    doc = _xml(url)
     a = {'source_url': url}
     a['key'] = doc.findtext('/ausschussId')
     a['name'] = doc.findtext('/ausschussName')

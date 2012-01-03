@@ -8,3 +8,5 @@ lxml
 webstore-client
 python-Levenshtein
 solrpy
+python-dateutil
+sqlaload
