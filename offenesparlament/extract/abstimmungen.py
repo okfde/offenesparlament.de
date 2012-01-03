@@ -72,10 +72,10 @@ def handle_xml(xml, engine):
             if 'Name' in field:
                 name += ' ' + txt
             if txt == 'X':
-                data = {'subject': subject, 
+                data = {'subject': unicode(subject), 
                         'person': name.strip() + ' ' + fraktion,
-                        'date': date,
-                        'vote': field}
+                        'date': unicode(date),
+                        'vote': unicode(field)}
                 sl.upsert(engine, Vote, data, unique=['subject', 'person'])
                 #pprint({'person': name.strip() + ' ' + fraktion, 
                 #        'vote': field})
