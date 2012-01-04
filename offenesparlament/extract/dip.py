@@ -147,7 +147,7 @@ def get_dip_with_cookie(url, data={}):
     
     while True:
         try:
-            res = session.get(url, params=data, timeout=1, 
+            res = session.get(url, params=data, timeout=2.0, 
                     config={'max_retries': 10})
         except requests.exceptions.Timeout:
             log.error("REQUEST TIMEOUT")

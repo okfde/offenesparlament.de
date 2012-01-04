@@ -12,7 +12,7 @@ def fetch(url):
         try:
             body = requests.get(url, 
                 headers={'user-agent': str(uuid.uuid4())},
-                timeout=1.0,
+                timeout=2.0,
                 config={'max_retries': 10},
                 verify=False)
             return body.content
