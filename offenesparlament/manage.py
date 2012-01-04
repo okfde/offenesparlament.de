@@ -24,8 +24,8 @@ def extract_media():
     abstimmungen.load_index(engine)
     from offenesparlament.extract import mediathek
     mediathek.load_sessions(engine)
-    from offenesparlament.extract import dip
-    dip.load_dip(engine)
+    #from offenesparlament.extract import dip
+    #dip.load_dip(engine)
 
 @manager.command
 def extract_docs():
