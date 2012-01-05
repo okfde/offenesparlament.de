@@ -27,8 +27,7 @@ def _xml(url):
     return etree.parse(body)
 
 def _html(url):
-    #print type(fetch(url))
-    body = StringIO(fetch(url).encode('utf-8'))
+    body = StringIO(fetch(url))
     return html.parse(body)
 
 
