@@ -17,15 +17,18 @@ def extract_base():
     mdb.load_index(engine)
 
 @manager.command
-def extract_media():
+def extract_votes():
     """ Run the extract stage """
     engine = etl_engine()
     from offenesparlament.extract import abstimmungen
     abstimmungen.load_index(engine)
+
+@manager.command
+def extract_media():
+    """ Run the extract stage """
+    engine = etl_engine()
     from offenesparlament.extract import mediathek
     mediathek.load_sessions(engine)
-    #from offenesparlament.extract import dip
-    #dip.load_dip(engine)
 
 @manager.command
 def extract_docs():
