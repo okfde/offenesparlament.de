@@ -13,15 +13,23 @@ from offenesparlament.core import etl_engine
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-MEDIATHEK_URL = "http://www.bundestag.de/Mediathek/index.jsp"
-MIN_WP = 17
+MEDIATHEK_URL = "https://www.bundestag.de/"
+WP = 17
 MAX_FAIL = 3
 SHORT_URL = "http://dbtg.tv/vid/"
 
+FOR_SESSION = 'https://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=details&isLinkCallPlenar=1'
+FOR_TOP = 'https://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=common&isLinkCallPlenar=1'
+FOR_SPEECH = 'https://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&speechNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=commom&isLinkCallPlenar=1'
+
 def get_doc(url):
-    doc = _html(url)
-    if not no_results(doc):
-        return doc
+    while True:
+        doc = _html(url)
+        if doc is not None:
+            if not no_results(doc):
+                return doc
+            return None
+        time.sleep(2)
 
 def no_results(doc):
     err = doc.find('//p[@class="error"]')
@@ -47,25 +55,19 @@ def video_box(doc, prefix):
     return data
 
 def load_sessions(engine):
-    wp_fails = 0
-    for wp in count(MIN_WP):
-        wp_fails += 1
-        for session in count(1):
-            url = SHORT_URL + str(wp) + "/" + str(session)
-            doc = get_doc(url)
-            if doc is None:
-                break
-            else:
-                wp_fails = 0
-                ctx = video_box(doc, 'meeting')
-                ctx['meeting_url'] = url
-                load_tops(wp, session, ctx, engine)
-        if wp_fails > MAX_FAIL:
+    for session in count(1):
+        url = FOR_SESSION % (WP, session)
+        doc = get_doc(url)
+        if doc is None:
             break
+        else:
+            ctx = video_box(doc, 'meeting')
+            ctx['meeting_url'] = url
+            load_tops(WP, session, ctx, engine)
 
 def load_tops(wp, session, context, engine):
     for top_id in count(1):
-        url = SHORT_URL + str(wp) + "/" + str(session) + "/" + str(top_id)
+        url = FOR_TOP % (wp, session, top_id)
         doc = get_doc(url)
         if doc is None:
             return
@@ -74,12 +76,12 @@ def load_tops(wp, session, context, engine):
             top = context.copy()
             top['top_nr'] = top_id
             top.update(video_box(doc, 'top'))
-            load_speeches(url, top, engine)
+            load_speeches(wp, session, top_id, top, engine)
 
-def load_speeches(url, context, engine):
+def load_speeches(wp, session, top_id, context, engine):
     Mediathek = sl.get_table(engine, 'mediathek')
     for speech_id in count(1):
-        url_ = url + "/" + str(speech_id)
+        url_ = FOR_SPEECH % (wp, session, top_id, speech_id)
         doc = get_doc(url_)
         if doc is None:
             return
