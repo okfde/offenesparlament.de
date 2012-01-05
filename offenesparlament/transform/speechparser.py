@@ -13,6 +13,8 @@ from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 from offenesparlament.transform.namematch import match_speaker, make_prints
 
+from offenesparlament.load.fetch import fetch_stream, _html
+
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
@@ -138,9 +140,9 @@ class SpeechParser(object):
 
 def load_transcript(engine, master, wp, session):
     url = URL % (wp, session)
-    fh = urlopen(url)
-    sio = StringIO(fh.read())
-    fh.close()
+    sio = fetch_stream(url)
+    if sio is None:
+        return False
     log.info("Loading transcript: %s/%s" % (wp, session))
     Speech = sl.get_table(engine, 'speech')
     seq = 0
@@ -154,23 +156,22 @@ def load_transcript(engine, master, wp, session):
         sl.upsert(engine, Speech, contrib, 
                   unique=['sequence', 'sitzung', 'wahlperiode'])
         seq += 1
+    return True
 
 def load_transcripts(engine, master):
     for i in count(33):
-        try:
-            load_transcript(engine, master, 17, i)
-        except HTTPError:
+        if not load_transcript(engine, master, 17, i):
             break
 
 if __name__ == '__main__':
     engine = etl_engine()
     print "DESTINATION", engine
-    #load_transcripts(engine, master_data())
+    load_transcripts(engine, master_data())
     #load_transcript(engine, master_data(), 17, 72)
     #load_transcript(engine, master_data(), 17, 93)
     #load_transcript(engine, master_data(), 17, 101)
     #load_transcript(engine, master_data(), 17, 103)
-    load_transcript(engine, master_data(), 17, 126)
+    #load_transcript(engine, master_data(), 17, 126)
     #sp = SpeechParser(master_data(), engine, fp)
     #for l in sp:
     #    pprint(l)

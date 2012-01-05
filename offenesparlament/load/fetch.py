@@ -22,12 +22,18 @@ def fetch(url):
             logging.exception(e)
             time.sleep(1)
 
+def fetch_stream(url):
+    data = fetch(url)
+    if data is None:
+        return None
+    return StringIO(data)
+
 def _xml(url):
-    body = StringIO(fetch(url))
-    return etree.parse(body)
+    d = fetch_stream(url)
+    return etree.parse(d) if d is not None else d
 
 def _html(url):
-    body = StringIO(fetch(url))
-    return html.parse(body)
+    d = fetch_stream(url)
+    return html.parse(d) if d is not None else d
 
 
