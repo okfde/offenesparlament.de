@@ -10,7 +10,7 @@ import re
 import tempfile
 
 import sqlaload as sl
-from offenesparlament.load.fetch import fetch
+from offenesparlament.load.fetch import fetch, _html
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ def load_vote(url, engine):
     handle_xml(xml, engine)
 
 def load_index(engine):
-    doc = html.parse(INDEX)
+    doc = _html(INDEX)
     for a in doc.findall('//ul[@class="standardLinkliste"]//a'):
         url = urlparse.urljoin(INDEX, a.get('href'))
         load_vote(url, engine)
