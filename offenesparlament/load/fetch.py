@@ -6,12 +6,14 @@ import uuid, time
 
 log = logging.getLogger(__name__)
 
+UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11'
+
 def fetch(url):
     url = url.replace('http://', 'https://')
     for x in range(10):
         try:
             body = requests.get(url, 
-                headers={'user-agent': str(uuid.uuid4())},
+                headers={'user-agent': UA},
                 timeout=2.0,
                 config={'max_retries': 10},
                 verify=False)

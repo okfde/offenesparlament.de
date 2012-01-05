@@ -12,6 +12,7 @@ from StringIO import StringIO
 import sqlaload as sl
 
 from offenesparlament.extract.util import threaded
+from offenesparlament.load.fetch import UA
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
@@ -130,7 +131,7 @@ def init_session():
         'max_retries': 5, 
         'timeout': 2
         })
-    session.get(MAKE_SESSION_URL)
+    session.get(MAKE_SESSION_URL, headers={'user-agent': UA})
     return session
 
 session = None
@@ -147,7 +148,9 @@ def get_dip_with_cookie(url, data={}):
     
     while True:
         try:
-            res = session.get(url, params=data, timeout=3.0, 
+            res = session.get(url, params=data, 
+                    headers={'user-agent': UA},
+                    timeout=3.0, 
                     config={'max_retries': 10})
         except requests.exceptions.Timeout:
             log.error("REQUEST TIMEOUT")
