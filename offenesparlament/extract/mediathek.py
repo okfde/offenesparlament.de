@@ -24,8 +24,6 @@ def get_doc(url):
         return doc
 
 def no_results(doc):
-    if doc is None:
-        return False
     err = doc.find('//p[@class="error"]')
     if err is not None and err.text and 'keine Videos' in err.text:
         return True
