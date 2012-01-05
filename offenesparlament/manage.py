@@ -67,6 +67,7 @@ def load():
     engine = etl_engine()
     from offenesparlament.load import load
     load.load(engine)
+    load.aggregate()
     from offenesparlament.load import index
     index.index()
 

@@ -39,17 +39,24 @@ def freq_diff(my, norm, limit):
 
 
 # SELECT sw.name, COUNT(pos.id) AS num, STRFTIME("%Y-%W", pos.date) AS tspan FROM ablauf abl JOIN position pos ON pos.ablauf_id = abl.id JOIN schlagworte swe ON swe.ablauf_id = abl.id JOIN schlagwort sw ON swe.schlagwort_id = sw.id GROUP BY STRFTIME("%Y-%W", pos.date), sw.name ORDER BY num DESC;
-def current_schlagworte(limit=15):
+def make_current_schlagwort():
     func =  db_function('week') % 'pos.date'
-    res = _run_raw("""SELECT sw.name, COUNT(pos.id) AS num, 
+    db.engine.execute("""DELETE FROM current_schlagwort;""")
+    db.engine.execute("""INSERT INTO current_schlagwort 
+        SELECT sw.name AS schlagwort, COUNT(pos.id) AS num, 
                         %s AS period
         FROM ablauf abl
             JOIN position pos ON pos.ablauf_id = abl.id
             JOIN schlagworte swe ON swe.ablauf_id = abl.id 
             JOIN schlagwort sw ON swe.schlagwort_id = sw.id 
-        GROUP BY period, sw.name
+        GROUP BY period, schlagwort
         HAVING num > 1
         ORDER BY num DESC;""" % func)
+
+def current_schlagworte(limit=15):
+    res = _run_raw("""SELECT schlagwort AS name, num, period 
+        FROM current_schlagwort 
+        WHERE num > 1; """)
     #pprint(res)
     term_freq = result_tf(res, 'name', 'num')
     #pprint(sorted(term_freq.items(), key=lambda (k,v): v))
@@ -68,13 +75,19 @@ def current_schlagworte(limit=15):
     
     return current_top #, fraktionen_top
 
-def sachgebiete():
+def make_period_sachgebiete():
     func =  db_function('week') % 'pos.date'
-    res = _run_raw("""SELECT abl.sachgebiet, COUNT(pos.id) AS num, %s AS period
+    db.engine.execute("""DELETE FROM period_sachgebiet;""")
+    db.engine.execute("""INSERT INTO period_sachgebiet 
+        SELECT abl.sachgebiet AS sachgebiet, COUNT(pos.id) AS num, %s AS period
         FROM ablauf abl 
             JOIN position pos ON pos.ablauf_id = abl.id
-        GROUP BY period, abl.sachgebiet
+        GROUP BY period, sachgebiet
         ORDER BY period ASC;""" % func)
+
+def sachgebiete():
+    res = _run_raw("""SELECT sachgebiet, num, period
+        FROM period_sachgebiet; """)
     sachgebiete = set([r['sachgebiet'] for r in res if r['sachgebiet']])
     data = {'label': list(sachgebiete), 'values': []}
     by_period = defaultdict(lambda: defaultdict(int))
@@ -90,14 +103,21 @@ def sachgebiete():
 
 
 # SELECT sw.name AS schlagwort, COUNT(pos.id) AS num FROM ablauf abl JOIN position pos ON pos.ablauf_id = abl.id JOIN schlagworte swe ON swe.ablauf_id = abl.id JOIN schlagwort sw ON swe.schlagwort_id = sw.id JOIN beitrag bei ON bei.position_id = pos.id WHERE bei.person_id = 138 GROUP BY sw.name ORDER BY num DESC;
-def person_schlagworte(person, limit=10):
-    return _run_raw("""SELECT sw.name AS schlagwort, COUNT(pos.id) AS num 
+def make_person_schlagworte():
+    db.engine.execute("""DELETE FROM person_schlagwort;""")
+    db.engine.execute("""INSERT INTO person_schlagwort 
+        SELECT bei.person_id AS person_id, 
+            sw.name AS schlagwort, COUNT(pos.id) AS num 
         FROM ablauf abl 
             JOIN position pos ON pos.ablauf_id = abl.id 
             JOIN schlagworte swe ON swe.ablauf_id = abl.id 
             JOIN schlagwort sw ON swe.schlagwort_id = sw.id 
             JOIN beitrag bei ON bei.position_id = pos.id 
-        WHERE bei.person_id = ? 
-        GROUP BY schlagwort 
+        GROUP BY person_id, schlagwort;""");
+
+def person_schlagworte(person, limit=10):
+    return _run_raw("""SELECT schlagwort, num 
+        FROM person_schlagwort
+        WHERE person_id = ? 
         ORDER BY num DESC
         LIMIT ?;""", person.id, limit);

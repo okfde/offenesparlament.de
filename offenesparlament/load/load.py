@@ -503,9 +503,17 @@ def load(engine):
     load_zitate(engine)
     load_abstimmungen(engine)
 
+def aggregate():
+    from offenesparlament.aggregates import make_current_schlagwort, \
+        make_period_sachgebiete, make_person_schlagworte
+    make_current_schlagwort()
+    make_period_sachgebiete()
+    make_person_schlagworte()
+
 if __name__ == '__main__':
     engine = etl_engine()
     print "SOURCE", engine
     load(engine)
+    aggregate()
 
 
