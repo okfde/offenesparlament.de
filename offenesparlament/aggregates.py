@@ -1,9 +1,22 @@
+import logging
 from collections import defaultdict
 
 from offenesparlament.core import db
 from pprint import pprint
 
+log = logging.getLogger(__name__)
+
+def db_function(name):
+    data = {
+            'week': {
+                'sqlite': 'STRFTIME("%%Y-%%W", %s)',
+                'postgresql': 'to_char(%s, \'YYYY-WW\')'
+            }
+        }
+    return data[name][db.engine.url.drivername]
+
 def _run_raw(query, *a, **kw):
+    log.info(query)
     rp = db.engine.execute(query, *a, **kw)
     results = []
     while True: 
@@ -27,15 +40,16 @@ def freq_diff(my, norm, limit):
 
 # SELECT sw.name, COUNT(pos.id) AS num, STRFTIME("%Y-%W", pos.date) AS tspan FROM ablauf abl JOIN position pos ON pos.ablauf_id = abl.id JOIN schlagworte swe ON swe.ablauf_id = abl.id JOIN schlagwort sw ON swe.schlagwort_id = sw.id GROUP BY STRFTIME("%Y-%W", pos.date), sw.name ORDER BY num DESC;
 def current_schlagworte(limit=15):
+    func =  db_function('week') % 'pos.date'
     res = _run_raw("""SELECT sw.name, COUNT(pos.id) AS num, 
-                        STRFTIME("%Y-%W", pos.date) AS period
+                        %s AS period
         FROM ablauf abl
             JOIN position pos ON pos.ablauf_id = abl.id
             JOIN schlagworte swe ON swe.ablauf_id = abl.id 
             JOIN schlagwort sw ON swe.schlagwort_id = sw.id 
         GROUP BY period, sw.name
         HAVING num > 1
-        ORDER BY num DESC;""")
+        ORDER BY num DESC;""" % func)
     #pprint(res)
     term_freq = result_tf(res, 'name', 'num')
     #pprint(sorted(term_freq.items(), key=lambda (k,v): v))
@@ -55,11 +69,12 @@ def current_schlagworte(limit=15):
     return current_top #, fraktionen_top
 
 def sachgebiete():
-    res = _run_raw("""SELECT abl.sachgebiet, COUNT(pos.id) AS num, STRFTIME("%Y-%W", pos.date) AS period
+    func =  db_function('week') % 'pos.date'
+    res = _run_raw("""SELECT abl.sachgebiet, COUNT(pos.id) AS num, %s AS period
         FROM ablauf abl 
             JOIN position pos ON pos.ablauf_id = abl.id
         GROUP BY period, abl.sachgebiet
-        ORDER BY period ASC;""")
+        ORDER BY period ASC;""" % func)
     sachgebiete = set([r['sachgebiet'] for r in res if r['sachgebiet']])
     data = {'label': list(sachgebiete), 'values': []}
     by_period = defaultdict(lambda: defaultdict(int))
