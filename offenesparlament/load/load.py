@@ -475,12 +475,13 @@ def load_debatte_zitate(engine, zitat, mediathek):
 
 def load_abstimmungen(engine):
     _Abstimmung = sl.get_table(engine, 'abstimmung')
-    for thema in sl.distinct(engine, _Abstimmung, 'subject'):
+    for thema in sl.distinct(engine, _Abstimmung, 'subject', 'date'):
         thema = thema.get('subject')
         abst = Abstimmung.query.filter_by(thema=thema).first()
         if abst is None:
             abst = Abstimmung()
             abst.thema = thema
+            abst.datum = date(thema.get('date'))
         db.session.add(abst)
         for stimme_ in sl.find(engine, _Abstimmung, subject=thema):
             person = Person.query.filter_by(
