@@ -3,13 +3,13 @@
 */
 
 $(document).ready(function() {
-  $(".teaser").click(function(e) {
-    $(".teaser").hide();
-    $(".teaser-fulltext").slideDown('slow');
+  $(".bio-teaser").click(function(e) {
+    $(".bio-teaser").hide();
+    $(".bio-fulltext").slideDown('slow');
   });
-  $(".teaser-fulltext").click(function(e) {
-    $(".teaser").show();
-    $(".teaser-fulltext").hide();
+  $(".bio-fulltext").click(function(e) {
+    $(".bio-teaser").show();
+    $(".bio-fulltext").hide();
   });
 });
 

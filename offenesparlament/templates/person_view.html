@@ -90,7 +90,7 @@
       </ul>
     {% endif %}
     {% if debatten[0] %}
-      <h3>Reden im Plenum</h3>
+      <h3>Beiträge im Plenum</h3>
       <ul>
         {% for debatte in debatten %}
           <li><a href="{{ url_for('sitzung',
@@ -101,13 +101,6 @@
             {{ debatte.titel }}</a></li>
         {% endfor %}
       </ul>
-    {% endif %}
-    {% if person.stimmen %}
-      <h3>Abstimmungen</h3>
-      <ul>
-        {% for stimme in person.stimmen %}
-          <li>{{stimme.entscheidung}}</li>
-        {% endfor %}
     {% endif %}
   </div>
   <div class="mainbar">
@@ -129,11 +122,12 @@
       {% endfor %}
     </ul>
     {% if person.bio %}
-    <span class="teaser"><br/>{{person.bio_teaser | safe}} <a>Mehr...</a></span>
-      <span class="teaser-fulltext">
-        <h3>Biografie</h3>
-        {{person.bio | safe}}</span>
-      {% endif %}
+    <span class="bio-teaser"><br/>{{person.bio_teaser | striptags }} <a>Mehr...</a></span>
+    <span class="bio-fulltext">
+      <h3>Biografie</h3>
+      {{person.bio | safe}}
+    </span>
+    {% endif %}
     <h3>Themen</h3>
     <div>  
     {% for sw in schlagworte %}
@@ -172,6 +166,18 @@
       {% endfor %}
     </ul>
     {{ macros.pager(pager) }}
+    
+    <div class="clearfix"></div>
+    {% if person.stimmen[0] %}
+      <h3>Abstimmungen</h3>
+      <ul class="votes-list">
+        {% for stimme in person.stimmen %}
+        <li><h4><strong>{{stimme.entscheidung}}</strong>: 
+          <a href="">{{ stimme.abstimmung.titel }}</a></h4>
+        
+        <p class="hint">{{ stimme.abstimmung.thema }}</p></li>
+        {% endfor %}
+    {% endif %}
   </div>
   <div class="clearfix"></div>
   <hr/>
