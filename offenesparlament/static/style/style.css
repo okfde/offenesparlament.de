@@ -87,6 +87,7 @@ html, body {
 body {
   font-size: 0.8em;
   background-color: #CBC4A7;
+  background: url(/static/img/bg_foot.png);
   line-height: 1.5em;
 }
 
@@ -97,6 +98,7 @@ body, input {
 .container {
   padding: 5em 0 2em 0;
   background-color: #E2DCC5;
+  background: url(/static/img/bg_main.png);
   margin: 0px;
 }
 
@@ -438,6 +440,23 @@ ul.position-list .ablauf h3 {
   margin-top: 0em;
 }
 
+ul.votes-list {
+  list-style-type: none;
+  margin: 0;
+  margin-bottom: 0.5em;
+}
+
+ul.votes-list h4 {
+  font-weight: normal;
+  color: #333;
+  font-size: 1.2em;
+  margin-bottom: 0.2em;
+}
+
+ul.votes-list h4 a {
+  text-decoration: none;
+}
+
 table.zitate td {
   padding-bottom: 0.5em;
   padding-top: 0.5em;
@@ -528,11 +547,11 @@ ul.rollen {
   list-style-type: none;
 }
 
-.teaser {
+.bio-teaser {
   cursor: pointer;
 }
 
-.teaser-fulltext {
+.bio-fulltext {
   display: none;
 }
 
