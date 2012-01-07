@@ -67,7 +67,7 @@ def merge_speech(engine, master, wp, session):
     Mediathek = sl.get_table(engine, 'mediathek')
     Speech = sl.get_table(engine, 'speech')
     sorter = lambda x: (int(x['top_nr']), int(x['speech_nr']))
-    med = sorted(sl.find(engine, Mediathek, wahlperiode=wp,
+    med = sorted(sl.find(engine, Mediathek, wahlperiode=str(wp),
         meeting_nr=str(session)),
             key=sorter)
 
