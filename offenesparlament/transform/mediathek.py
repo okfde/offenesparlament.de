@@ -44,7 +44,7 @@ def extend_speeches(engine, master):
 QUERY = '''SELECT DISTINCT wahlperiode, sitzung FROM speech;'''
 
 def merge_speeches(engine, master):
-    Speech = sl.get_table(engine, 'mediathek')
+    Speech = sl.get_table(engine, 'speech')
     for combo in sl.distinct(engine, Speech, 'wahlperiode', 'sitzung'):
         merge_speech(engine, master, combo['wahlperiode'], 
                 combo['sitzung'])
