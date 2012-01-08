@@ -78,7 +78,9 @@ class SolrSearcher(object):
     def fq(self):
         _fqs = []
         for k, v in self.filters:
-            v = v.replace("\"", "'")
+            if v is None:
+                continue
+            v = unicode(v).replace("\"", "'")
             _fqs.append("+%s:\"%s\"" % (k, v))
         return _fqs
 
