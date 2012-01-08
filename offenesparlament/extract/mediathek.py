@@ -26,9 +26,9 @@ def get_doc(url):
     while True:
         doc = _html(url)
         if doc is not None:
-            if not no_results(doc):
-                return doc
-            return None
+            if no_results(doc):
+                return None
+            return doc
         time.sleep(2)
 
 def no_results(doc):
@@ -66,6 +66,7 @@ def load_sessions(engine):
         else:
             ctx = video_box(doc, 'meeting')
             ctx['meeting_url'] = url
+            ctx['meeting_nr'] = session
             load_tops(WP, session, ctx, engine)
 
 def load_tops(wp, session, context, engine):
