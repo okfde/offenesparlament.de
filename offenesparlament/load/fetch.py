@@ -13,10 +13,17 @@ def fetch(url, timeout=2.0):
     #url = url.replace('http://', 'https://')
     for x in range(10):
         try:
+            from offenesparlament.core import app
+            #print app.config.get('HTTP_PROXY')
+            proxies = {
+                'http': app.config.get('HTTP_PROXY'),
+                'https': app.config.get('HTTP_PROXY')
+                }
             body = requests.get(url, 
                 headers={'user-agent': UA},
                 timeout=timeout,
                 config={'max_retries': 10},
+                proxies=proxies,
                 verify=False)
             return body.content
         except requests.exceptions.Timeout:
