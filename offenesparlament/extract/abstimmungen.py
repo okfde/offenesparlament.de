@@ -1,13 +1,12 @@
 #coding: utf-8
-from lxml import etree, html
 from pprint import pprint
 from datetime import datetime
-import urllib, urlparse
+import urlparse
 import subprocess
 import logging
-import sys
 import re
 import tempfile
+from lxml import etree
 
 import sqlaload as sl
 from offenesparlament.load.fetch import fetch, _html
@@ -111,7 +110,6 @@ def load_vote(url, engine, incremental=True):
     fo = open(path, 'wb')
     fo.write(fetch(url))
     fo.close()
-    #urllib.urlretrieve(url, path)
     xml = pdftoxml(path)
     handle_xml(xml, engine, url)
 
@@ -125,8 +123,4 @@ if __name__ == '__main__':
     engine = etl_engine()
     print "DESTINATION", engine
     load_index(engine)
-    #xml = open('/Users/fl/20091203_isaf.xml', 'r').read()
-    #handle_xml(xml, db)
-    #xml = open('/Users/fl/20100617_unifil.xml', 'r').read()
-    ##handle_xml(xml, db)
 
