@@ -151,6 +151,7 @@ class Person(db.Model):
     reden_plenum_rss_url = db.Column(db.Unicode)
     twitter_url = db.Column(db.Unicode)
     facebook_url = db.Column(db.Unicode)
+    awatch_url = db.Column(db.Unicode)
 
     rollen = db.relationship('Rolle', backref='person',
                              lazy='dynamic')
@@ -275,7 +276,6 @@ class Rolle(db.Model):
             'status': self.status,
             'funktion': self.funktion,
             'fraktion': self.fraktion,
-            'rolle': self.rolle,
             'ressort': self.ressort,
             'land': self.land,
             'wahlkreis': self.wahlkreis.to_ref() if self.wahlkreis else None,
@@ -686,8 +686,8 @@ class Sitzung(db.Model):
     __tablename__ = 'sitzung'
 
     id = db.Column(db.Integer, primary_key=True)
-    wahlperiode = db.Column(db.Unicode())
-    nummer = db.Column(db.Unicode())
+    wahlperiode = db.Column(db.Integer())
+    nummer = db.Column(db.Integer())
     titel = db.Column(db.Unicode())
     text = db.Column(db.Unicode())
     date = db.Column(db.DateTime())
@@ -711,6 +711,7 @@ class Sitzung(db.Model):
             'id': self.id,
             'wahlperiode': self.wahlperiode,
             'nummer': self.nummer,
+            'date': self.date,
             'titel': self.titel
             }
 
@@ -718,7 +719,6 @@ class Sitzung(db.Model):
         data = self.to_ref()
         data.update({
             'text': self.text,
-            'date': self.date,
             'pdf_url': self.pdf_url,
             'pdf_page': self.pdf_page,
             'video_url': self.video_url,
@@ -919,6 +919,23 @@ class DebatteZitat(db.Model):
             }
 
     to_dict = to_ref
+
+
+class Abo(db.Model):
+    __tablename__ = 'abo'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    query = db.Column(db.Unicode())
+    email = db.Column(db.Unicode())
+    offset = db.Column(db.DateTime, default=datetime.utcnow)
+    activation_code = db.Column(db.Unicode())
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+
 
 current_schlagwort = db.Table('current_schlagwort', db.metadata,
         db.Column('schlagwort', db.Unicode),
