@@ -13,14 +13,14 @@ from offenesparlament.core import etl_engine
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-MEDIATHEK_URL = "https://www.bundestag.de/"
+MEDIATHEK_URL = "http://www.bundestag.de/"
 WP = 17
 MAX_FAIL = 3
 SHORT_URL = "http://dbtg.tv/vid/"
 
-FOR_SESSION = 'https://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=details&isLinkCallPlenar=1'
-FOR_TOP = 'https://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=common&isLinkCallPlenar=1'
-FOR_SPEECH = 'https://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&speechNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=commom&isLinkCallPlenar=1'
+FOR_SESSION = 'http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=details&isLinkCallPlenar=1'
+FOR_TOP = 'http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=common&isLinkCallPlenar=1'
+FOR_SPEECH = 'http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&speechNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=commom&isLinkCallPlenar=1'
 
 def get_doc(url):
     while True:
@@ -56,13 +56,13 @@ def video_box(doc, prefix):
 
 def load_sessions(engine):
     Mediathek = sl.get_table(engine, 'mediathek')
-    for session in count(1):
+    for session in count(33):
         url = FOR_SESSION % (WP, session)
         if sl.find_one(engine, Mediathek, meeting_url=url):
             continue
         doc = get_doc(url)
         if doc is None:
-            break
+            return
         else:
             ctx = video_box(doc, 'meeting')
             ctx['meeting_url'] = url
