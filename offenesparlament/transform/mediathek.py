@@ -46,8 +46,9 @@ QUERY = '''SELECT DISTINCT wahlperiode, sitzung FROM speech;'''
 def merge_speeches(engine, master):
     Speech = sl.get_table(engine, 'speech')
     for combo in sl.distinct(engine, Speech, 'wahlperiode', 'sitzung'):
-        merge_speech(engine, master, combo['wahlperiode'], 
-                combo['sitzung'])
+        #print combo
+        merge_speech(engine, master, str(combo['wahlperiode']), 
+                     str(combo['sitzung']))
 
 
 TOPS = re.compile("(TOP|Tagesordnungspunkte?)\s*(\d{1,3})")
@@ -67,8 +68,8 @@ def merge_speech(engine, master, wp, session):
     Mediathek = sl.get_table(engine, 'mediathek')
     Speech = sl.get_table(engine, 'speech')
     sorter = lambda x: (int(x['top_nr']), int(x['speech_nr']))
-    med = sorted(sl.find(engine, Mediathek, wahlperiode=str(wp),
-        meeting_nr=str(session)),
+    med = sorted(sl.find(engine, Mediathek, wahlperiode=wp,
+        meeting_nr=session),
             key=sorter)
 
     speech_idx = top_idx = 0
@@ -76,6 +77,8 @@ def merge_speech(engine, master, wp, session):
         return
 
     def med_fp(idx):
+        if idx >= len(med):
+            return ""
         return med[idx]['fingerprint']
     
     def emit(speech, idx):
@@ -92,13 +95,14 @@ def merge_speech(engine, master, wp, session):
                 'mediathek_url': med[idx]['speech_source_url'],
                 'sequence': speech['sequence']
                 }, unique=['wahlperiode', 'sitzung', 'sequence'])
-
+    
     spch = []
-    for speech in sl.find(engine, Speech, wahlperiode=wp, sitzung=session):
+    for speech in sl.find(engine, Speech, order_by='sequence', wahlperiode=wp, sitzung=session):
         spch_i = (speech['wahlperiode'], speech['sitzung'], speech['sequence'])
         if spch_i in spch:
             continue
         spch.append(spch_i)
+        #print spch_i
 
         if not speech['fingerprint']:
             continue
@@ -126,14 +130,13 @@ def merge_speech(engine, master, wp, session):
                         break
                     last_title = title
                 #print tops
-                #print "FOO"
         
         speech_fp = speech['fingerprint']
+        
         # cases: 
         while True:
             if speech_fp == med_fp(speech_idx):
                 emit(speech, speech_idx)
-                #print med_fp(i+1).encode('utf-8')
                 if speech_fp == med_fp(speech_idx+1):
                     # 2. curren matches, next also matches
                     # -> use current and increment
@@ -154,7 +157,6 @@ def merge_speech(engine, master, wp, session):
                     # -> use current
                     emit(speech, speech_idx)
                     break
-
 
 if __name__ == '__main__':
     engine = etl_engine()
