@@ -138,13 +138,15 @@ class SpeechParser(object):
             text.append(line)
         yield emit()
 
-def load_transcript(engine, master, wp, session):
+def load_transcript(engine, master, wp, session, incremental=True):
     url = URL % (wp, session)
+    Speech = sl.get_table(engine, 'speech')
+    if incremental and sl.find_one(engine, Speech, source_url=url):
+        return True
     sio = fetch_stream(url)
     if sio is None:
         return False
     log.info("Loading transcript: %s/%s" % (wp, session))
-    Speech = sl.get_table(engine, 'speech')
     seq = 0
     for contrib in SpeechParser(master_data(), engine, sio):
         if not len(contrib['text'].strip()):
@@ -158,9 +160,9 @@ def load_transcript(engine, master, wp, session):
         seq += 1
     return True
 
-def load_transcripts(engine, master):
+def load_transcripts(engine, master, incremental=True):
     for i in count(33):
-        if not load_transcript(engine, master, 17, i):
+        if not load_transcript(engine, master, 17, i, incremental=incremental):
             break
 
 if __name__ == '__main__':
