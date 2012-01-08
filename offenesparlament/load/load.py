@@ -116,6 +116,7 @@ def load_persons(engine):
         person.reden_plenum_rss_url = data.get('reden_plenum_rss_url')
         person.twitter_url = data.get('twitter_url')
         person.facebook_url = data.get('facebook_url')
+        person.awatch_url = data.get('awatch_url')
         db.session.add(person)
         db.session.flush()
         mdb_rolle = load_rollen(engine, person, data)
@@ -186,8 +187,8 @@ def load_gremium_mitglieder(engine, person, rolle):
             raise TypeError("Invalid ms type: %s" % role)
 
 def load_ablaeufe(engine):
-    _Ablauf = sl.get_table(engine, 'ablaud')
-    for data in sl.find(engine, _Ablauf, wahlperiode=17):
+    _Ablauf = sl.get_table(engine, 'ablauf')
+    for data in sl.find(engine, _Ablauf, wahlperiode=str(17)):
         log.info("Loading Ablauf: %s..." % data['titel'])
         load_ablauf(engine, data)
 
@@ -300,7 +301,7 @@ def load_position(data, ablauf_id, ablauf, engine):
         beschluss.position = position
         beschluss.seite = bdata['seite']
         beschluss.tenor = bdata['tenor']
-        beschluss.dokument_text = bdata['dokument_text']
+        beschluss.dokument_text = bdata['dokument_text'] or ''
         for dokument_name in beschluss.dokument_text.split(','):
             dokument_name = dokument_name.strip()
             dok = Dokument.query.filter_by(nummer=dokument_name).first()
@@ -453,14 +454,17 @@ def load_debatte_zitate(engine, zitat, mediathek):
             SPME_CACHE[(spme['wahlperiode'],
                         spme['sitzung'],
                         spme['sequence'])].append(spme)
+    debatten = {}
     for item in SPME_CACHE[(zitat.sitzung.wahlperiode,
                             zitat.sitzung.nummer,
                             zitat.sequenz)]:
         #spme.traverse(wahlperiode=zitat.sitzung.wahlperiode,
         #    sitzung=zitat.sitzung.nummer, sequence=zitat.sequenz):
         sp = mediathek[item['mediathek_url']]
-        debatte = Debatte.query.filter_by(
-                source_url=sp['top_source_url']).first()
+        if not sp['top_source_url'] in debatten:
+            debatten[sp['top_source_url']] = Debatte.query.filter_by(
+                    source_url=sp['top_source_url']).first()
+        debatte = debatten[sp['top_source_url']]
         dz = DebatteZitat.query.filter_by(zitat=zitat,
                 debatte=debatte).first()
         if dz is None:
@@ -475,18 +479,28 @@ def load_debatte_zitate(engine, zitat, mediathek):
 
 def load_abstimmungen(engine):
     _Abstimmung = sl.get_table(engine, 'abstimmung')
-    for thema in sl.distinct(engine, _Abstimmung, 'subject', 'date'):
-        thema = thema.get('subject')
+    i = 0
+    for row in sl.distinct(engine, _Abstimmung, 'subject', 'date'):
+        thema = row.get('subject')
         abst = Abstimmung.query.filter_by(thema=thema).first()
         if abst is None:
             abst = Abstimmung()
             abst.thema = thema
-            abst.datum = date(thema.get('date'))
+            abst.datum = date(row.get('date'))
         db.session.add(abst)
         for stimme_ in sl.find(engine, _Abstimmung, subject=thema):
+            if i % 1000 == 0:
+                sys.stdout.write(".")
+                sys.stdout.flush()
+            i += 1
             person = Person.query.filter_by(
                 fingerprint=stimme_.get('fingerprint')).first()
             if person is None:
+                continue
+            stimme = Stimme.query.filter_by(
+                abstimmung=abst).filter_by(
+                person=person).first()
+            if stimme is not None:
                 continue
             stimme = Stimme()
             stimme.entscheidung = stimme_['vote']
@@ -496,13 +510,13 @@ def load_abstimmungen(engine):
         db.session.commit()
 
 def load(engine):
-    load_gremien(engine)
+    #load_gremien(engine)
     #load_news(engine)
-    load_persons(engine)
-    load_ablaeufe(engine)
-    load_debatten(engine)
+    #load_persons(engine)
+    #load_ablaeufe(engine)
+    #load_debatten(engine)
     load_zitate(engine)
-    load_abstimmungen(engine)
+    #load_abstimmungen(engine)
 
 def aggregate():
     from offenesparlament.aggregates import make_current_schlagwort, \
