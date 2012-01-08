@@ -50,7 +50,6 @@ def make_current_schlagwort():
             JOIN schlagworte swe ON swe.ablauf_id = abl.id 
             JOIN schlagwort sw ON swe.schlagwort_id = sw.id 
         GROUP BY period, schlagwort
-        HAVING num > 1
         ORDER BY num DESC;""" % func)
 
 def current_schlagworte(limit=15):
@@ -118,6 +117,6 @@ def make_person_schlagworte():
 def person_schlagworte(person, limit=10):
     return _run_raw("""SELECT schlagwort, num 
         FROM person_schlagwort
-        WHERE person_id = ? 
+        WHERE person_id = %s
         ORDER BY num DESC
-        LIMIT ?;""", person.id, limit);
+        LIMIT %s;""" % (person.id, limit));
