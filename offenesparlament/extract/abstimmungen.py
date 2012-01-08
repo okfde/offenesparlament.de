@@ -39,7 +39,7 @@ def pdftoxml(file_path):
             file_path], shell=False, stdout=subprocess.PIPE)
     return process.stdout.read()
 
-def handle_xml(xml, engine):
+def handle_xml(xml, engine, source_url):
     doc = etree.fromstring(xml)
     Vote = sl.get_table(engine, 'abstimmung')
     subject = ''
@@ -75,7 +75,8 @@ def handle_xml(xml, engine):
                 data = {'subject': unicode(subject), 
                         'person': name.strip() + ' ' + fraktion,
                         'date': unicode(date),
-                        'vote': unicode(field)}
+                        'vote': unicode(field),
+                        'source_url': source_url}
                 sl.upsert(engine, Vote, data, unique=['subject', 'person'])
                 #pprint({'person': name.strip() + ' ' + fraktion, 
                 #        'vote': field})
@@ -101,20 +102,24 @@ def handle_xml(xml, engine):
         else:
             handle_list(page)
 
-def load_vote(url, engine):
+def load_vote(url, engine, incremental=True):
+    Vote = sl.get_table(engine, 'abstimmung')
+    if incremental and sl.find_one(engine, Vote, source_url=url):
+        log.info("%s is done, skipping.", url)
+        return
     fh, path = tempfile.mkstemp('.pdf')
     fo = open(path, 'wb')
     fo.write(fetch(url))
     fo.close()
     #urllib.urlretrieve(url, path)
     xml = pdftoxml(path)
-    handle_xml(xml, engine)
+    handle_xml(xml, engine, url)
 
-def load_index(engine):
+def load_index(engine, incremental=True):
     doc = _html(INDEX)
     for a in doc.findall('//ul[@class="standardLinkliste"]//a'):
         url = urlparse.urljoin(INDEX, a.get('href'))
-        load_vote(url, engine)
+        load_vote(url, engine, incremental=incremental)
 
 if __name__ == '__main__':
     engine = etl_engine()
