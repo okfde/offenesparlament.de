@@ -34,7 +34,7 @@ def sitzung(wahlperiode, nummer):
 def sitzungen():
     searcher = SolrSearcher(Sitzung, request.args)
     searcher.add_facet('wahlperiode')
-    searcher.sort('nummer', 'desc')
+    searcher.sort('date', 'desc')
     pager = Pager(searcher, 'sitzungen', request.args)
     return render_template('sitzung_search.html', 
             searcher=searcher, pager=pager)
