@@ -1,11 +1,8 @@
 # coding: utf-8
 import logging
 from itertools import count
-from urllib2 import urlopen, HTTPError
-from StringIO import StringIO
 from pprint import pprint
 import re
-import sys
 
 import sqlaload as sl
 
@@ -13,7 +10,7 @@ from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 from offenesparlament.transform.namematch import match_speaker, make_prints
 
-from offenesparlament.load.fetch import fetch_stream, _html
+from offenesparlament.load.fetch import fetch_stream
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
