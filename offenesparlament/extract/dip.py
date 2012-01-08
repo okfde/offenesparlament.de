@@ -12,7 +12,7 @@ from StringIO import StringIO
 import sqlaload as sl
 
 from offenesparlament.extract.util import threaded
-from offenesparlament.load.fetch import UA
+from offenesparlament.load.fetch import UA, _html, fetch
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
@@ -123,44 +123,8 @@ def inline_xml_from_page(page):
         comment = comment.strip()
         if comment.startswith("<?xml"):
             comment = inline_comments_re.sub('', comment).split('>', 1)[-1]
-            #print comment.encode('utf-8')
+            comment = comment.decode('latin-1')
             return etree.fromstring(comment)
-
-def init_session():
-    session = requests.session(config={
-        'max_retries': 5, 
-        'timeout': 2
-        })
-    session.get(MAKE_SESSION_URL, headers={'user-agent': UA})
-    return session
-
-session = None
-def get_dip_with_cookie(url, data={}):
-    global session
-    #time.sleep(1)
-    #session = init_session()
-    #url = url.replace('http://', 'https://')
-    #res = session.get(url, params=data)
-    #return StringIO(res.content)
-
-    if session is None:
-        session = init_session()
-    
-    while True:
-        try:
-            res = session.get(url, params=data, 
-                    headers={'user-agent': UA},
-                    timeout=3.0, 
-                    config={'max_retries': 10})
-        except requests.exceptions.Timeout:
-            log.error("REQUEST TIMEOUT")
-            time.sleep(1)
-            continue
-        if not 'Sie wurden vom System abgemeldet' in res.content:
-            return StringIO(res.content)
-    
-        log.error("LOGGED OUT")
-        session = init_session()
 
 def _get_dokument(hrsg, typ, nummer, link=None):
     nummer = nummer.lstrip("0")
@@ -249,14 +213,9 @@ def expand_dok_nr(ablauf):
     return ablauf
 
 
-def scrape_activities(ablauf, engine):
-    urlfp = get_dip_with_cookie(DETAIL_VP_URL % ablauf['key'])
-    if urlfp is None:
-        return
-    xml = inline_xml_from_page(urlfp.read())
-    urlfp.close()
-    if xml is not None: 
-        for elem in xml.findall(".//VORGANGSPOSITION"):
+def scrape_activities(ablauf, doc, engine):
+    if doc is not None: 
+        for elem in doc.findall(".//VORGANGSPOSITION"):
             scrape_activity(ablauf, elem, engine)
 
 def scrape_activity(ablauf, elem, engine):
@@ -345,32 +304,31 @@ class NoContentException(Exception): pass
 from threading import local
 tl = local()
 def scrape_ablauf(url, engine, wahlperiode=17):
+    wahlperiode = str(wahlperiode)
     if not hasattr(tl, 'engine'):
         tl.engine = etl_engine()
     engine = tl.engine
     Ablauf = sl.get_table(engine, 'ablauf')
-    a = sl.find_one(engine, Ablauf, source_url=url)
-    if a is not None and a['abgeschlossen'] == 'True':
-        log.info("Skipping: %s" % a['titel'])
+
+    key = url.rsplit('/', 1)[-1].split('.')[0]
+    a = sl.find_one(engine, Ablauf, key=key, 
+                    bt_wahlperiode=wahlperiode)
+    if a is not None and a['abgeschlossen']:
+        log.info("SKIPPING: %s", a['titel'])
         return
     if a is None:
         a = {}
-    a['key'] = key = parse_qs(urlparse(url).query).get('selId')[0]
-    urlfp = get_dip_with_cookie(url)
-    if urlfp is None:
-        return
-    doc = inline_xml_from_page(urlfp.read())
-    urlfp.close()
+    a['key'] = key
+    doc = inline_xml_from_page(fetch(url))
     if doc is None: 
         raise NoContentException()
     
-    wp = wahlperiode
+    a['wahlperiode'] = wahlperiode
+    a['bt_wahlperiode'] = wahlperiode
     if doc.findtext("WAHLPERIODE"):
-        a['wahlperiode'] = wp = doc.findtext("WAHLPERIODE")
-        #if int(wp) != wahlperiode:
-        #    raise TooFarInThePastException()
+        wahlperiode != doc.findtext("WAHLPERIODE")
     
-    a['ablauf_id'] = "%s/%s" % (wp, a['key'])
+    a['ablauf_id'] = "%s/%s" % (wahlperiode, key)
     a['typ'] = doc.findtext("VORGANGSTYP")
     a['titel'] = doc.findtext("TITEL")
 
@@ -395,7 +353,7 @@ def scrape_ablauf(url, engine, wahlperiode=17):
     #a.schlagworte = []
     Schlagwort = sl.get_table(engine, 'schlagwort')
     for sw in doc.findall("SCHLAGWORT"):
-        wort = {'wort': sw.text, 'key': key, 'wahlperiode': wp}
+        wort = {'wort': sw.text, 'key': key, 'wahlperiode': wahlperiode}
         sl.upsert(engine, Schlagwort, wort, unique=wort.keys())
     log.info("Ablauf %s: %s" % (key, a['titel']))
     a['titel'] = a['titel'].strip().lstrip('.').strip()
@@ -414,7 +372,7 @@ def scrape_ablauf(url, engine, wahlperiode=17):
                 'drs', elem.findtext("DRS_NUMMER"), link=link)
         dokument['text'] = elem.findtext("DRS_TYP")
         dokument['seiten'] = hash
-        dokument['wahlperiode'] = wp
+        dokument['wahlperiode'] = wahlperiode
         dokument['ablauf_key'] = key
         sl.upsert(engine, Referenz, dokument, unique=[
             'link', 'wahlperiode', 'ablauf_key', 'seiten'
@@ -428,46 +386,27 @@ def scrape_ablauf(url, engine, wahlperiode=17):
                 'plpr', elem.findtext("PLPR_NUMMER"), link=link)
         dokument['text'] = elem.findtext("PLPR_KLARTEXT")
         dokument['seiten'] = elem.findtext("PLPR_SEITEN")
-        dokument['wahlperiode'] = wp
+        dokument['wahlperiode'] = wahlperiode
         dokument['ablauf_key'] = key
         sl.upsert(engine, Referenz, dokument, unique=[
             'link', 'wahlperiode', 'ablauf_key', 'seiten'
             ])
 
     sl.upsert(engine, Ablauf, a, unique=['key', 'wahlperiode'])
-    scrape_activities(a, engine)
+    scrape_activities(a, doc, engine)
     engine.dispose()
 
 def load_dip(engine):
-    if 0:
-        try:
-            for url in load_dip_index():
-                for i in range(4):
-                    try:
-                        scrape_ablauf(url, engine)
-                        break
-                    except NoContentException:
-                        global jar
-                        jar = None
-                        time.sleep(i**2)
-        except TooFarInThePastException:
-            pass
-    if True:
-        def bound_scrape(url):
-            scrape_ablauf(url, engine)
-        threaded(load_dip_index(), bound_scrape)
+    def bound_scrape(url):
+        scrape_ablauf(url, engine)
+    threaded(load_dip_index(), bound_scrape, num_threads=5)
+
+EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP17/'
 
 def load_dip_index():
-    for offset in count():
-        urlfp = get_dip_with_cookie(BASE_URL % (offset*100))
-        if urlfp is None:
-            return
-        root = etree.parse(urlfp, etree.HTMLParser())
-        urlfp.close()
-        table = root.find(".//table[@summary='Ergebnisliste']")
-        if table is None: return
-        for result in table.findall(".//a[@class='linkIntern']"):
-            yield urljoin(BASE_URL, result.get('href'))
+    doc = _html(EXTRAKT_INDEX, timeout=120.0)
+    for result in doc.findall("//a[@class='linkIntern']"):
+        yield urljoin(EXTRAKT_INDEX, result.get('href'))
 
 if __name__ == '__main__':
     engine = etl_engine()
