@@ -132,28 +132,43 @@ def index_gremien():
 
 def index_positionen():
     _solr = solr()
-    for position in Position.query:
+    datas = []
+    for position in Position.query.yield_per(1000):
         log.info("indexing %s - %s..." % (
             position.ablauf.titel, position.fundstelle))
         data = flatten(position.to_dict())
         data.update(type_info(position))
         data = convert_dates(data)
-        _solr.add_many([data])
+        datas.append(data)
+        if len(datas) % 1000 == 0:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            _solr.add_many(datas)
+            _solr.commit()
+            datas = []
     _solr.commit()
 
 def index_dokumente():
     _solr = solr()
-    for dokument in Dokument.query:
+    datas = []
+    for dokument in Dokument.query.yield_per(1000):
         log.info("indexing %s..." % dokument.name)
         data = flatten(dokument.to_dict())
         data.update(type_info(dokument))
         data = convert_dates(data)
-        _solr.add_many([data])
+        datas.append(data)
+        if len(datas) % 1000 == 0:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            _solr.add_many(datas)
+            _solr.commit()
+            datas = []
     _solr.commit()
 
 def index_ablaeufe():
     _solr = solr()
-    for ablauf in Ablauf.query:
+    datas = []
+    for ablauf in Ablauf.query.yield_per(1000):
         log.info("indexing %s..." % ablauf.titel)
         data = ablauf.to_dict()
         data['positionen'] = [p.to_dict() for p in \
@@ -162,7 +177,13 @@ def index_ablaeufe():
         data = flatten(data)
         data.update(type_info(ablauf))
         data = convert_dates(data)
-        _solr.add_many([data])
+        datas.append(data)
+        if len(datas) % 500 == 0:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            _solr.add_many(datas)
+            _solr.commit()
+            datas = []
     _solr.commit()
 
 
@@ -209,36 +230,33 @@ def index_zitate():
     datas = []
     for zitat in Zitat.query.options(
         eagerload_all(Zitat.person, Zitat.sitzung, 
-                      Zitat.debatten_zitate)):
+                      Zitat.debatten_zitate)).yield_per(5000):
         data = zitat.to_dict()
         data = flatten(data)
         data.update(type_info(zitat))
         data = convert_dates(data)
         data = convert_text(data)
+        data['date'] = data.get('sitzung.date')
         datas.append(data)
         if len(datas) % 1000 == 0:
             sys.stdout.write(".")
             sys.stdout.flush()
-            try:
-                _solr.add_many(datas)
-                _solr.commit()
-            except:
-                pprint(datas)
-                raise
+            _solr.add_many(datas)
+            _solr.commit()
             datas = []
     _solr.add_many(datas)
     _solr.commit()
 
 def index():
     _solr = solr()
-    #_solr.delete_query("*:*")
-    #index_persons()
-    #index_gremien()
-    #index_positionen()
-    #index_dokumente()
-    #index_ablaeufe()
-    #index_sitzungen()
-    #index_debatten()
+    _solr.delete_query("*:*")
+    index_persons()
+    index_gremien()
+    index_positionen()
+    index_dokumente()
+    index_ablaeufe()
+    index_sitzungen()
+    index_debatten()
     index_zitate()
 
 if __name__ == '__main__':
