@@ -538,7 +538,7 @@ class Beschluss(db.Model):
     def to_ref(self):
         return {
                 'id': self.id,
-                'dokument_text': self.text,
+                'dokument_text': self.dokument_text,
                 'tenor': self.tenor,
                 'seite': self.seite,
                 'position': self.position.id
