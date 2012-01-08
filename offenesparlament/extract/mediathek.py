@@ -55,8 +55,11 @@ def video_box(doc, prefix):
     return data
 
 def load_sessions(engine):
+    Mediathek = sl.get_table(engine, 'mediathek')
     for session in count(1):
         url = FOR_SESSION % (WP, session)
+        if sl.find_one(engine, Mediathek, meeting_url=url):
+            continue
         doc = get_doc(url)
         if doc is None:
             break
