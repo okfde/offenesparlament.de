@@ -10,7 +10,7 @@ from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 from offenesparlament.transform.namematch import match_speaker, make_prints
 
-from offenesparlament.load.fetch import fetch_stream
+from offenesparlament.load.fetch import fetch_stream, fetch
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
@@ -140,6 +140,8 @@ def load_transcript(engine, master, wp, session, incremental=True):
     Speech = sl.get_table(engine, 'speech')
     if incremental and sl.find_one(engine, Speech, source_url=url):
         return True
+    if '404 Seite nicht gefunden' in fetch(url):
+        return False
     sio = fetch_stream(url)
     if sio is None:
         return False
