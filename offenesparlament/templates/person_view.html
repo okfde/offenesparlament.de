@@ -171,9 +171,10 @@
     {% if person.stimmen[0] %}
       <h3>Abstimmungen</h3>
       <ul class="votes-list">
-        {% for stimme in person.stimmen %}
+        {% for stimme in person.stimmen|sort(attribute='abstimmung.datum', reverse=True) %}
         <li><h4><strong>{{stimme.entscheidung}}</strong>: 
-          <a href="{{ url_for('abstimmung', id=stimme.abstimmung.id) }}">{{ stimme.abstimmung.titel }}</a></h4>
+          <a href="{{ url_for('abstimmung', id=stimme.abstimmung.id) }}">{{
+            stimme.abstimmung.titel }}</a> ({{ stimme.abstimmung.datum.strftime('%d.%m.%Y') }})</h4>
         
         <p class="hint">{{ stimme.abstimmung.thema }}</p></li>
         {% endfor %}
