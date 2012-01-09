@@ -69,11 +69,11 @@ def merge_speech(engine, master, wp, session):
     Speech = sl.get_table(engine, 'speech')
     sorter = lambda x: (int(x['top_nr']), int(x['speech_nr']))
     med = sorted(sl.find(engine, Mediathek, wahlperiode=wp,
-        meeting_nr=session),
-            key=sorter)
+        meeting_nr=session), key=sorter)
 
     speech_idx = top_idx = 0
     if not len(med):
+        log.error("No mediathek entries: %s/%s", wp, session)
         return
 
     def med_fp(idx):
@@ -161,5 +161,5 @@ def merge_speech(engine, master, wp, session):
 if __name__ == '__main__':
     engine = etl_engine()
     print "DESTINATION", engine
-    extend_speeches(engine, master_data())
-    merge_speech(engine, master_data(), 17, 121)
+    #extend_speeches(engine, master_data())
+    merge_speech(engine, master_data(), '17', '150')
