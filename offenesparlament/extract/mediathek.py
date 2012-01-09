@@ -66,7 +66,8 @@ def load_sessions(engine):
         else:
             ctx = video_box(doc, 'meeting')
             ctx['meeting_url'] = url
-            ctx['meeting_nr'] = session
+            ctx['wahlperiode'] = WP
+            ctx['meeting_nr'] = str(session)
             load_tops(WP, session, ctx, engine)
 
 def load_tops(wp, session, context, engine):
@@ -100,6 +101,7 @@ def load_speeches(wp, session, top_id, context, engine):
                 spch['speech_duration'] = spch['speech_duration'].split(": ")[-1]
                 spch['speech_time'] = spch['speech_time'].split(" ")[0]
             spch['speech_nr'] = speech_id
+            #pprint(spch)
             sl.upsert(engine, Mediathek, spch, unique=['speech_source_url'])
             if not 'speech_title' in spch or not spch['speech_title']:
                 pprint(spch)
@@ -108,4 +110,4 @@ def load_speeches(wp, session, top_id, context, engine):
 if __name__ == '__main__':
     engine = etl_engine()
     print "DESTINATION", engine
-    load_sessions(engine)
+    #load_sessions(engine)
