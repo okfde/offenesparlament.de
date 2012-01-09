@@ -85,19 +85,26 @@ def make_period_sachgebiete():
         ORDER BY period ASC;""" % func)
 
 def sachgebiete():
-    res = _run_raw("""SELECT sachgebiet, num, period
-        FROM period_sachgebiet; """)
+    res = _run_raw("""SELECT sachgebiet, num, period 
+            FROM period_sachgebiet; """)
     sachgebiete = set([r['sachgebiet'] for r in res if r['sachgebiet']])
     data = {'label': list(sachgebiete), 'values': []}
     by_period = defaultdict(lambda: defaultdict(int))
     for r in res:
         by_period[r['period']][r['sachgebiet']] = r['num']
     period = None
-    for period, sg in sorted(by_period.items(), key=lambda (p,s): p):
+    periods = sorted(by_period.items(), key=lambda (p,s): p, reverse=True)[:20]
+    for period, sg in periods[::-1]:
+        sum_ = float(sum(sg[s] for s in sachgebiete))
+        print sum_
         data['values'].append({
-            'label': period.split("-")[-1],
-            'values': [sg[s] for s in sachgebiete]
+            #'label': period.split("-")[-1],
+            'label': period,
+            'values': [sg[s]/sum_ for s in sachgebiete],
+            'count': [sg[s] for s in sachgebiete]
             })
+        print data['values'][-1]
+        print sum(data['values'][-1]['values'])
     return data
 
 
