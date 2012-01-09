@@ -5,6 +5,7 @@ CREATE INDEX vote_psn ON abstimmung (person);
 CREATE INDEX vote_subj ON abstimmung (subject);
 
 CREATE INDEX abl_key ON ablauf (key, wahlperiode);
+CREATE INDEX abl_typ ON ablauf (typ);
 CREATE INDEX idx_sw ON schlagwort (key, wahlperiode);
 CREATE INDEX idx_swid ON schlagwort (id);
 CREATE INDEX ref_sw ON referenz (ablauf_key, wahlperiode);
