@@ -16,7 +16,7 @@
  limitations under the License.
 -->
 
-<schema name="datasearch" version="1.2">
+<schema name="offenesparlament" version="1.2">
 
   <types>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
