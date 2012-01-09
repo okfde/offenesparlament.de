@@ -469,8 +469,8 @@ class Zuweisung(db.Model):
                 'id': self.id,
                 'text': self.text,
                 'federfuehrung': self.federfuehrung,
-                'gremium': self.gremium.key,
-                'position': self.position.id
+                'gremium': self.gremium.key if self.gremium else None,
+                'position': self.position.id if self.position else None
                 }
 
     def to_dict(self):
