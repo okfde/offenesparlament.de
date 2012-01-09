@@ -173,7 +173,8 @@ def index_ablaeufe():
         data = ablauf.to_dict()
         data['positionen'] = [p.to_dict() for p in \
                 ablauf.positionen]
-        data['date'] = max([p['date'] for p in data['positionen']])
+        if len(data['positionen']):
+            data['date'] = max([p['date'] for p in data['positionen']])
         data = flatten(data)
         data.update(type_info(ablauf))
         data = convert_dates(data)
