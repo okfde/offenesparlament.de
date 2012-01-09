@@ -43,11 +43,11 @@ function init_sachgebiete(json){
       Tips: {
         enable: true,
         onShow: function(tip, elem) {
-          tip.innerHTML = "<b>" + elem.name + "</b>: " + Math.round(elem.value) + " Aktivitäten.";
+          tip.innerHTML = "<b>" + elem.name + "</b>: " + Math.round(elem.value*100) + "% der Aktivitäten.";
         }
       },
       //add left and right click handlers
-      filterOnClick: true,
+      //filterOnClick: true,
       restoreOnRightClick: true
     });
     //load JSON data.
