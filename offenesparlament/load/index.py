@@ -250,7 +250,7 @@ def index_zitate():
 
 def index():
     _solr = solr()
-    _solr.delete_query("*:*")
+    #_solr.delete_query("*:*")
     index_persons()
     index_gremien()
     index_positionen()
