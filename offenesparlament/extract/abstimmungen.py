@@ -71,6 +71,7 @@ def handle_xml(xml, engine, source_url):
             if 'Name' in field:
                 name += ' ' + txt
             if txt == 'X':
+                field = field.strip().strip('.').strip()
                 data = {'subject': unicode(subject), 
                         'person': name.strip() + ' ' + fraktion,
                         'date': unicode(date),
