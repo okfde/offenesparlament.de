@@ -26,14 +26,30 @@
   <div class="box">
     <div class="rightbar">
       <ul class="gremien-list">
-        {% for g in gremien[::2] %}
+        {% for g in committees[::2] %}
           {{ gremium_li(g) }}
         {% endfor %}
       </ul>
     </div>
     <div class="leftbar">
       <ul class="gremien-list">
-        {% for g in gremien[1::2] %}
+        {% for g in committees[1::2] %}
+          {{ gremium_li(g) }}
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="clearfix"></div>
+    <br/>
+    <div class="rightbar">
+      <ul class="gremien-list">
+        {% for g in others[::2] %}
+          {{ gremium_li(g) }}
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="leftbar">
+      <ul class="gremien-list">
+        {% for g in others[1::2] %}
           {{ gremium_li(g) }}
         {% endfor %}
       </ul>

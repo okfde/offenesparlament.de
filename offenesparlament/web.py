@@ -79,9 +79,12 @@ def ablaeufe():
 
 @app.route("/gremium")
 def gremien():
-    gremien = Gremium.query.order_by(Gremium.name.asc()).all()
-    return render_template('gremium_list.html', 
-            gremien=gremien)
+    committees = Gremium.query.filter_by(typ='ausschuss').\
+            order_by(Gremium.name.asc()).all()
+    others = Gremium.query.filter_by(typ='sonstiges').\
+            order_by(Gremium.name.asc()).all()
+    return render_template('gremium_list.html',
+            committees=committees, others=others)
 
 @app.route("/gremium/<key>")
 def gremium(key):
