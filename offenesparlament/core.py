@@ -20,7 +20,9 @@ db = SQLAlchemy(app)
 pages = FlatPages(app)
 
 def solr():
-    return SolrConnection(app.config['SOLR_URL'])
+    return SolrConnection(app.config['SOLR_URL'],
+                http_user=app.config.get('SOLR_USER'),
+                http_pass=app.config.get('SOLR_PASSWORD'))
 
 def master_data():
     from webstore.client import URL as WebStore
