@@ -79,7 +79,7 @@ def load_persons(engine):
     _PersonSource = sl.get_table(engine, 'person')
     for data in sl.all(engine, _PersonSource):
         person = Person.query.filter_by(
-                source_url=data.get('source_url')).first()
+                fingerprint=data.get('fingerprint')).first()
         if person is None:
             person = Person()
 
