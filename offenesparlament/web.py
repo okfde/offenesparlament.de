@@ -4,7 +4,7 @@ from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify
 
 from offenesparlament.core import app, pages
-from offenesparlament.model import Ablauf, Position
+from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
 from offenesparlament.model import Person, Gremium
 from offenesparlament.model import Sitzung, Zitat, Debatte, DebatteZitat
 
@@ -76,6 +76,22 @@ def ablaeufe():
     pager = Pager(searcher, 'ablaeufe', request.args)
     return render_template('ablauf_search.html', 
             searcher=searcher, pager=pager)
+
+@app.route("/abstimmung/<id>")
+def abstimmung(id):
+    abstimmung = Abstimmung.query.filter_by(id=id).first()
+    if abstimmung is None:
+        abort(404)
+    ja = abstimmung.stimmen.filter(Stimme.entscheidung.like('%Ja%'))
+    nein = abstimmung.stimmen.filter_by(entscheidung='Nein')
+    enth = abstimmung.stimmen.filter_by(entscheidung='Enthaltung')
+    na = abstimmung.stimmen.filter(Stimme.entscheidung.like('%nicht%'))
+
+    return render_template('abstimmung_view.html',
+        abstimmung=abstimmung, ja=ja, nein=nein, enth=enth, na=na)
+
+
+
 
 @app.route("/gremium")
 def gremien():

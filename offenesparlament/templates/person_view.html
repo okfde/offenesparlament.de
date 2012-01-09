@@ -173,7 +173,7 @@
       <ul class="votes-list">
         {% for stimme in person.stimmen %}
         <li><h4><strong>{{stimme.entscheidung}}</strong>: 
-          <a href="">{{ stimme.abstimmung.titel }}</a></h4>
+          <a href="{{ url_for('abstimmung', id=stimme.abstimmung.id) }}">{{ stimme.abstimmung.titel }}</a></h4>
         
         <p class="hint">{{ stimme.abstimmung.thema }}</p></li>
         {% endfor %}
