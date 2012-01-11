@@ -4,6 +4,8 @@ flask
 flask-sqlalchemy
 flask-script
 flask-flatpages
+flask-mail
+colander
 lxml
 webstore-client
 python-Levenshtein

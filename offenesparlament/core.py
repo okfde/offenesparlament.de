@@ -9,6 +9,7 @@ from solr import SolrConnection
 from flask import Flask
 from flaskext.sqlalchemy import SQLAlchemy
 from flaskext.flatpages import FlatPages
+from flaskext.mail import Mail
 
 from offenesparlament import default_settings
 
@@ -18,6 +19,7 @@ app.config.from_envvar('PARLAMENT_SETTINGS', silent=True)
 
 db = SQLAlchemy(app)
 pages = FlatPages(app)
+mail = Mail(app)
 
 def solr():
     return SolrConnection(app.config['SOLR_URL'],

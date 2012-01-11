@@ -1,6 +1,7 @@
 #coding: utf-8
 from datetime import datetime
 import re
+import uuid
 from offenesparlament.core import db
 
 class NewsItem(db.Model):
@@ -921,6 +922,9 @@ class DebatteZitat(db.Model):
     to_dict = to_ref
 
 
+def make_token():
+    return uuid.uuid4().get_hex()[15:]
+
 class Abo(db.Model):
     __tablename__ = 'abo'
 
@@ -929,7 +933,9 @@ class Abo(db.Model):
     query = db.Column(db.Unicode())
     email = db.Column(db.Unicode())
     offset = db.Column(db.DateTime, default=datetime.utcnow)
-    activation_code = db.Column(db.Unicode())
+    activation_code = db.Column(db.Unicode(), default=make_token)
+    include_activity = db.Column(db.Boolean)
+    include_speeches = db.Column(db.Boolean)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
