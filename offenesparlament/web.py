@@ -12,6 +12,20 @@ from offenesparlament.pager import Pager
 from offenesparlament.searcher import SolrSearcher
 from offenesparlament import aggregates
 
+
+@app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
+def debatte(wahlperiode, nummer, debatte):
+    debatte = Debatte.query.filter_by(nummer)\
+            .join(Debatte.sitzung)\
+            .filter(Debatte.sitzung.wahlperiode==wahlperiode)\
+            .filter(Debatte.sitzung.nummer==nummer).first()
+    if debatte is None:
+        abort(404)
+    from urllib import quote
+    sitzung_url = url_for('sitzung', wahlperiode=wahlperiode, nummer=nummer)
+    url = sitzung_url + '?debatten_zitate.debatte.titel=' + quote(debatte.titel)
+    return redirect(url)
+
 @app.route("/plenum/<wahlperiode>/<nummer>")
 def sitzung(wahlperiode, nummer):
     sitzung = Sitzung.query.filter_by(wahlperiode=wahlperiode,
