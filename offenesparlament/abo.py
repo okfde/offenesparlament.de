@@ -17,6 +17,7 @@ def url_external(path):
     prefix = app.config.get('SITE_URL', 'http://offenesparlament.de')
     return prefix + path
 
+
 def search(entity, offset, query):
     if offset is not None:
         offset = offset.isoformat().rsplit(".")[0] + "Z"
@@ -34,8 +35,16 @@ def search(entity, offset, query):
         results = db.session.query(entity).filter(entity.id.in_(results)).all()
     return results
 
+
 def match_positions(abo):
-    results = search(Position, abo.offset, abo.query)
+    return search(Position, abo.offset, abo.query)
+
+
+def match_speeches(abo):
+    return search(Zitat, abo.offset, abo.query)
+
+
+def format_activities(results):
     ablaeufe = defaultdict(list)
     for position in results:
         ablaeufe[position.ablauf].append(position)
@@ -52,12 +61,9 @@ def match_positions(abo):
             key=ablauf.key))
         yield msg
 
-def match_speeches(abo):
-    results = search(Zitat, abo.offset, abo.query)
-    #pprint(results)
+def format_speeches(results):
     debatten = defaultdict(list)
     for zitat in results:
-        pprint(zitat.to_dict())
         for dz in zitat.debatten_zitate:
             print dz
             if dz.debatte:
@@ -65,13 +71,13 @@ def match_speeches(abo):
 
     for debatte, zitate in debatten.items():
         msg = debatte.sitzung.titel + ': ' + debatte.titel
-        msg = u'\nErwähnung von "%s" durch: %s' % (
-                abo.query, ', '.join([z.sprecher for z in zitate]))
+        msg = u'\nErwähnung: %s' % (', '.join([z.sprecher for z in zitate]))
         msg += '\nLink: %s\n' % url_external(url_for('debatte',
             wahlperiode=debatte.sitzung.wahlperiode,
             nummer=debatte.sitzung.nummer,
             debatte=debatte.nummer))
         yield msg
+
 
 def format_matching_abos(abos):
     unsubs = []
@@ -86,27 +92,34 @@ def notify_email(email):
     abos = db.session.query(Abo).filter_by(activation_code=None)
     abos = abos.filter_by(email=email).all()
     matching_abos = []
-    results = []
+    activities = set()
+    speeches = set()
     new_offset = datetime.utcnow()
     for abo in abos:
-        abo_results = []
-        #if abo.include_activity:
-        #    abo_results.extend(match_positions(abo))
-        #if abo.include_speeches:
-        abo_results.extend(match_speeches(abo))
-        if len(abo_results):
+        before_len = len(activities)+len(speeches)
+        if abo.include_activity:
+            activities = activities.union(match_positions(abo))
+        if abo.include_speeches:
+            speeches = speeches.union(match_speeches(abo))
+        if len(activities)+len(speeches) > before_len:
             matching_abos.append(abo)
-            results.extend(abo_results)
-        abo.offset = new_offset
+            abo.offset = new_offset
+    
+    results = []
+    if len(activities):
+        results.append(u'\nABLÄUFE UND DRUCKSACHEN\n')
+        results.extend(format_activities(activities))
 
-    if not len(results):
-        return
+    if len(speeches):
+        results.append(u'\nDEBATTEN IM PLENUM\n')
+        results.extend(format_speeches(speeches))
 
-    message = BASE_MESSAGE % ('\n'.join(results), 
+    if len(results):
+        message = BASE_MESSAGE % ('\n'.join(results), 
             format_matching_abos(matching_abos))
-    send_message(email, 
-        u"Aktuelles im Parlament",
-        message)
+        send_message(email, 
+            u"Aktuelles im Parlament",
+            message)
     #db.session.commit()
 
 
@@ -124,7 +137,7 @@ ACTIVATION_MESSAGE = u"""
 Guten Tag, 
 
 auf der Seite offenesparlament.de haben Sie Benachrichtigungen zum Thema
-%s abonniert. Um diesen Dienst zu aktivieren ist eine Bestätigung Ihrer
+'%s' abonniert. Um diesen Dienst zu aktivieren ist eine Bestätigung Ihrer
 E-Mail-Adresse durch den untenstehenden Link notwendig. Wenn Sie keine 
 Nachrichten erhalten wollen ist keine weitere Reaktion notwendig.
 
