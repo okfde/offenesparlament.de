@@ -78,5 +78,11 @@ def longextract():
     from offenesparlament.extract import wahlkreise
     wahlkreise.load_wahlkreise(engine)
 
+@manager.command
+def notify():
+    from offenesparlament.abo import notify
+    from offenesparlament.web import app
+    notify()
+
 if __name__ == "__main__":
     manager.run()
