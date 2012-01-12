@@ -29,6 +29,10 @@
       {% if person.homepage_url %}
         <li><a href="{{ person.homepage_url }}">Homepage</a></li>
       {% endif %}
+      {% if person.awatch_url %}
+        <li><strong><a href="{{ person.awatch_url
+            }}">Abgeordnetenwatch</a></strong></li>
+      {% endif %}
       {% if person.twitter_url %}
         <li><a href="{{ person.twitter_url }}">Twitter</a></li>
       {% endif %}
@@ -176,7 +180,7 @@
           <a href="{{ url_for('abstimmung', id=stimme.abstimmung.id) }}">{{
             stimme.abstimmung.titel }}</a> ({{ stimme.abstimmung.datum.strftime('%d.%m.%Y') }})</h4>
         
-        <p class="hint">{{ stimme.abstimmung.thema }}</p></li>
+        <!--p class="hint">{{ stimme.abstimmung.thema }}</p--></li> 
         {% endfor %}
     {% endif %}
   </div>
