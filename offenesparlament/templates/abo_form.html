@@ -1,0 +1,89 @@
+{% import "searches.html" as searches %}
+{% import "snippets.html" as snippets %}
+{% extends "layout.html" %}
+
+{% block title %}
+  Themen-Abo
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}
+
+
+{% block content %}
+  <div class="banner ablaeufe">
+    <h1>Themen-Abo</h1>
+  </div>
+  <div class="sidebar">
+    <h3>&nbsp;</h3>
+    <p>
+    OffenesParlament beobachtet laufend die Aktivitäten des Bundestags
+    und kann Sie in regelmäßigen Abständen über Vorgänge und Debatten
+    zu bestimmten Themen auf dem laufenden halten.
+    </p>
+    <br/>
+    <p>
+    So können Sie nicht nur die Entwicklung eines bestimmten Gesetzes 
+    oder das Ergebnise einer Anfrage mitverfolgen, sondern auch 
+    langfristig über Themen und Akteure im Bild bleiben.
+    </p>
+    <br/>
+    <p>
+    Geben Sie dazu einfach ein Suchwort ein und wählen Sie, ob Sie 
+    über Dokumnete, Plenardebatten oder alle zutreffenden Inhalte 
+    informiert werden wollen. Das Abo kann natürlich jederzeit 
+    beendet werden.
+    </p>
+  </div>
+  <div class="mainbar">
+    <h3>Neues Abo in Auftrag geben</h3>
+    <br/>
+    <form action="" method="POST">
+      <div class="field">
+        <label for="query">Suchbegriff:</label>
+        <input name="query" value="{{ fields['query'] }}" >
+        {% if errors['query'] %}
+          <p class="error-message">{{ errors['query'] }}</p>
+        {% endif %}
+        <p class="hint">
+          Möglich sind auch Verknüpfungen (<code>OR</code>), Alternativen 
+          (<code>AND</code>) sowie die Suche in bestimmten Feldern 
+          (<code>sprecher:"Angela Merkel"</code>).
+        </p>
+      </div>
+      <div class="field">
+        <label for="email">E-Mail:</label>
+        <input name="email" value="{{ fields['email'] }}" >
+        {% if errors['email'] %}
+          <p class="error-message">{{ errors['email'] }}</p>
+        {% endif %}
+      </div>
+      <div class="field">
+        <label for="include_activity">Abläufe &amp; Dokumente:</label>
+        <input name="include_activity" type="checkbox" value="true"
+          {% if fields['include_activity'] %}checked="checked"{% endif %}
+          >
+        <p class="hint">
+          Durchsucht werden die Metadaten von Parlamentsvorgängen wie 
+          Gesetzesvorhaben, Anfragen etc.
+        </p>
+      </div>
+      <div class="field">
+        <label for="include_speeches">Reden im Plenum:</label>
+        <input name="include_speeches" type="checkbox" value="true"
+          {% if fields['include_speeches'] %}checked="checked"{% endif %}
+          >
+        <p class="hint">
+          Reden im Plenum, sowie Debattenthemen.
+        </p>
+      </div>
+      <div class="field">
+        <label for="query">&nbsp;</label>
+        <input value="abonnieren" type="submit">
+      </div>
+    </form>
+  </div>
+{% endblock %}
+
+

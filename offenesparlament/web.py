@@ -1,15 +1,20 @@
+#coding: utf-8
 from collections import defaultdict
+from datetime import datetime
 
+from colander import Invalid
 from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify
 
-from offenesparlament.core import app, pages
+from offenesparlament.core import app, pages, db
 from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
 from offenesparlament.model import Person, Gremium
 from offenesparlament.model import Sitzung, Zitat, Debatte, DebatteZitat
+from offenesparlament.model import Abo
 
 from offenesparlament.pager import Pager
 from offenesparlament.searcher import SolrSearcher
+from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
 
 
@@ -154,6 +159,61 @@ def person(slug):
             person=person, searcher=searcher, 
             pager=pager, schlagworte=schlagworte,
             debatten=debatten[::-1])
+
+@app.route("/abo", methods=['GET'])
+def abo():
+    return render_template('abo_form.html',
+            fields={'query': request.args.get('query', ''),
+                    'email': request.args.get('email', ''),
+                    'include_activity': True,
+                    'include_speeches': True
+                    },
+            errors={}
+            )
+
+@app.route("/abo", methods=['POST'])
+def abo_post():
+    schema = AboSchema()
+    try:
+        data = dict(request.form.items())
+        data = schema.deserialize(data)
+        abo_ = Abo()
+        abo_.email = data['email']
+        abo_.query = data['query']
+        abo_.include_speeches = data['include_speeches']
+        abo_.include_activity = data['include_activity']
+        db.session.add(abo_)
+        db.session.commit()
+        send_activation(abo_)
+        flash("Das Themen-Abo wurde erfolgreich eingerichtet. Sie erhalten nun "
+              "eine Bestätigungs-EMail.", 'success')
+        return abo()
+    except Invalid, i:
+        return render_template('abo_form.html', fields=request.form, 
+                errors=i.asdict())
+
+@app.route("/abo/activate/<key>")
+def abo_activation(key):
+    abo = db.session.query(Abo).filter_by(activation_code=key).first()
+    if abo is None:
+        flash(u"Der Bestätigungscode ist ungültig oder das Abo bereits bestätigt.", 'warning')
+    else:
+        abo.activation_code = None
+        db.session.commit()
+        flash("Das Themen-Abo wurde erfolgreich eingerichtet.", 'success')
+    return redirect(url_for('index'))
+
+@app.route("/abo/lassmichinruhe/<id>")
+def abo_terminate(id):
+    abo = db.session.query(Abo).filter_by(id=id)\
+            .filter_by(email=request.args.get('email'))
+    if abo is None:
+        flash(u"Abo nicht gefunden.", 'warning')
+    else:
+        abo.activation_code = 'deleted ' + datetime.utcnow().isoformat()
+        db.session.commit()
+        flash("Das Themen-Abo wurde erfolgreich gekündigt.", 'success')
+    return redirect(url_for('index'))
 
 @app.route("/pages/<path:path>")
 def page(path):

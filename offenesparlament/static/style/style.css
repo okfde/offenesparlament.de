@@ -317,12 +317,14 @@ p.hint {
 /* Flash messages */
 
 .flashes {
+  width: 100%;
   list-style-type: none;
   margin: 0;
+  padding: 0;
 }
 
 .flashes li {
-  padding: 0.5em;
+  padding: 1em;
   text-align: center;
   font-size: 1.1em;
   font-weight: bold;
@@ -333,6 +335,10 @@ p.hint {
 
 .flashes li.success {
   background-color: #63a62f;
+}
+
+.flashes li.warning {
+  background-color: #A6632F;
 }
 
 /* Home page */
@@ -597,6 +603,10 @@ form .error-message {
   color: red;
 }
 
+p.error-message {
+  margin-left: 30%;
+}
+
 form label {
   font-weight: bold;
 }
@@ -609,6 +619,26 @@ form p {
 
 form dt p {
   margin-bottom: 0.2em;
+}
+
+form div.field {
+  margin-bottom: 1.4em;
+}
+
+form div.field label {
+  width: 30%;
+  display: block;
+  float: left;
+}
+
+form div.field .hint {
+  margin-left: 30%;
+  margin-top: 0.1em;
+  color: #aaa;
+}
+
+form div.field input {
+  width: 50%;
 }
 
 form input {
