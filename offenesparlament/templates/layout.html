@@ -20,16 +20,16 @@
   {% block head %} {% endblock %}
 </head>
 <body>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes site">
+      {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
   <div id="container" class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flashes site">
-        {% for category, message in messages %}
-          <li class="{{ category }}">{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-      {% endwith %}
     <header class="site">
       <h1 id="site-title"><a href="{{ url_for('index') }}">OffenesParlament</a></h1>
       <ul class="menu">
