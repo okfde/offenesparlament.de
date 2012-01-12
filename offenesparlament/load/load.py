@@ -404,8 +404,8 @@ SPME_CACHE = defaultdict(list)
 def load_zitate(engine):
     sitzungen = {}
     _Mediathek = sl.get_table(engine, 'mediathek')
-    mediathek = dict([(m['speech_source_url'], m) for m in sl.all(engine,
-        _Mediathek)])
+    mediathek = dict([(m['speech_source_url'], m) for m \
+            in sl.all(engine, _Mediathek)])
     sys.stdout.write("Loading transcripts")
     sys.stdout.flush()
     _Speech = sl.get_table(engine, 'speech')
@@ -458,8 +458,6 @@ def load_debatte_zitate(engine, zitat, mediathek):
     for item in SPME_CACHE[(zitat.sitzung.wahlperiode,
                             zitat.sitzung.nummer,
                             zitat.sequenz)]:
-        #spme.traverse(wahlperiode=zitat.sitzung.wahlperiode,
-        #    sitzung=zitat.sitzung.nummer, sequence=zitat.sequenz):
         sp = mediathek[item['mediathek_url']]
         if not sp['top_source_url'] in debatten:
             debatten[sp['top_source_url']] = Debatte.query.filter_by(
