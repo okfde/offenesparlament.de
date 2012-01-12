@@ -96,15 +96,14 @@ def sachgebiete():
     periods = sorted(by_period.items(), key=lambda (p,s): p, reverse=True)[:20]
     for period, sg in periods[::-1]:
         sum_ = float(sum(sg[s] for s in sachgebiete))
-        print sum_
         data['values'].append({
             #'label': period.split("-")[-1],
             'label': period,
             'values': [sg[s]/sum_ for s in sachgebiete],
             'count': [sg[s] for s in sachgebiete]
             })
-        print data['values'][-1]
-        print sum(data['values'][-1]['values'])
+        #print data['values'][-1]
+        #print sum(data['values'][-1]['values'])
     return data
 
 
