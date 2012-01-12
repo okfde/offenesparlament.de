@@ -13,10 +13,28 @@ from offenesparlament.mailer import send_message
 
 log = logging.getLogger(__name__)
 
+from colander import MappingSchema, SchemaNode, String
+from colander import Email, Length, Boolean
+
+class AboSchema(MappingSchema):
+    query = SchemaNode(String(), validator=Length(min=4))
+    email = SchemaNode(String(), validator=Email())
+    include_activity = SchemaNode(Boolean(), missing=False)
+    include_speeches = SchemaNode(Boolean(), missing=False)
+
+
 def url_external(path):
     prefix = app.config.get('SITE_URL', 'http://offenesparlament.de')
     return prefix + path
 
+
+def send_activation(abo):
+    try:
+        url = url_external(url_for('abo_activation', key=abo.activation_code))
+        message = ACTIVATION_MESSAGE % (abo.query, url)
+        send_message(abo.email, u"Bestätigen Sie Ihr Themen-Abo", message)
+    except Exception, e:
+        log.exception(e)
 
 def search(entity, offset, query):
     if offset is not None:
@@ -83,7 +101,8 @@ def format_matching_abos(abos):
     unsubs = []
     for abo in abos:
         unsub = "* '" + abo.query
-        unsub += "' - abmelden: " + url_external("/unsubscribe/" + str(abo.id))
+        unsub += "' - abmelden: " + url_external(url_for('abo_terminate',
+            id=str(abo.id), email=abo.email))
         unsubs.append(unsub)
     return '\n'.join(unsubs)
 
@@ -120,7 +139,7 @@ def notify_email(email):
         send_message(email, 
             u"Aktuelles im Parlament",
             message)
-    #db.session.commit()
+    db.session.commit()
 
 
 def notify():
