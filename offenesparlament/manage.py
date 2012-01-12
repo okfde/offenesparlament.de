@@ -52,14 +52,16 @@ def transform():
     namematch.match_persons(engine, master)
     from offenesparlament.transform import abstimmungen
     abstimmungen.extend_abstimmungen(engine, master)
-    #persons.generate_person_long_names(engine)
+    ##persons.generate_person_long_names(engine)
     from offenesparlament.transform import mediathek
     mediathek.extend_speeches(engine, master)
     from offenesparlament.transform import speechparser
     speechparser.load_transcripts(engine, master)
     mediathek.merge_speeches(engine, master)
     from offenesparlament.transform import speechmatch
+    ##persons.generate_person_long_names(engine)
     speechmatch.extend_speeches(engine, master)
+    persons.generate_person_long_names(engine)
 
 @manager.command
 def load():
