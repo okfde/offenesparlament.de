@@ -508,13 +508,13 @@ def load_abstimmungen(engine):
         db.session.commit()
 
 def load(engine):
-    #load_gremien(engine)
+    load_gremien(engine)
     #load_news(engine)
-    #load_persons(engine)
-    #load_ablaeufe(engine)
-    #load_debatten(engine)
+    load_persons(engine)
+    load_ablaeufe(engine)
+    load_debatten(engine)
     load_zitate(engine)
-    #load_abstimmungen(engine)
+    load_abstimmungen(engine)
 
 def aggregate():
     from offenesparlament.aggregates import make_current_schlagwort, \
