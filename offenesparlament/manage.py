@@ -74,6 +74,13 @@ def load():
     index.index()
 
 @manager.command
+def index():
+    """ Rebuild the FTS index. """
+    #engine = etl_engine()
+    from offenesparlament.load import index
+    index.index()
+
+@manager.command
 def longextract():
     """ Run the extract stage, including long-running tasks """
     engine = etl_engine()
