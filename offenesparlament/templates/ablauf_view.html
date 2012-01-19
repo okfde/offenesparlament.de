@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% import "snippets.html" as snippets %}
 
 {% block head %}
 {% endblock %}
@@ -8,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+  {{ snippets.abo_link(ablauf.wahlperiode + "/" + ablauf.key) }}  
   <h1>{{ ablauf.titel }}</h1>
   
   <div class="rightbar">
@@ -117,8 +119,8 @@
   </div>
   <div class="clearfix"></div>
   <hr/>
-  Die dargestellten Daten entstammen dem Dokumentensystem des Bundestags. 
-  <a href="{{ ablauf.source_url }}">Quelle</a>
+  <p class="hint">Die dargestellten Daten entstammen dem Dokumentensystem des Bundestags. 
+    <a href="{{ ablauf.source_url }}">Quelle</a></p>
   {% endblock %}
 
 

@@ -1,4 +1,5 @@
 {% import "searches.html" as macros %}
+{% import "snippets.html" as snippets %}
 {% extends "layout.html" %}
 
 {% block head %}
@@ -15,12 +16,9 @@
       <p>{{ person.foto_copyright }}</p>
     </div>
   {% endif %}
-  <h1>{{ person.name }} 
-    {% if person.partei %}
-      ({{ person.partei }})
-    {% endif %}
-  </h1>
   <div class="sidebar">
+    {{ snippets.abo_link(person.fingerprint.strip()) }}
+    <div class="clearfix"></div>
     <h3>Details</h3>
     <ul> 
       {% if person.beruf %}
@@ -41,6 +39,10 @@
       {% endif %}
       {% if person.bio_url %}
         <li><a href="{{ person.bio_url }}">Bundestag</a></li>
+      {% endif %}
+      {% if person.stimmen[0] %}
+        <li><strong><a href="{{ url_for('person_votes', slug=person.slug)
+            }}">Abstimmungsverhalten</a></strong></li>
       {% endif %}
     </ul>
     {% if person.vorsitze[0] or person.stellv_vorsitze[0] or person.obleute[0] or person.mitglied[0] or person.stellvertreter[0] %}
@@ -108,6 +110,11 @@
     {% endif %}
   </div>
   <div class="mainbar">
+    <h1>{{ person.name }} 
+      {% if person.partei %}
+        ({{ person.partei }})
+      {% endif %}
+    </h1>
     <ul class="rollen">
       {% for rolle in person.rollen %}
         <li><strong>{{ rolle.funktion }}</strong>
@@ -143,6 +150,11 @@
     <!--div class="clearfix"></div-->
     <h3 style="clear: left;">Beiträge zu einzelnen
       Vorgängen</h3>
+    {% if not pager.count() %}
+      <p class="hint">
+        Zu diesem Akteur liegen keine parlamentarischen Abläufe vor.
+      </p>
+    {% endif %}
     <ul class="position-list">
       {% for position in pager %}
         <li class="position">
@@ -170,19 +182,6 @@
       {% endfor %}
     </ul>
     {{ macros.pager(pager) }}
-    
-    <div class="clearfix"></div>
-    {% if person.stimmen[0] %}
-      <h3>Abstimmungen</h3>
-      <ul class="votes-list">
-        {% for stimme in person.stimmen|sort(attribute='abstimmung.datum', reverse=True) %}
-        <li><h4><strong>{{stimme.entscheidung}}</strong>: 
-          <a href="{{ url_for('abstimmung', id=stimme.abstimmung.id) }}">{{
-            stimme.abstimmung.titel }}</a> ({{ stimme.abstimmung.datum.strftime('%d.%m.%Y') }})</h4>
-        
-        <!--p class="hint">{{ stimme.abstimmung.thema }}</p--></li> 
-        {% endfor %}
-    {% endif %}
   </div>
   <div class="clearfix"></div>
   <hr/>

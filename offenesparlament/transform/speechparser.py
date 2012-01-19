@@ -110,11 +110,11 @@ class SpeechParser(object):
                 if speaker is not None:
                     yield emit()
                 _speaker = m.group(1)
+                role = line.strip().split(' ')[0]
                 try:
                     fingerprint = self.identify_speaker(_speaker)
-                    role = line.strip().split(' ')[0]
-                    chair_[0] = role in CHAIRS
                     speaker = _speaker
+                    chair_[0] = role in CHAIRS
                     continue
                 except ValueError:
                     pass

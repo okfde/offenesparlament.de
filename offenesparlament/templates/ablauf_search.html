@@ -1,4 +1,5 @@
 {% import "searches.html" as macros %}
+{% import "snippets.html" as snippets %}
 {% extends "layout.html" %}
 
 {% block title %}
@@ -10,7 +11,12 @@
     <h1>Abläufe</h1>
   </div>
   <div class="box">
-    {{ macros.search(searcher, pager) }}
+    <div class="sidebar">
+      {{ snippets.abo_link(searcher.full_query) }}
+    </div>
+    <div class="mainbar">
+      {{ macros.search(searcher, pager) }}
+    </div>
     
     <div class="sidebar">
       {% if searcher.has_facet('klasse') %}

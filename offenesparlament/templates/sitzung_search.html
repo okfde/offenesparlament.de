@@ -14,7 +14,13 @@
   <div class="box">
     
     <div class="">
-      {{ macros.search(searcher, pager) }}
+      <div class="sidebar">
+        {{ snippets.abo_link(searcher.full_query) }}
+      </div>
+      <div class="mainbar">
+        {{ macros.search(searcher, pager) }}
+      </div>
+    
       <ul class="search-results sitzung">
       {% for sitzung in pager %}
       <div class="{{ loop.cycle('lleftbar', 'lrightbar') }}">

@@ -84,6 +84,13 @@ class SolrSearcher(object):
             _fqs.append("+%s:\"%s\"" % (k, v))
         return _fqs
 
+    @property
+    def full_query(self):
+        q = self.q if self.has_query else ''
+        if len(self.fq):
+            fq = [f for f in self.fq if not 'index_type' in f]
+            q += ' ' + ' '.join(fq)
+        return q
 
     def _run(self):
         query = {

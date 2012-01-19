@@ -1,6 +1,7 @@
 #coding: utf-8
 from collections import defaultdict
 from datetime import datetime
+from urllib import quote
 
 from colander import Invalid
 from flask import Flask, g, request, render_template, abort, flash, json
@@ -18,6 +19,7 @@ from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
 
 
+
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 def debatte(wahlperiode, nummer, debatte):
     debatte = Debatte.query.filter_by(nummer)\
@@ -26,7 +28,6 @@ def debatte(wahlperiode, nummer, debatte):
             .filter(Debatte.sitzung.nummer==nummer).first()
     if debatte is None:
         abort(404)
-    from urllib import quote
     sitzung_url = url_for('sitzung', wahlperiode=wahlperiode, nummer=nummer)
     url = sitzung_url + '?debatten_zitate.debatte.titel=' + quote(debatte.titel)
     return redirect(url)
@@ -159,6 +160,14 @@ def person(slug):
             person=person, searcher=searcher, 
             pager=pager, schlagworte=schlagworte,
             debatten=debatten[::-1])
+
+@app.route("/person/<slug>/votes")
+def person_votes(slug):
+    person = Person.query.filter_by(slug=slug).first()
+    if person is None:
+        abort(404)
+    return render_template('person_votes.html',
+            person=person) 
 
 @app.route("/abo", methods=['GET'])
 def abo():

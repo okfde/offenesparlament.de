@@ -11,3 +11,9 @@
   {% endfor %}
   </ul>
 {% endmacro %}
+
+
+{% macro abo_link(query) %}
+  <a class="abo-link" href="{{url_for('abo', query=query)}}"><img
+    src="/static/img/abo.png">EMail-Abo</a>
+{% endmacro %}
