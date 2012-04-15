@@ -10,7 +10,7 @@ from flask import url_for, redirect, jsonify
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
 from offenesparlament.model import Person, Gremium
-from offenesparlament.model import Sitzung, Zitat, Debatte, DebatteZitat
+from offenesparlament.model import Sitzung, Zitat, Debatte
 from offenesparlament.model import Abo
 
 from offenesparlament.pager import Pager
@@ -19,18 +19,18 @@ from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
 
 
-
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 def debatte(wahlperiode, nummer, debatte):
-    debatte = Debatte.query.filter_by(nummer)\
+    debatte = Debatte.query.filter_by(nummer=nummer)\
             .join(Debatte.sitzung)\
-            .filter(Debatte.sitzung.wahlperiode==wahlperiode)\
-            .filter(Debatte.sitzung.nummer==nummer).first()
+            .filter(Debatte.sitzung.wahlperiode == wahlperiode)\
+            .filter(Debatte.sitzung.nummer == nummer).first()
     if debatte is None:
         abort(404)
     sitzung_url = url_for('sitzung', wahlperiode=wahlperiode, nummer=nummer)
-    url = sitzung_url + '?debatten_zitate.debatte.titel=' + quote(debatte.titel)
+    url = sitzung_url + '?debatte.titel=' + quote(debatte.titel)
     return redirect(url)
+
 
 @app.route("/plenum/<wahlperiode>/<nummer>")
 def sitzung(wahlperiode, nummer):
@@ -41,7 +41,7 @@ def sitzung(wahlperiode, nummer):
     searcher = SolrSearcher(Zitat, request.args)
     searcher.filter('sitzung.wahlperiode', sitzung.wahlperiode)
     searcher.filter('sitzung.nummer', sitzung.nummer)
-    searcher.add_facet('debatten_zitate.debatte.titel')
+    searcher.add_facet('debatte.titel')
     searcher.add_facet('person.name')
     searcher.sort('sequenz', 'asc')
     pager = Pager(searcher, 'sitzung', request.args,
@@ -50,23 +50,26 @@ def sitzung(wahlperiode, nummer):
     return render_template('sitzung_view.html',
             sitzung=sitzung, pager=pager, searcher=searcher)
 
+
 @app.route("/plenum")
 def sitzungen():
     searcher = SolrSearcher(Sitzung, request.args)
     searcher.add_facet('wahlperiode')
     searcher.sort('date', 'desc')
     pager = Pager(searcher, 'sitzungen', request.args)
-    return render_template('sitzung_search.html', 
+    return render_template('sitzung_search.html',
             searcher=searcher, pager=pager)
+
 
 @app.route("/position/<key>")
 def position(key):
     position = Position.query.filter_by(key=key).first()
     if position is None:
         abort(404)
-    return redirect(url_for('ablauf', 
+    return redirect(url_for('ablauf',
         wahlperiode=position.ablauf.wahlperiode,
         key=position.ablauf.key) + '#' + position.key)
+
 
 @app.route("/ablauf/<wahlperiode>/<key>")
 def ablauf(wahlperiode, key):
@@ -84,6 +87,7 @@ def ablauf(wahlperiode, key):
     return render_template('ablauf_view.html',
             ablauf=ablauf, referenzen=referenzen)
 
+
 @app.route("/ablauf")
 def ablaeufe():
     searcher = SolrSearcher(Ablauf, request.args)
@@ -94,8 +98,9 @@ def ablaeufe():
     searcher.add_facet('sachgebiet')
     searcher.add_facet('schlagworte')
     pager = Pager(searcher, 'ablaeufe', request.args)
-    return render_template('ablauf_search.html', 
+    return render_template('ablauf_search.html',
             searcher=searcher, pager=pager)
+
 
 @app.route("/abstimmung/<id>")
 def abstimmung(id):
@@ -111,8 +116,6 @@ def abstimmung(id):
         abstimmung=abstimmung, ja=ja, nein=nein, enth=enth, na=na)
 
 
-
-
 @app.route("/gremium")
 def gremien():
     committees = Gremium.query.filter_by(typ='ausschuss').\
@@ -121,6 +124,7 @@ def gremien():
             order_by(Gremium.name.asc()).all()
     return render_template('gremium_list.html',
             committees=committees, others=others)
+
 
 @app.route("/gremium/<key>")
 def gremium(key):
@@ -134,6 +138,7 @@ def gremium(key):
     return render_template('gremium_view.html',
             gremium=gremium, searcher=searcher, pager=pager)
 
+
 @app.route("/person")
 def persons():
     searcher = SolrSearcher(Person, request.args)
@@ -141,8 +146,9 @@ def persons():
     searcher.add_facet('rollen.fraktion')
     searcher.add_facet('berufsfeld')
     pager = Pager(searcher, 'persons', request.args)
-    return render_template('person_search.html', 
+    return render_template('person_search.html',
             searcher=searcher, pager=pager)
+
 
 @app.route("/person/<slug>")
 def person(slug):
@@ -154,12 +160,13 @@ def person(slug):
     searcher.filter('beitraege.person.id', str(person.id))
     pager = Pager(searcher, 'person', request.args, slug=slug)
     schlagworte = aggregates.person_schlagworte(person)
-    debatten = Debatte.query.join(DebatteZitat).join(Zitat).\
-            filter(Zitat.person==person).distinct().all()
+    debatten = Debatte.query.join(Zitat).\
+            filter(Zitat.person == person).distinct().all()
     return render_template('person_view.html',
-            person=person, searcher=searcher, 
+            person=person, searcher=searcher,
             pager=pager, schlagworte=schlagworte,
             debatten=debatten[::-1])
+
 
 @app.route("/person/<slug>/votes")
 def person_votes(slug):
@@ -167,7 +174,8 @@ def person_votes(slug):
     if person is None:
         abort(404)
     return render_template('person_votes.html',
-            person=person) 
+            person=person)
+
 
 @app.route("/abo", methods=['GET'])
 def abo():
@@ -179,6 +187,7 @@ def abo():
                     },
             errors={}
             )
+
 
 @app.route("/abo", methods=['POST'])
 def abo_post():
@@ -194,12 +203,13 @@ def abo_post():
         db.session.add(abo_)
         db.session.commit()
         send_activation(abo_)
-        flash("Das Themen-Abo wurde erfolgreich eingerichtet. Sie erhalten nun "
-              "eine Bestätigungs-EMail.", 'success')
-        return abo()
+        flash(u"Das Themen-Abo wurde erfolgreich eingerichtet. Sie erhalten nun "
+              u"eine Bestätigungs-EMail.", 'success')
+        return index()
     except Invalid, i:
-        return render_template('abo_form.html', fields=request.form, 
+        return render_template('abo_form.html', fields=request.form,
                 errors=i.asdict())
+
 
 @app.route("/abo/activate/<key>")
 def abo_activation(key):
@@ -211,6 +221,7 @@ def abo_activation(key):
         db.session.commit()
         flash("Das Themen-Abo wurde erfolgreich eingerichtet.", 'success')
     return redirect(url_for('index'))
+
 
 @app.route("/abo/lassmichinruhe/<id>")
 def abo_terminate(id):
@@ -224,17 +235,19 @@ def abo_terminate(id):
         flash("Das Themen-Abo wurde erfolgreich gekündigt.", 'success')
     return redirect(url_for('index'))
 
+
 @app.route("/pages/<path:path>")
 def page(path):
     page = pages.get_or_404(path)
     template = page.meta.get('template', 'page.html')
     return render_template(template, page=page)
 
+
 @app.route("/")
 def index():
     general = aggregates.current_schlagworte()
     sachgebiete = aggregates.sachgebiete()
-    sitzung = Sitzung.query.order_by(Sitzung.date.desc()).first()
+    sitzung = Sitzung.query.order_by(Sitzung.nummer.desc()).first()
     return render_template('home.html', general=general,
             sachgebiete=sachgebiete, sitzung=sitzung)
 

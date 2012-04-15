@@ -36,6 +36,7 @@ def send_activation(abo):
     except Exception, e:
         log.exception(e)
 
+
 def search(entity, offset, query):
     if offset is not None:
         offset = offset.isoformat().rsplit(".")[0] + "Z"
@@ -43,7 +44,7 @@ def search(entity, offset, query):
         offset = '*'
     name = entity.__name__.lower()
     results = solr().raw_query(q=query,
-        fq=["+index_type:%s" % name, 
+        fq=["+index_type:%s" % name,
             "+date:[%s TO *]" % offset],
         sort="date desc", rows=1000, wt="json", fl="id")
     results = json.loads(results)
@@ -79,13 +80,12 @@ def format_activities(results):
             key=ablauf.key))
         yield msg
 
+
 def format_speeches(results):
     debatten = defaultdict(list)
     for zitat in results:
-        for dz in zitat.debatten_zitate:
-            print dz
-            if dz.debatte:
-                debatten[dz.debatte].append(zitat)
+        for debatte in zitat.debatte:
+            debatten[debatte].append(zitat)
 
     for debatte, zitate in debatten.items():
         msg = debatte.sitzung.titel + ': ' + debatte.titel

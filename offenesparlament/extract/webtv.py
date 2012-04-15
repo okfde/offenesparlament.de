@@ -47,6 +47,7 @@ def load_agenda(engine, wp, session):
         if len(session_name):
             data['session_name'] = session_name
             bla, date = session_name.rsplit(' ', 1)
+            data['session_url'] = url
             data['session_date'] = datetime.strptime(date,
                     "%d.%m.%Y").isoformat()
         anchor = tds[0].find('a')
@@ -55,6 +56,7 @@ def load_agenda(engine, wp, session):
             key, label = tds[1].xpath('string()').strip().split('\n', 1)
             data['item_key'] = key.strip().replace('TOP:', '').strip()
             data['item_label'] = label.strip()
+
             text = rows[i + 1].find('.//span[@class="hiddenTopText"]')
             data['item_description'] = text.xpath('string()')
             load_speeches(engine, data.copy())

@@ -35,10 +35,3 @@ def load_profiles(engine, master):
                         unique=['fingerprint'])
         except ValueError:
             pass
-
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    load_profiles(engine, master_data())
-
-

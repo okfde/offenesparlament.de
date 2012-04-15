@@ -214,6 +214,7 @@ def index_debatten():
         data = debatte.to_dict()
         #data['zitate'] = [dz.zitat.to_dict() for dz in \
         #    debatte.debatten_zitate]
+        data['sitzung'] = debatte.sitzung.to_dict()
         data = flatten(data)
         data.update(type_info(debatte))
         data = convert_dates(data)
@@ -229,10 +230,10 @@ def index_zitate():
     _solr = solr()
     log.info("indexing transcripts...")
     datas = []
-    for zitat in Zitat.query.options(
-        eagerload_all(Zitat.person, Zitat.sitzung, 
-                      Zitat.debatten_zitate)).yield_per(5000):
+    for zitat in Zitat.query.yield_per(5000):
         data = zitat.to_dict()
+        data['sitzung'] = zitat.sitzung.to_dict()
+        data['debatte'] = zitat.debatte.to_dict()
         data = flatten(data)
         data.update(type_info(zitat))
         data = convert_dates(data)
@@ -264,4 +265,3 @@ if __name__ == '__main__':
     #gather_index_fields()
     index()
     #index_debatten()
-

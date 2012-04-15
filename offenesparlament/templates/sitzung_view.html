@@ -11,9 +11,9 @@
     {{ macros.search(searcher, pager) }}
     
     <div class="sidebar">
-      {% if searcher.has_facet('debatten_zitate.debatte.titel') %}
+      {% if searcher.has_facet('debatte.titel') %}
         <h3>Tagesordnung</h3>
-        {{ macros.facet_list(searcher, pager, 'debatten_zitate.debatte.titel',
+        {{ macros.facet_list(searcher, pager, 'debatte.titel',
                              limit=500) }}
       {% endif %}
       {% if searcher.has_facet('person.name') %}

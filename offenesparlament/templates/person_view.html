@@ -21,15 +21,15 @@
     <div class="clearfix"></div>
     <h3>Details</h3>
     <ul> 
+      {% if person.awatch_url %}
+        <li class='awatch-link'><a href="{{ person.awatch_url }}">
+          <img  src="/static/img/awatch_small.png"> Abgeordnetenwatch</a></li>
+      {% endif %}
       {% if person.beruf %}
         <li>Beruf: {{ person.beruf }}</li>
       {% endif %}
       {% if person.homepage_url %}
         <li><a href="{{ person.homepage_url }}">Homepage</a></li>
-      {% endif %}
-      {% if person.awatch_url %}
-        <li><strong><a href="{{ person.awatch_url
-            }}">Abgeordnetenwatch</a></strong></li>
       {% endif %}
       {% if person.twitter_url %}
         <li><a href="{{ person.twitter_url }}">Twitter</a></li>

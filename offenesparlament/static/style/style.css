@@ -713,7 +713,7 @@ a.abo-link {
   margin-top: 0.1em;
   text-decoration: none;
   font-weight: bold;
-  padding: 0.6em; 
+  padding: 0.4em; 
   border: solid 1px #ddd;
 
 
@@ -725,12 +725,23 @@ a.abo-link {
 }
 
 a.abo-link:hover {
-  border: solid 1px #333;
+  /*border: solid 1px #333;*/
+  background-color: #036DAA;
+  color: #fff;
 }
 
 a.abo-link img {
   margin-bottom: -7px;
   padding-right: 0.5em;
+}
+
+.awatch-link a {
+  font-weight: bolder;
+  text-decoration: none;
+}
+
+.awatch-link a img {
+  margin-bottom: -4px;
 }
 
 /* Search */

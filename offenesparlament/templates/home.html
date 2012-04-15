@@ -72,7 +72,7 @@
   <ul class="debates">
     {% for deb in sitzung.debatten %}
       <li><a href="{{ url_for('sitzung', wahlperiode=sitzung.wahlperiode,
-          nummer=sitzung.nummer) }}?debatten_zitate.debatte.titel={{deb.titel}}">{{deb.titel }}</a></li>
+          nummer=sitzung.nummer) }}?debatte.titel={{deb.titel}}">{{deb.titel }}</a></li>
     {% endfor %}
   </ul>
   <p>Die Protokolle der vorherigen Sitzungen finden Sie <a href="{{
