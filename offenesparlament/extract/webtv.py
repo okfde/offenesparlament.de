@@ -25,7 +25,8 @@ def load_speeches(engine, data):
         if i % 4 != 0:
             continue
         data['speaker'] = row.xpath('string()').strip()
-        data['speaker'] = data['speaker'].encode('latin-1').decode('utf-8')
+        if isinstance(data['speaker'], str):
+            data['speaker'] = data['speaker'].encode('latin-1').decode('utf-8')
         data['speech_id'] = rows[i + 2].find('.//a').get('href').split('=')[-1]
         sl.upsert(engine, table, data, ['speech_id'])
         pprint(data)
