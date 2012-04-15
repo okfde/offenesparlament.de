@@ -38,9 +38,3 @@ def extend_speeches(engine, master, wahlperiode=17):
                     'wahlperiode': wahlperiode,
                     'dok_nummer': nummer},
                     unique=['sequence', 'sitzung', 'wahlperiode', 'group'])
-
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    extend_speeches(engine, master_data())
-

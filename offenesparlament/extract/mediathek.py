@@ -22,6 +22,7 @@ FOR_SESSION = 'http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&
 FOR_TOP = 'http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=common&isLinkCallPlenar=1'
 FOR_SPEECH = 'http://www.bundestag.de/Mediathek/index.jsp?legislativePeriod=%s&conference=%s&agendaItemNumber=%s&speechNumber=%s&action=search&instance=m187&categorie=Plenarsitzung&mask=search&destination=search&contentArea=commom&isLinkCallPlenar=1'
 
+
 def get_doc(url):
     while True:
         doc = _html(url)
@@ -31,11 +32,13 @@ def get_doc(url):
             return doc
         time.sleep(2)
 
+
 def no_results(doc):
     err = doc.find('//p[@class="error"]')
     if err is not None and err.text and 'keine Videos' in err.text:
         return True
     return False
+
 
 def video_box(doc, prefix):
     area = doc.find('//div[@class="mediathekVideobox"]//div[@class="mediathekVideoText"]')
@@ -54,6 +57,7 @@ def video_box(doc, prefix):
             }
     return data
 
+
 def load_sessions(engine):
     Mediathek = sl.get_table(engine, 'mediathek')
     for session in count(33):
@@ -70,6 +74,7 @@ def load_sessions(engine):
             ctx['meeting_nr'] = str(session)
             load_tops(WP, session, ctx, engine)
 
+
 def load_tops(wp, session, context, engine):
     for top_id in count(1):
         url = FOR_TOP % (wp, session, top_id)
@@ -82,6 +87,7 @@ def load_tops(wp, session, context, engine):
             top['top_nr'] = top_id
             top.update(video_box(doc, 'top'))
             load_speeches(wp, session, top_id, top, engine)
+
 
 def load_speeches(wp, session, top_id, context, engine):
     Mediathek = sl.get_table(engine, 'mediathek')

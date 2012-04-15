@@ -5,6 +5,7 @@ from offenesparlament.core import app, master_data, etl_engine
 
 manager = Manager(app)
 
+
 @manager.command
 def extract_base():
     """ Run the extract stage """
@@ -16,6 +17,7 @@ def extract_base():
     from offenesparlament.extract.xml import mdb
     mdb.load_index(engine)
 
+
 @manager.command
 def extract_votes():
     """ Run the extract stage """
@@ -23,12 +25,14 @@ def extract_votes():
     from offenesparlament.extract import abstimmungen
     abstimmungen.load_index(engine)
 
+
 @manager.command
 def extract_media():
     """ Run the extract stage """
     engine = etl_engine()
-    from offenesparlament.extract import mediathek
-    mediathek.load_sessions(engine)
+    from offenesparlament.extract import webtv
+    webtv.load_sessions(engine)
+
 
 @manager.command
 def extract_docs():
@@ -36,6 +40,7 @@ def extract_docs():
     engine = etl_engine()
     from offenesparlament.extract import dip
     dip.load_dip(engine)
+
 
 @manager.command
 def transform():
@@ -52,16 +57,16 @@ def transform():
     namematch.match_persons(engine, master)
     from offenesparlament.transform import abstimmungen
     abstimmungen.extend_abstimmungen(engine, master)
-    ##persons.generate_person_long_names(engine)
-    from offenesparlament.transform import mediathek
-    mediathek.extend_speeches(engine, master)
+    persons.generate_person_long_names(engine)
+    from offenesparlament.transform import webtv
     from offenesparlament.transform import speechparser
     speechparser.load_transcripts(engine, master)
-    mediathek.merge_speeches(engine, master)
+    webtv.merge_speeches(engine, master)
     from offenesparlament.transform import speechmatch
-    ##persons.generate_person_long_names(engine)
+    persons.generate_person_long_names(engine)
     speechmatch.extend_speeches(engine, master)
     persons.generate_person_long_names(engine)
+
 
 @manager.command
 def load():
@@ -73,6 +78,7 @@ def load():
     from offenesparlament.load import index
     index.index()
 
+
 @manager.command
 def index():
     """ Rebuild the FTS index. """
@@ -80,12 +86,14 @@ def index():
     from offenesparlament.load import index
     index.index()
 
+
 @manager.command
 def longextract():
     """ Run the extract stage, including long-running tasks """
     engine = etl_engine()
     from offenesparlament.extract import wahlkreise
     wahlkreise.load_wahlkreise(engine)
+
 
 @manager.command
 def notify():

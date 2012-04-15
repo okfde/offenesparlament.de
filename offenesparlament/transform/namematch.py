@@ -6,22 +6,23 @@ import Levenshtein
 import sqlaload as sl
 
 from offenesparlament.transform.persons import make_person, make_long_name
+from offenesparlament.transform.normalize import normalize_text
 from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 
 CHOP_PARTS = [' ', ')', '(', '[', ']', u'Vizepräsidentin', u'Vizepräsident',
               u'ÜNDNIS']
 
+
 def chop(txt):
     for part in CHOP_PARTS:
         txt = txt.replace(part, '')
-    return txt
+    return unicode(normalize_text(txt))
 
-def levenshtein(a,b):
-    return Levenshtein.distance(
-            chop(a).lower(),
-            chop(b).lower()
-            )
+
+def levenshtein(a, b):
+    return Levenshtein.distance(chop(a), chop(b))
+
 
 def ensure_rolle(beitrag, fp, engine):
     rolle = {
@@ -33,6 +34,7 @@ def ensure_rolle(beitrag, fp, engine):
     Rolle = sl.get_table(engine, 'rolle')
     sl.upsert(engine, Rolle, rolle,
             unique=['fingerprint', 'funktion'])
+
 
 def ask_user(beitrag, beitrag_print, matches, db):
     for i, (fp, dist) in enumerate(matches[:20]):
@@ -57,14 +59,15 @@ def ask_user(beitrag, beitrag_print, matches, db):
             print "CREATING", beitrag_print.encode("utf-8")
             return make_person(beitrag, beitrag_print, db)
 
+
 def match_beitrag(engine, master, beitrag, prints):
     beitrag_print = make_long_name(beitrag)
     print "Matching:", beitrag_print.encode('utf-8')
     matches = [(p, levenshtein(p, beitrag_print)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)
+    matches = sorted(matches, key=lambda (p, d): d)
     if not len(matches):
         # create new
-        return make_person(beitrag, beitrag_print, db)
+        return make_person(beitrag, beitrag_print, engine)
     first, dist = matches[0]
     if dist == 0:
         return first
@@ -127,23 +130,24 @@ def _match_speaker(master, speaker, prints):
     except ValueError:
         NonSpeaker.writerow({'text': speaker}, unique_columns=['text'])
 
-def match_speakers(engine, master, prints):
-    Speech = sl.get_table(engine, 'mediathek')
-    for i, speech in enumerate(sl.distinct(engine, Speech,
-        'speech_title')):
-        if i % 1000 == 0:
-            sys.stdout.write('.')
-            sys.stdout.flush()
-        if speech['speech_title'] is None:
+
+def match_speakers_webtv(engine, master, prints):
+    WebTV = sl.get_table(engine, 'webtv')
+    for i, speech in enumerate(sl.distinct(engine, WebTV, 'speaker')):
+        #if i % 1000 == 0:
+        #    sys.stdout.write('.')
+        #    sys.stdout.flush()
+        if speech['speaker'] is None:
             continue
-        speaker = speaker_name_transform(speech['speech_title'])
+        speaker = speaker_name_transform(speech['speaker'])
         try:
             fp = match_speaker(master, speaker, prints)
         except ValueError:
             fp = None
-        sl.upsert(engine, Speech, {'fingerprint': fp, 
-                                   'speech_title': speech['speech_title']},
-                    unique=['speech_title'])
+        sl.upsert(engine, WebTV, {'fingerprint': fp,
+                                   'speaker': speech['speaker']},
+                    unique=['speaker'])
+
 
 def match_beitraege(engine, master, prints):
     Beitrag = sl.get_table(engine, 'beitrag')
@@ -167,7 +171,7 @@ def make_prints(engine):
 def match_persons(db, master):
     prints = make_prints(db)
     match_beitraege(db, master, prints)
-    match_speakers(db, master, prints)
+    match_speakers_webtv(db, master, prints)
 
 if __name__ == '__main__':
     engine = etl_engine()
