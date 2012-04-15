@@ -60,8 +60,8 @@ def load_ausschuss(url, engine, table):
     a['url'] = URL_PATTERN % a['key']
     a['type'] = 'ausschuss'
     sl.upsert(engine, table, a, unique=['key'])
-    for url in doc.findall("//news/detailsXML"):
-        news.load_item(url.text, engine, gremium=a)
+    #for url in doc.findall("//news/detailsXML"):
+    #    news.load_item(url.text, engine, gremium=a)
 
 
 if __name__ == '__main__':
