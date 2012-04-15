@@ -11,6 +11,13 @@ AKTUELL_URL = "https://www.bundestag.de/xml/aktuell/index.xml"
 
 log = logging.getLogger(__name__)
 
+def strpa(d):
+    try:
+        return datetime.strptime(d, "%d.%m.%Y").isoformat()
+    except ValueError:
+        return datetime.strptime(d, "%d.%m.%y").isoformat()
+
+
 def load_item(url, engine, gremium=None):
     table = sl.get_table(engine, 'news')
     item = sl.find_one(engine, table, source_url=url)
@@ -30,14 +37,12 @@ def load_item(url, engine, gremium=None):
     item['title'] = doc.findtext('/title')
     item['text'] = doc.findtext('/text')
     if doc.findtext('/date'):
-        item['date'] = datetime.strptime(doc.findtext('/date'), 
-                                  '%d.%m.%Y').isoformat()
+        item['date'] = strpa(doc.findtext('/date'))
     item['image_url'] = doc.findtext('/imageURL')
     item['image_copyright'] = doc.findtext('/imageCopyright')
     if doc.findtext('/imageLastChanged'):
-        item['image_changed_at'] = datetime.strptime(
-                doc.findtext('/imageLastChanged'), 
-                '%d.%m.%Y').isoformat()
+        item['image_changed_at'] = strpa(
+                doc.findtext('/imageLastChanged'))
 
     if gremium:
         item['gremium'] = gremium['key']

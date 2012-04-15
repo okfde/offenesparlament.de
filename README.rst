@@ -47,3 +47,8 @@ Der Code von OffenesParlament steht unter der Affero GPL v3-Lizenz. Der Text
 der Lizenz ist unter http://www.gnu.org/licenses/agpl.html einsehbar.
 
 
+
+
+
+
+psql -c "COPY (SELECT * FROM webtv_speech ws LEFT JOIN speech s ON s.wahlperiode = CAST(ws.wp AS integer) AND s.sitzung = CAST(ws.session AS integer) AND s.sequence = ws.sequence ORDER BY ws.wp, ws.session, ws.sequence) TO STDOUT WITH CSV HEADER;" parlament_etl >speeches.csv

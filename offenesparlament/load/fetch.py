@@ -9,9 +9,9 @@ log = logging.getLogger(__name__)
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11'
 UA = 'OPA // Neuer Scraper; weniger Zugriffe - bitte nicht blocken! <friedrich.lindenberg@okfn.org>'
 
-def fetch(url, timeout=2.0):
+def fetch(url, timeout=2.0, keep_alive=True):
     #url = url.replace('http://', 'https://')
-    for x in range(10):
+    for x in range(15):
         try:
             from offenesparlament.core import app
             #print app.config.get('HTTP_PROXY')
@@ -22,13 +22,16 @@ def fetch(url, timeout=2.0):
             body = requests.get(url, 
                 headers={'user-agent': UA},
                 timeout=timeout,
-                config={'max_retries': 10},
+                config={'max_retries': 2,
+                        'keep_alive': keep_alive},
                 proxies=proxies,
                 verify=False)
             return body.content
         except requests.exceptions.Timeout:
+            #keep_alive = False
             time.sleep(1)
         except Exception, e:
+            #keep_alive = False
             logging.exception(e)
             time.sleep(1)
 

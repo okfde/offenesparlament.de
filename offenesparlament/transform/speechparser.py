@@ -43,7 +43,7 @@ class SpeechParser(object):
 
     def identify_speaker(self, match):
         return match_speaker(self.master, match, self.prints)
-    
+
     def parse_pois(self, group):
         for poi in group.split(' - '):
             text = poi
@@ -66,6 +66,7 @@ class SpeechParser(object):
         fingerprint = None
         chair_ = [False]
         text = []
+
         def emit(reset_chair=True):
             data = {
                 'speaker': speaker,
@@ -75,7 +76,7 @@ class SpeechParser(object):
                 }
             if reset_chair:
                 chair_[0] = False
-            _ = [text.pop() for i in xrange(len(text))]
+            [text.pop() for i in xrange(len(text))]
             return data
 
         for line in self.fh:
@@ -95,7 +96,7 @@ class SpeechParser(object):
 
             if not len(line.strip()):
                 continue
-            
+
             is_top = False
             if TOP_MARK.match(line):
                 is_top = True

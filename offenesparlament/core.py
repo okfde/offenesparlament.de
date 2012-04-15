@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.NOTSET)
 from solr import SolrConnection
 
 from flask import Flask
-from flaskext.sqlalchemy import SQLAlchemy
+from flask.ext.sqlalchemy import SQLAlchemy
 from flaskext.flatpages import FlatPages
 from flaskext.mail import Mail
 

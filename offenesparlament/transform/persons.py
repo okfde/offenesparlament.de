@@ -20,7 +20,6 @@ def make_long_name(data):
             fraktion or ressort)
 
 def make_person(beitrag, fp, engine):
-    Person = sl.get_table(engine, 'person')
     person = {
         'fingerprint': fp,
         'vorname': beitrag['vorname'],
@@ -30,7 +29,7 @@ def make_person(beitrag, fp, engine):
         'land': beitrag.get('land'),
         'fraktion': beitrag.get('fraktion')
     }
-    sl.upsert(engine, Person, person,
+    sl.upsert(engine, sl.get_table(engine, 'person'), person,
               unique=['fingerprint'])
     return fp
 
@@ -44,7 +43,7 @@ def generate_person_long_names(engine):
         sl.upsert(engine, Person, {
                          'fingerprint': long_name,
                          'slug': slug,
-                         'id': person['id']}, 
+                         'id': person['id']},
                          unique=['id'])
 
     log.info("Updating 'rollen' to have fingerprints...")
