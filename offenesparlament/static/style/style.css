@@ -374,12 +374,12 @@ ul.debates {
   padding-right: 10px;
 }
 
-#factsheet .abgeschlossen {
+.abgeschlossen {
   color: green;
   font-weight: bold;
 }
 
-#factsheet .laufend {
+.laufend {
   color: orange;
   font-weight: bold;
 }
