@@ -59,7 +59,7 @@ def load_agenda(engine, wp, session):
             data['item_label'] = label.strip()
 
             text = rows[i + 1].find('.//span[@class="hiddenTopText"]')
-            data['item_description'] = text.xpath('string()')
+            data['item_description'] = text.xpath('string()').strip()
             load_speeches(engine, data.copy())
     return True
 
