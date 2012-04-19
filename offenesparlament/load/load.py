@@ -195,9 +195,13 @@ def load_gremium_mitglieder(engine, person, rolle):
 
 def load_ablaeufe(engine):
     _Ablauf = sl.get_table(engine, 'ablauf')
-    for data in sl.find(engine, _Ablauf, wahlperiode=str(17)):
+
+    for i, data in enumerate(sl.find(engine, _Ablauf, wahlperiode=str(17))):
         log.info("Loading Ablauf: %s..." % data['titel'])
         load_ablauf(engine, data)
+        if i % 500 == 0:
+            db.session.commit()
+    db.session.commit()
 
 
 def load_ablauf(engine, data):
@@ -262,8 +266,6 @@ def load_ablauf(engine, data):
     _Position = sl.get_table(engine, 'position')
     for position in sl.find(engine, _Position, ablauf_id=ablauf_id):
         load_position(position, ablauf_id, ablauf, engine)
-
-    db.session.commit()
 
 
 def load_position(data, ablauf_id, ablauf, engine):
@@ -359,7 +361,7 @@ def load_dokument(data, engine):
 
 
 def load_sitzungen(engine):
-    WebTV = sl.get_table(engine, 'webtv')
+    WebTV = sl.get_table(engine, 'webtv_speech')
     for session in sl.distinct(engine, WebTV,
         'wp', 'session', 'session_name', 'session_date'):
         load_sitzung(engine, session)
@@ -386,6 +388,7 @@ def load_sitzung(engine, session):
     load_debatten(engine, sitzung)
     db.session.commit()
     return sitzung
+
 
 def load_debatten(engine, sitzung):
     WebTV_Speech = sl.get_table(engine, 'webtv_speech')
@@ -414,6 +417,7 @@ def load_debatten(engine, sitzung):
         dzitate = filter(lambda z: z['item_id'] == data['item_id'], zitate)
         load_zitate(engine, debatte, dzitate, speeches)
         db.session.commit()
+
 
 SPEAKERS = {}
 def load_zitate(engine, debatte, zitate, speeches):
