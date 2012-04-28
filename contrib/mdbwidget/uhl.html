@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MdB Profil</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.3/underscore-min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0.beta2/handlebars.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/0.9.3/jquery.timeago.js"></script>
+  <script src="https://raw.github.com/rmm5t/jquery-timeago/master/locales/jquery.timeago.de.js"></script>
+  
+  <style>
+    .offenesparlament.position {
+      border: 1px solid #ddd;
+      margin-bottom: 1em;
+      padding: 0.5em;
+    }
+
+    .offenesparlament.position h4 {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+  </style>
+
+</head>
+<body>
+  <div>
+    <div>
+      <h1>MdB-Aktivität</h1>
+    </div>
+    <div id="activities">
+    </div>
+    Mehr Informationen zu XXX unter <a class="awatch_url" href="">AbgeordnetenWatch</a> und <a class="opa_url" href="">OffenesParlament</a>. Mit einem <a class="opa_abo_url" href="">Politiker-Abo</a> erhälst Du automatisch E-Mails sobald
+    Dein MdB im Plenum spricht oder eine Drucksache produziert.
+  </div>
+
+  <script id='mdb-profile-activity' type='x-handlebars'>
+    <div class="offenesparlament position">
+      <span class="header">
+        <span class="zuordnung">{{zuordnung}}</span>
+        <span class="typ">{{typ}}</span>
+        <span class="date">
+          <abbr class="timeago" title="{{date}}Z">{{date}}</abbr>
+        </span>
+      </span>
+      <span class="ablauf">
+        <h4><a href="http://offenesparlament.de/position/{{key}}">
+            {{ablauf.titel}}</a></h4>
+      </span>
+      <span class="bottom">
+        {{#quelle}}
+          {{this}} &mdash; 
+        {{/quelle}}
+        {{typ}}
+        {{#dokument}}
+          &mdash;
+          <a href="{{link}}">{{name}}</a>
+        {{/dokument}}
+      </span>
+    </div>
+  </script>
+
+   <script>
+    (function ($) {
+      var fetchMdBActivities = function(mdbId, el) {
+        var $e = $(el).empty();
+        var template = Handlebars.compile($('#mdb-profile-activity').html());
+      
+        var renderMdBActivities = function(data) {
+          _.each(data.positionen, function(pos) {
+            console.log(pos);
+            $e.append(template(pos));  
+          });
+          console.log(data);
+          $('.awatch_url').attr('href', data.awatch_url);
+          $('.opa_url').attr('href', 'http://offenesparlament.de/person/' + data.slug);
+          $('.opa_abo_url').attr('href', 'http://offenesparlament.de/abo?query=' + data.fingerprint);
+          $e.find("abbr.timeago").timeago();
+        };
+
+        $.ajax({
+          cache: true,
+          dataType: 'jsonp',
+          success: renderMdBActivities,
+          url: 'http://localhost:5006/person/mdb/' + mdbId + '.json'
+        });
+      };
+      fetchMdBActivities(1118, $("#activities"));
+    })(jQuery)
+  </script>
+</body>
+</html>

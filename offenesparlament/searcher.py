@@ -2,7 +2,7 @@ import json
 
 from offenesparlament.core import solr
 
-EXLUDE_FILTERS = ['limit', 'page', 'q']
+EXLUDE_FILTERS = ['limit', 'page', 'q', 'callback', '_']
 
 class SolrSearcher(object):
 

@@ -14,13 +14,29 @@ from offenesparlament.model import Sitzung, Zitat, Debatte
 from offenesparlament.model import Abo
 
 from offenesparlament.pager import Pager
+from offenesparlament.util import jsonify
 from offenesparlament.searcher import SolrSearcher
 from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
 
 
+@app.route("/plenum/<wahlperiode>/<nummer>/<debatte>/<speech>")
+@app.route("/plenum/<wahlperiode>/<nummer>/<debatte>/<speech>.<format>")
+def speech(wahlperiode, nummer, debatte, format=None):
+    debatte = Debatte.query.filter_by(nummer=nummer)\
+            .join(Debatte.sitzung)\
+            .filter(Debatte.sitzung.wahlperiode == wahlperiode)\
+            .filter(Debatte.sitzung.nummer == nummer).first()
+    if debatte is None:
+        abort(404)
+    sitzung_url = url_for('sitzung', wahlperiode=wahlperiode, nummer=nummer)
+    url = sitzung_url + '?debatte.titel=' + quote(debatte.titel)
+    return redirect(url)
+
+
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
-def debatte(wahlperiode, nummer, debatte):
+@app.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
+def debatte(wahlperiode, nummer, debatte, format=None):
     debatte = Debatte.query.filter_by(nummer=nummer)\
             .join(Debatte.sitzung)\
             .filter(Debatte.sitzung.wahlperiode == wahlperiode)\
@@ -33,7 +49,8 @@ def debatte(wahlperiode, nummer, debatte):
 
 
 @app.route("/plenum/<wahlperiode>/<nummer>")
-def sitzung(wahlperiode, nummer):
+@app.route("/plenum/<wahlperiode>/<nummer>.<format>")
+def sitzung(wahlperiode, nummer, format=None):
     sitzung = Sitzung.query.filter_by(wahlperiode=wahlperiode,
                                       nummer=nummer).first()
     if sitzung is None:
@@ -52,7 +69,8 @@ def sitzung(wahlperiode, nummer):
 
 
 @app.route("/plenum")
-def sitzungen():
+@app.route("/plenum.<format>")
+def sitzungen(format=None):
     searcher = SolrSearcher(Sitzung, request.args)
     searcher.add_facet('wahlperiode')
     searcher.sort('date', 'desc')
@@ -62,7 +80,8 @@ def sitzungen():
 
 
 @app.route("/position/<key>")
-def position(key):
+@app.route("/position/<key>.<format>")
+def position(key, format=None):
     position = Position.query.filter_by(key=key).first()
     if position is None:
         abort(404)
@@ -72,7 +91,8 @@ def position(key):
 
 
 @app.route("/ablauf/<wahlperiode>/<key>")
-def ablauf(wahlperiode, key):
+@app.route("/ablauf/<wahlperiode>/<key>.<format>")
+def ablauf(wahlperiode, key, format=None):
     ablauf = Ablauf.query.filter_by(wahlperiode=wahlperiode,
                                     key=key).first()
     if ablauf is None:
@@ -89,7 +109,8 @@ def ablauf(wahlperiode, key):
 
 
 @app.route("/ablauf")
-def ablaeufe():
+@app.route("/ablauf.<format>")
+def ablaeufe(format=None):
     searcher = SolrSearcher(Ablauf, request.args)
     searcher.sort('date', 'desc')
     searcher.add_facet('initiative')
@@ -103,7 +124,8 @@ def ablaeufe():
 
 
 @app.route("/abstimmung/<id>")
-def abstimmung(id):
+@app.route("/abstimmung/<id>.<format>")
+def abstimmung(id, format=None):
     abstimmung = Abstimmung.query.filter_by(id=id).first()
     if abstimmung is None:
         abort(404)
@@ -117,7 +139,8 @@ def abstimmung(id):
 
 
 @app.route("/gremium")
-def gremien():
+@app.route("/gremium.<format>")
+def gremien(format=None):
     committees = Gremium.query.filter_by(typ='ausschuss').\
             order_by(Gremium.name.asc()).all()
     others = Gremium.query.filter_by(typ='sonstiges').\
@@ -127,7 +150,8 @@ def gremien():
 
 
 @app.route("/gremium/<key>")
-def gremium(key):
+@app.route("/gremium/<key>.<format>")
+def gremium(key, format=None):
     gremium = Gremium.query.filter_by(key=key).first()
     if gremium is None:
         abort(404)
@@ -140,7 +164,8 @@ def gremium(key):
 
 
 @app.route("/person")
-def persons():
+@app.route("/person.<format>")
+def persons(format=None):
     searcher = SolrSearcher(Person, request.args)
     searcher.add_facet('rollen.funktion')
     searcher.add_facet('rollen.fraktion')
@@ -151,17 +176,36 @@ def persons():
 
 
 @app.route("/person/<slug>")
-def person(slug):
+@app.route("/person/<slug>.<format>")
+def person(slug, format=None):
     person = Person.query.filter_by(slug=slug).first()
     if person is None:
         abort(404)
+    return person_render(person, format)
+
+
+@app.route("/person/mdb/<id>")
+@app.route("/person/mdb/<id>.<format>")
+def person_mdb(id, format=None):
+    person = Person.query.filter_by(mdb_id=id).first()
+    if person is None:
+        abort(404)
+    return person_render(person, format)
+
+
+def person_render(person, format):
     searcher = SolrSearcher(Position, request.args)
     searcher.sort('date')
     searcher.filter('beitraege.person.id', str(person.id))
-    pager = Pager(searcher, 'person', request.args, slug=slug)
+    pager = Pager(searcher, 'person', request.args, slug=person.slug)
     schlagworte = aggregates.person_schlagworte(person)
     debatten = Debatte.query.join(Zitat).\
             filter(Zitat.person == person).distinct().all()
+    if format == 'json':
+        data = person.to_dict()
+        data['positionen'] = pager
+        data['debatten'] = debatten
+        return jsonify(data)
     return render_template('person_view.html',
             person=person, searcher=searcher,
             pager=pager, schlagworte=schlagworte,
@@ -169,7 +213,8 @@ def person(slug):
 
 
 @app.route("/person/<slug>/votes")
-def person_votes(slug):
+@app.route("/person/<slug>/votes.<format>")
+def person_votes(slug, format=None):
     person = Person.query.filter_by(slug=slug).first()
     if person is None:
         abort(404)
