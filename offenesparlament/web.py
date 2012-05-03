@@ -2,10 +2,12 @@
 from collections import defaultdict
 from datetime import datetime
 from urllib import quote
+from StringIO import StringIO
 
 from colander import Invalid
 from flask import Flask, g, request, render_template, abort, flash, json
-from flask import url_for, redirect, jsonify
+from flask import url_for, redirect, jsonify, Response
+from webhelpers.feedgenerator import Rss201rev2Feed
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
@@ -20,10 +22,42 @@ from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
 
 
+def make_feed(title, author='Deutscher Bundestag (inoffiziell)',
+    positionen=[], debatten=[], limit=10):
+    items = []
+    for position in positionen:
+        items.append({
+            'title': '[Drs] ' + position.typ + ': ' + position.ablauf.titel,
+            'pubdate': position.date,
+            'link': url_for('position', key=position.key, _external=True),
+            'description': position.ablauf.abstrakt
+            })
+    for debatte in debatten:
+        if debatte.nummer is None:
+            continue
+        items.append({
+            'title': '[Rede] ' + debatte.titel,
+            'pubdate': debatte.sitzung.date,
+            'link': url_for('debatte', wahlperiode=debatte.sitzung.wahlperiode,
+                nummer=debatte.sitzung.nummer, debatte=debatte.nummer,
+                _external=True),
+            'description': debatte.text
+            })
+    feed = Rss201rev2Feed(title, url_for('index', _external=True), 
+        'Was passiert im Bundestag?', author_name=author)
+    items = sorted(items, key=lambda i: i.get('pubdate').isoformat(), reverse=True)
+    for item in items[:10]:
+        print item
+        feed.add_item(**item)
+    sio = StringIO()
+    feed.write(sio, 'utf-8')
+    return Response(sio.getvalue(), status=200, mimetype='application/xml')
+
+
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>/<speech>")
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>/<speech>.<format>")
 def speech(wahlperiode, nummer, debatte, format=None):
-    debatte = Debatte.query.filter_by(nummer=nummer)\
+    debatte = Debatte.query.filter_by(nummer=debatte)\
             .join(Debatte.sitzung)\
             .filter(Debatte.sitzung.wahlperiode == wahlperiode)\
             .filter(Debatte.sitzung.nummer == nummer).first()
@@ -37,7 +71,7 @@ def speech(wahlperiode, nummer, debatte, format=None):
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
 def debatte(wahlperiode, nummer, debatte, format=None):
-    debatte = Debatte.query.filter_by(nummer=nummer)\
+    debatte = Debatte.query.filter_by(nummer=debatte)\
             .join(Debatte.sitzung)\
             .filter(Debatte.sitzung.wahlperiode == wahlperiode)\
             .filter(Debatte.sitzung.nummer == nummer).first()
@@ -206,6 +240,9 @@ def person_render(person, format):
         data['positionen'] = pager
         data['debatten'] = debatten
         return jsonify(data)
+    elif format == 'rss':
+        return make_feed(person.name, author=person.name,
+            positionen=pager, debatten=debatten)
     return render_template('person_view.html',
             person=person, searcher=searcher,
             pager=pager, schlagworte=schlagworte,

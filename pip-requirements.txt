@@ -13,3 +13,4 @@ solrpy
 python-dateutil
 sqlaload
 requests
+webhelpers
