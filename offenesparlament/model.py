@@ -653,6 +653,10 @@ class Ablauf(db.Model):
     positionen = db.relationship('Position', backref='ablauf',
                            lazy='dynamic', order_by='Position.date.desc()')
 
+    @property
+    def latest(self):
+        return max([p.date for p in self.positionen])
+
     def to_ref(self):
         return {
                 'id': self.id,
