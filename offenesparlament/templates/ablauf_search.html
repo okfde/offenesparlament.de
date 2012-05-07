@@ -48,8 +48,8 @@
             key=ablauf.key) }}">{{ ablauf.titel }}</a></h3>
         <p>
           <span class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
-          {{ ablauf.stand }}
-          </span> &mdash; 
+          {{ ablauf.stand }} 
+          </span> ({{ablauf.latest.strftime("%d.%m.%Y")}}) &mdash; 
           <strong>{{ ablauf.typ }}</strong> &mdash; {{ ablauf.initiative or
         ablauf.sachgebiet or ablauf.stand }}</p>
       </li>
