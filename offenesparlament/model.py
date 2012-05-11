@@ -655,7 +655,10 @@ class Ablauf(db.Model):
 
     @property
     def latest(self):
-        return max([p.date for p in self.positionen])
+        dates = [p.date for p in self.positionen if p.date]
+        if not len(dates):
+            return datetime.utcnow()
+        return max(dates)
 
     def to_ref(self):
         return {
