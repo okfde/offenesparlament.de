@@ -15,6 +15,8 @@ from offenesparlament.load.fetch import fetch_stream, fetch
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
+# pdftotext -x 70 -y 80 -W 470 -H 900 -raw 17173.pdf - |less
+
 TEST_URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/17121.txt"
 
 URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/%s%03.d.txt"
@@ -162,7 +164,7 @@ def load_transcript(engine, master, wp, session, incremental=True):
 
 def load_transcripts(engine, master, incremental=True):
     for i in count(33):
-        if not load_transcript(engine, master, 17, i, incremental=incremental):
+        if not load_transcript(engine, master, 17, i, incremental=incremental) and i > 180:
             break
 
 if __name__ == '__main__':
