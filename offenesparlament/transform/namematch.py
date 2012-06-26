@@ -10,14 +10,17 @@ from offenesparlament.transform.normalize import normalize_text
 from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 
-CHOP_PARTS = [' ', ')', '(', '[', ']', u'Vizepräsidentin', u'Vizepräsident',
+CHOP_PARTS = ['.', '-', ')', '(', '[', ']', u'Vizepräsidentin', u'Vizepräsident',
               u'ÜNDNIS']
 
 
 def chop(txt):
     for part in CHOP_PARTS:
         txt = txt.replace(part, '')
-    return unicode(normalize_text(txt))
+    txt = u' '.join(sorted(txt.split(' ')))
+    txt = unicode(normalize_text(txt))
+    print [txt]
+    return txt
 
 
 def levenshtein(a, b):
@@ -40,24 +43,26 @@ def ask_user(beitrag, beitrag_print, matches, db):
     for i, (fp, dist) in enumerate(matches[:20]):
         m = " %s: %s (%s)" % (i, fp, dist)
         print m.encode('utf-8')
-    sys.stdout.write("Enter choice or 'n' for new, 'x' for non-speaker [0]: ")
+    sys.stdout.write("Enter choice ['/' = new, '.' = non-speaker, ',' = more] [0]: ")
     sys.stdout.flush()
     line = sys.stdin.readline()
-    if not len(line.strip()):
+    line = line.lower().strip()
+    if not len(line):
         return matches[0][0]
     try:
         idx = int(line)
         ma, score = matches[idx]
         return ma
     except ValueError:
-        line = line.lower().strip()
-        if line == 'm':
+        if line == ',':
             return ask_user(beitrag, beitrag_print, matches[20:], db)
-        if line == 'x':
+        if line == '.':
             raise ValueError()
-        if line == 'n' and beitrag is not None:
+        if line == '/' and beitrag is not None:
             print "CREATING", beitrag_print.encode("utf-8")
             return make_person(beitrag, beitrag_print, db)
+    matches_ = [(f, d) for f, d in matches in f.lower()]
+    return ask_user(beitrag, beitrag_print, matches_, db)
 
 
 def match_beitrag(engine, master, beitrag, prints):
