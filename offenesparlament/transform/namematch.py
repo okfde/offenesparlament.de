@@ -61,7 +61,7 @@ def ask_user(beitrag, beitrag_print, matches, db):
         if line == '/' and beitrag is not None:
             print "CREATING", beitrag_print.encode("utf-8")
             return make_person(beitrag, beitrag_print, db)
-    matches_ = [(f, d) for f, d in matches in f.lower()]
+    matches_ = [(f, d) for f, d in matches if line in f.lower()]
     return ask_user(beitrag, beitrag_print, matches_, db)
 
 
