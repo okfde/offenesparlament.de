@@ -84,8 +84,7 @@ def format_activities(results):
 def format_speeches(results):
     debatten = defaultdict(list)
     for zitat in results:
-        for debatte in zitat.debatte:
-            debatten[debatte].append(zitat)
+        debatten[zitat.debatte].append(zitat)
 
     for debatte, zitate in debatten.items():
         msg = debatte.sitzung.titel + ': ' + debatte.titel
