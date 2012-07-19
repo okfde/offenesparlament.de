@@ -49,7 +49,7 @@ def transform():
     from offenesparlament.transform import persons
     persons.generate_person_long_names(engine)
     from offenesparlament.transform import positions
-    ##positions.extend_positions(engine)
+    positions.extend_positions(engine)
     from offenesparlament.transform import namematch
     namematch.match_persons(engine)
     from offenesparlament.transform import abstimmungen
