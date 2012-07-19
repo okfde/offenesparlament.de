@@ -5,16 +5,14 @@ import logging
 import sqlaload as sl
 
 from offenesparlament.core import etl_engine
-from offenesparlament.core import master_data
 
 DRS_MATCH = "- Drucksachen? (%s/\\d{1,6})([,;/]? (%s/\\d{1,6}))* -"
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 UNIQUE = ['__id__']
 
-def extend_speeches(engine, master, wahlperiode=17):
+def extend_speeches(engine, wahlperiode=17):
     log.info("Amending speeches with DRS ...")
     drs_match = re.compile(DRS_MATCH % (wahlperiode, wahlperiode))
     Speech = sl.get_table(engine, 'speech')
@@ -38,3 +36,4 @@ def extend_speeches(engine, master, wahlperiode=17):
                     'wahlperiode': wahlperiode,
                     'dok_nummer': nummer},
                     unique=['sequence', 'sitzung', 'wahlperiode', 'group'])
+

@@ -1,31 +1,14 @@
 #coding: utf-8
 import sys
+import logging
 
-import Levenshtein
-
+from nkclient import NKNoMatch, NKInvalid
 import sqlaload as sl
 
 from offenesparlament.transform.persons import make_person, make_long_name
-from offenesparlament.transform.normalize import normalize_text
-from offenesparlament.core import etl_engine
-from offenesparlament.core import master_data
+from offenesparlament.core import etl_engine, nk_persons
 
-CHOP_PARTS = ['.', '-', ')', '(', '[', ']', u'Vizepräsidentin', u'Vizepräsident',
-              u'ÜNDNIS']
-
-
-def chop(txt):
-    for part in CHOP_PARTS:
-        txt = txt.replace(part, '')
-    txt = u' '.join(sorted(txt.split(' ')))
-    txt = unicode(normalize_text(txt))
-    print [txt]
-    return txt
-
-
-def levenshtein(a, b):
-    return Levenshtein.distance(chop(a), chop(b))
-
+log = logging.getLogger(__name__)
 
 def ensure_rolle(beitrag, fp, engine):
     rolle = {
@@ -38,56 +21,22 @@ def ensure_rolle(beitrag, fp, engine):
     sl.upsert(engine, Rolle, rolle,
             unique=['fingerprint', 'funktion'])
 
-
-def ask_user(beitrag, beitrag_print, matches, db):
-    for i, (fp, dist) in enumerate(matches[:20]):
-        m = " %s: %s (%s)" % (i, fp, dist)
-        print m.encode('utf-8')
-    sys.stdout.write("Enter choice ['/' = new, '.' = non-speaker, ',' = more] [0]: ")
-    sys.stdout.flush()
-    line = sys.stdin.readline()
-    line = line.lower().strip()
-    if not len(line):
-        return matches[0][0]
-    try:
-        idx = int(line)
-        ma, score = matches[idx]
-        return ma
-    except ValueError:
-        if line == ',':
-            return ask_user(beitrag, beitrag_print, matches[20:], db)
-        if line == '.':
-            raise ValueError()
-        if line == '/' and beitrag is not None:
-            print "CREATING", beitrag_print.encode("utf-8")
-            return make_person(beitrag, beitrag_print, db)
-    matches_ = [(f, d) for f, d in matches if line in f.lower()]
-    return ask_user(beitrag, beitrag_print, matches_, db)
-
-
-def match_beitrag(engine, master, beitrag, prints):
+def match_beitrag(engine, beitrag):
+    nkp = nk_persons()
     beitrag_print = make_long_name(beitrag)
-    print "Matching:", beitrag_print.encode('utf-8')
-    matches = [(p, levenshtein(p, beitrag_print)) for p in prints]
-    matches = sorted(matches, key=lambda (p, d): d)
-    if not len(matches):
-        # create new
-        return make_person(beitrag, beitrag_print, engine)
-    first, dist = matches[0]
-    if dist == 0:
-        return first
-    NameMatch = master['name_match']
-    match = NameMatch.find_one(dirty=beitrag_print)
-    if match is not None:
-        Person = sl.get_table(engine, 'person')
-        if sl.find_one(engine, Person, fingerprint=match.get('clean')) is None:
-            return make_person(beitrag, match.get('clean'), engine)
-        return match.get('clean')
+    log.info("Matching: %s", beitrag_print)
     try:
-        user_res = ask_user(beitrag, beitrag_print, matches, engine)
-        NameMatch.writerow({'dirty': beitrag_print, 'clean': user_res})
-        return user_res
-    except ValueError: pass
+        value = match_speaker(beitrag_print)
+        if sl.find_one(engine, sl.get_table(engine, 'person'),
+                fingerprint=value) is None:
+            make_person(beitrag, value, engine)
+        return value
+    except NKNoMatch, nm:
+        log.info("Beitrag person is unknown: %s", beitrag_print)
+        return None
+    except NKInvalid, inv:
+        log.error("Beitrag person is invalid: %s", beitrag_print)
+        return None
 
 def speaker_name_transform(name):
     cparts = name.split(',')
@@ -102,83 +51,61 @@ def speaker_name_transform(name):
 
 _SPEAKER_CACHE = {}
 
-def match_speaker(master, speaker, prints):
+def match_speaker(speaker):
+    nkp = nk_persons()
     if speaker not in _SPEAKER_CACHE:
-        _SPEAKER_CACHE[speaker] = \
-                _match_speaker(master, speaker, prints)
-    return _SPEAKER_CACHE[speaker]
+        try:
+            obj = nkp.lookup(speaker)
+        except NKInvalid, inv:
+            obj = inv
+        except NKNoMatch, nm:
+            obj = nm
+        _SPEAKER_CACHE[speaker] = obj
+    obj = _SPEAKER_CACHE[speaker]
+    if isinstance(obj, (NKInvalid, NKNoMatch)):
+        raise obj
+    return obj.value
 
-def _match_speaker(master, speaker, prints):
-    print "Matching:", speaker.encode('utf-8')
-    NonSpeaker = master['non_speaker']
-    match = NonSpeaker.find_one(text=speaker)
-    if match is not None:
-        print "non-speaker!"
-        raise ValueError()
-
-    matches = [(p, levenshtein(p, speaker)) for p in prints]
-    matches = sorted(matches, key=lambda (p,d): d)
-    if not len(matches):
-        return
-    first, dist = matches[0]
-    if dist == 0:
-        return first
-    NameMatch = master['name_match']
-    match = NameMatch.find_one(dirty=speaker)
-    if match is not None:
-        return match.get('clean')
-    try:
-        user_res = ask_user(None, speaker, matches, None)
-        if user_res is not None:
-            NameMatch.writerow({'dirty': speaker, 'clean': user_res})
-            return user_res
-    except ValueError:
-        NonSpeaker.writerow({'text': speaker}, unique_columns=['text'])
-
-
-def match_speakers_webtv(engine, master, prints):
+def match_speakers_webtv(engine):
     WebTV = sl.get_table(engine, 'webtv')
     for i, speech in enumerate(sl.distinct(engine, WebTV, 'speaker')):
-        #if i % 1000 == 0:
-        #    sys.stdout.write('.')
-        #    sys.stdout.flush()
         if speech['speaker'] is None:
             continue
         speaker = speaker_name_transform(speech['speaker'])
+        matched = True
         try:
-            fp = match_speaker(master, speaker, prints)
-        except ValueError:
+            fp = match_speaker(speaker)
+        except NKInvalid, inv:
             fp = None
+        except NKNoMatch, nm:
+            fp = None
+            matched = False
         sl.upsert(engine, WebTV, {'fingerprint': fp,
-                                   'speaker': speech['speaker']},
+                                  'matched': matched,
+                                  'speaker': speech['speaker']},
                     unique=['speaker'])
 
 
-def match_beitraege(engine, master, prints):
+def match_beitraege(engine):
     Beitrag = sl.get_table(engine, 'beitrag')
     for i, beitrag in enumerate(sl.distinct(engine, Beitrag, 'vorname',
         'nachname', 'funktion', 'land', 'fraktion', 'ressort', 'ort')):
         if i % 1000 == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
-        match = match_beitrag(engine, master, beitrag, prints)
+        match = match_beitrag(engine, beitrag)
         ensure_rolle(beitrag, match, engine)
         beitrag['fingerprint'] = match
+        beitrag['matched'] = match is not None
         sl.upsert(engine, Beitrag, beitrag, unique=['vorname', 'nachname',
             'funktion', 'land', 'fraktion', 'ressort', 'ort'])
 
-def make_prints(engine):
-    Person = sl.get_table(engine, 'person')
-    return [p.get('fingerprint') for p in sl.distinct(engine, Person, 'fingerprint') \
-            if p.get('fingerprint')]
 
-
-def match_persons(db, master):
-    prints = make_prints(db)
-    match_beitraege(db, master, prints)
-    match_speakers_webtv(db, master, prints)
+def match_persons(db):
+    match_beitraege(db)
+    match_speakers_webtv(db)
 
 if __name__ == '__main__':
     engine = etl_engine()
     print "DESTINATION", engine
-    match_persons(engine, master_data())
+    match_persons(engine)

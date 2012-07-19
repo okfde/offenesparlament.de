@@ -8,7 +8,6 @@ from offenesparlament.core import master_data
 from offenesparlament.transform.namematch import match_speaker, make_prints
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 import re
 

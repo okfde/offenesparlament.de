@@ -11,7 +11,6 @@ from offenesparlament.core import master_data
 from offenesparlament.transform.drs import drucksachen
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 def cache_abstimmungen(engine):
     Abstimmung = sl.get_table(engine, 'abstimmung')

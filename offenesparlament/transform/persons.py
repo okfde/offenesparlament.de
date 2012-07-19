@@ -2,12 +2,12 @@
 import logging
 
 import sqlaload as sl
+from nkclient import NKInvalid, NKNoMatch
 
-from offenesparlament.core import etl_engine
+from offenesparlament.core import etl_engine, nk_persons
 from offenesparlament.transform.text import url_slug
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 def make_long_name(data):
     pg = lambda n: data.get(n) if data.get(n) and data.get(n) != 'None' else ''
@@ -20,6 +20,7 @@ def make_long_name(data):
             fraktion or ressort)
 
 def make_person(beitrag, fp, engine):
+    nkp = nk_persons()
     person = {
         'fingerprint': fp,
         'vorname': beitrag['vorname'],
@@ -31,20 +32,28 @@ def make_person(beitrag, fp, engine):
     }
     sl.upsert(engine, sl.get_table(engine, 'person'), person,
               unique=['fingerprint'])
+    nkp.ensure_value(fp, data=person)
     return fp
 
 def generate_person_long_names(engine):
     log.info("Generating person fingerprints and slugs...")
+    from offenesparlament.transform.namematch import match_speaker
+    nkp = nk_persons()
     Person = sl.get_table(engine, 'person')
     for person in sl.find(engine, Person):
         long_name = make_long_name(person)
-        log.debug(" -> %s" % long_name.strip())
+        try:
+            long_name = match_speaker(long_name)
+        except NKNoMatch:
+            pass
+        log.info(" -> %s" % long_name.strip())
         slug = url_slug(long_name)
         sl.upsert(engine, Person, {
                          'fingerprint': long_name,
                          'slug': slug,
                          'id': person['id']},
                          unique=['id'])
+        nkp.ensure_value(long_name, data=person)
 
     log.info("Updating 'rollen' to have fingerprints...")
     Rolle = sl.get_table(engine, 'rolle')

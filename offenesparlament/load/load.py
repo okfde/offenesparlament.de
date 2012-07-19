@@ -322,7 +322,7 @@ def load_position(data, ablauf_id, ablauf, engine):
 
     _Beitrag = sl.get_table(engine, 'beitrag')
     for bdata in sl.find(engine, _Beitrag, fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_id=ablauf_id):
+            urheber=position.urheber, ablauf_id=ablauf_id, matched=True):
         load_beitrag(bdata, position, engine)
 
 
@@ -466,7 +466,8 @@ def load_abstimmungen(engine):
             abst.thema = thema
             abst.datum = date(row.get('date'))
         db.session.add(abst)
-        for stimme_ in sl.find(engine, _Abstimmung, subject=thema):
+        for stimme_ in sl.find(engine, _Abstimmung, subject=thema,
+            matched=True):
             if i % 1000 == 0:
                 sys.stdout.write(".")
                 sys.stdout.flush()

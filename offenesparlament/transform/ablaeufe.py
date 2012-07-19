@@ -6,7 +6,6 @@ from offenesparlament.core import etl_engine
 from offenesparlament.core import master_data
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 def extend_ablaeufe(engine, master):
     log.info("Amending ablaeufe ...")

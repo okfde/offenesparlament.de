@@ -46,27 +46,24 @@ def extract_docs():
 def transform():
     """ Transform and clean up content """
     engine = etl_engine()
-    master = master_data()
     from offenesparlament.transform import persons
     persons.generate_person_long_names(engine)
-    from offenesparlament.transform import ablaeufe
-    ablaeufe.extend_ablaeufe(engine, master)
     from offenesparlament.transform import positions
-    positions.extend_positions(engine)
+    ##positions.extend_positions(engine)
     from offenesparlament.transform import namematch
-    namematch.match_persons(engine, master)
+    namematch.match_persons(engine)
     from offenesparlament.transform import abstimmungen
-    abstimmungen.extend_abstimmungen(engine, master)
+    abstimmungen.extend_abstimmungen(engine)
     persons.generate_person_long_names(engine)
-    from offenesparlament.transform import webtv
     from offenesparlament.transform import speechparser
-    speechparser.load_transcripts(engine, master)
-    webtv.merge_speeches(engine, master)
+    speechparser.load_transcripts(engine)
+    from offenesparlament.transform import webtv
+    webtv.merge_speeches(engine)
     from offenesparlament.transform import awatch
-    awatch.load_profiles(engine, master)
+    awatch.load_profiles(engine)
     from offenesparlament.transform import speechmatch
     persons.generate_person_long_names(engine)
-    speechmatch.extend_speeches(engine, master)
+    speechmatch.extend_speeches(engine)
     persons.generate_person_long_names(engine)
 
 
