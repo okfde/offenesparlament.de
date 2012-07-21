@@ -14,8 +14,6 @@ log = logging.getLogger(__name__)
 def merge_speeches(engine):
     Speech = sl.get_table(engine, 'speech')
     for combo in sl.distinct(engine, Speech, 'wahlperiode', 'sitzung'):
-        if combo['sitzung'] != 174:
-            continue
         merge_speech(engine, str(combo['wahlperiode']),
                      str(combo['sitzung']))
 
