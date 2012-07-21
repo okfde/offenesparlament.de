@@ -20,6 +20,7 @@ def make_long_name(data):
             fraktion or ressort)
 
 def make_person(beitrag, fp, engine):
+    from offenesparlament.transform.namematch import match_speaker
     nkp = nk_persons()
     try:
         fp = match_speaker(fp)
