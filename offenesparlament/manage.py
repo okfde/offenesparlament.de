@@ -13,7 +13,7 @@ def extract_base():
     from offenesparlament.extract.xml import ausschuss
     ausschuss.load_index(engine)
     from offenesparlament.extract.xml import news
-    news.load_index(engine)
+    #news.load_index(engine)
     from offenesparlament.extract.xml import mdb
     mdb.load_index(engine)
 

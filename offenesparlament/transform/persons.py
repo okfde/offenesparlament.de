@@ -21,18 +21,22 @@ def make_long_name(data):
 
 def make_person(beitrag, fp, engine):
     nkp = nk_persons()
-    person = {
-        'fingerprint': fp,
-        'vorname': beitrag['vorname'],
-        'nachname': beitrag['nachname'],
-        'ort': beitrag.get('ort'),
-        'ressort': beitrag.get('ressort'),
-        'land': beitrag.get('land'),
-        'fraktion': beitrag.get('fraktion')
-    }
-    sl.upsert(engine, sl.get_table(engine, 'person'), person,
-              unique=['fingerprint'])
-    nkp.ensure_value(fp, data=person)
+    try:
+        fp = match_speaker(fp)
+        person = {
+            'fingerprint': fp,
+            'vorname': beitrag['vorname'],
+            'nachname': beitrag['nachname'],
+            'ort': beitrag.get('ort'),
+            'ressort': beitrag.get('ressort'),
+            'land': beitrag.get('land'),
+            'fraktion': beitrag.get('fraktion')
+        }
+        sl.upsert(engine, sl.get_table(engine, 'person'), person,
+                  unique=['fingerprint'])
+        nkp.ensure_value(fp, data=person)
+    except NKNoMatch:
+        pass
     return fp
 
 def generate_person_long_names(engine):

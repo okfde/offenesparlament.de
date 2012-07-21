@@ -16,7 +16,7 @@ from offenesparlament.load.fetch import UA, _html, fetch
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARN)
 
 MAKE_SESSION_URL = "http://dipbt.bundestag.de/dip21.web/bt"
 BASE_URL = "http://dipbt.bundestag.de/dip21.web/searchProcedures/simple_search.do?method=Suchen&offset=%s&anzahl=100"
@@ -168,7 +168,7 @@ def dokument_by_name(name):
     if ' - ' in name:
         date, name = name.split(" - ", 1)
     else:
-        log.warn("NO DATE: %s" % name)
+        log.warn("NO DATE: %s", name)
     if ',' in name or '\n' in name:
         name, remainder = END_ID.split(name, 1)
     typ, nummer = name.strip().split(" ", 1)
@@ -180,6 +180,7 @@ def dokument_by_name(name):
             }.get(typ, ('BT', 'drs'))
     link = None
     if hrsg == 'BT' and typ == 'drs':
+        print [nummer]
         f, s = nummer.split("/", 1)
         s = s.split(" ")[0]
         s = s.zfill(5)
@@ -355,7 +356,7 @@ def scrape_ablauf(url, engine, wahlperiode=17):
     for sw in doc.findall("SCHLAGWORT"):
         wort = {'wort': sw.text, 'key': key, 'wahlperiode': wahlperiode}
         sl.upsert(engine, Schlagwort, wort, unique=wort.keys())
-    log.info("Ablauf %s: %s" % (key, a['titel']))
+    log.info("Ablauf %s: %s",key, a['titel'])
     a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
     a['abgeschlossen'] = DIP_ABLAUF_STATES_FINISHED.get(a['stand'], False)
