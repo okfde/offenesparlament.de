@@ -101,7 +101,7 @@
         {% for debatte in debatten %}
           <li><a href="{{ url_for('sitzung',
             wahlperiode=debatte.sitzung.wahlperiode,
-            nummer=debatte.sitzung.nummer) }}?debatten_zitate.debatte.titel={{
+            nummer=debatte.sitzung.nummer) }}?debatte.titel={{
             debatte.titel }}">
             {{ debatte.sitzung.date.strftime('%d.%m.%Y') }}: 
             {{ debatte.titel }}</a></li>
