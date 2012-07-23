@@ -302,13 +302,13 @@ class TooFarInThePastException(Exception): pass
 
 class NoContentException(Exception): pass
 
-from threading import local
-tl = local()
+#from threading import local
+#tl = local()
 def scrape_ablauf(url, engine, wahlperiode=17):
     wahlperiode = str(wahlperiode)
-    if not hasattr(tl, 'engine'):
-        tl.engine = etl_engine()
-    engine = tl.engine
+    #if not hasattr(tl, 'engine'):
+    #    tl.engine = etl_engine()
+    #engine = tl.engine
     Ablauf = sl.get_table(engine, 'ablauf')
 
     key = url.rsplit('/', 1)[-1].split('.')[0]
