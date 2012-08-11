@@ -84,7 +84,7 @@
             <span class="date">
               {{position.date.strftime("%d.%m.%Y")}}</span>
             <span class="zuordnung">{{position.zuordnung}} 
-              <a name="{{position.key}}">&para;</a>
+              <a name="{{position.key}}" href="{{url_for('position', key=position.key)}}">&para;</a>
             </span>
             <span class="typ">{{position.typ}}</span>
           </span>
