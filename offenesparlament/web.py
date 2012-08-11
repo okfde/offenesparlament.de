@@ -120,6 +120,8 @@ def ablauf(wahlperiode, key, format=None):
         abort(404)
     referenzen = defaultdict(set)
     for ref in ablauf.referenzen:
+        if ref.dokument.typ == 'plpr' and ref.dokument.hrsg == 'BT':
+            continue
         if ref.seiten:
             referenzen[ref.dokument].add(ref.seiten)
         else:

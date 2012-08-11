@@ -63,8 +63,9 @@
     <ul>
       {% for dokument, seiten in referenzen %}
         <li>
-        <strong><a href="{{dokument.link}}">{{ dokument.name }}</a></strong> 
-        {{ ", ".join(seiten) }}</li>
+          <strong><a href="{{dokument.link}}">{{ dokument.name }}</a></strong> 
+          {{ ", ".join(seiten) }}
+        </li>
       {% endfor %}
     </ul>
   </div>
