@@ -512,6 +512,19 @@ table.zitate td.text {
   /*padding-right: 1em;*/
 }
 
+table.zitate td.text a {
+  text-decoration: none;
+}
+
+table.zitate td.text .ablauf-ref {
+  color: #999;
+  font-size: 0.9em;
+}
+
+table.zitate td.text .ablauf-ref a {
+  color: #4786AA;
+}
+
 table.zitate tr.poi {
   font-size: 0.9em;
 }

@@ -2,14 +2,16 @@
 from collections import defaultdict
 from datetime import datetime
 from urllib import quote
+import re
 
 from colander import Invalid
+from jinja2 import Markup
 from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify, Response
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
-from offenesparlament.model import Person, Gremium
+from offenesparlament.model import Person, Gremium, Dokument
 from offenesparlament.model import Sitzung, Zitat, Debatte
 from offenesparlament.model import Abo
 
@@ -18,6 +20,24 @@ from offenesparlament.util import jsonify, make_feed
 from offenesparlament.searcher import SolrSearcher
 from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
+
+@app.template_filter()
+def drslink(text, verbose=False):
+    def r(m):
+        num = m.group(1).replace(' ', '')
+        dok = Dokument.query.filter_by(nummer=num).first()
+        if dok is None:
+            return m.group(1)
+        link = "<a href='" + dok.link + "'>" + dok.nummer + "</a>"
+        print dok.positionen.count()
+        if verbose and dok.positionen.count() == 1:
+            pos = dok.positionen.first()
+            url = url_for('position', key=pos.key)
+            link += " <span class='ablauf-ref'>(<a href='"+url+\
+                    "'>"+pos.ablauf.titel+"</a>)</span>"
+        return link
+    text = re.sub(r"(\d{2,3}/\d{1,6}(\s*\(.{1,10}\))?)", r, text)
+    return Markup(text)
 
 
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")

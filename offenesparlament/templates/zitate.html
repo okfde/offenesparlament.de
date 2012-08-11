@@ -36,7 +36,7 @@
           {% endif %}
           </td>
         <td class="text">
-          {{ zitat.text | replace('\n\n', '<hr/>') | safe }}
+          {{ zitat.text | replace('\n\n', '<hr/>') | drslink(True) }}
         </td>
         <td class="details">
           <a name="z{{zitat.sequenz}}" href="{{url_for('debatte', wahlperiode=sitzung.wahlperiode, nummer=sitzung.nummer, debatte=zitat.debatte.nummer)}}#z{{zitat.sequenz}}" title="Link zum zitieren">&para;</a>

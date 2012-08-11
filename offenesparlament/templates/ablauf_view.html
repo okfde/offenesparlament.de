@@ -94,6 +94,28 @@
                   <img title="{{beitrag.person.name}}: {{beitrag.art}}" class="minipic"
                     src="{{beitrag.person.foto_url or ''}}" height="45px" width="30px"></a>
               {% endfor %}
+              {% if position.zuweisungen.count() %}
+                <h4>Zuweisung</h4>
+                <ul>
+                {% for zuweisung in position.zuweisungen %}
+                  <li><a href="{{ url_for('gremium', key=zuweisung.gremium.key) }}">
+                    {{ zuweisung.gremium.name }}</a>
+                    {% if zuweisung.federfuehrung %}
+                      (federführend)
+                      {% endif %}
+                  </li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+              {% if position.beschluesse.count() %}
+                <h4>Beschluss</h4>
+                <ul>
+                {% for beschluss in position.beschluesse %}
+                  <li>{{beschluss.dokument_text | drslink}}: <strong>{{beschluss.tenor}}</strong></li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+
           </span>
           <span class="bottom">
             {% if position.debatte %}
