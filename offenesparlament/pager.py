@@ -10,6 +10,11 @@ class Pager(object):
         self.query = query
         self.kwargs = kwargs
         try:
+            p = args.get('paging', 'true').lower()
+            self.paging = p not in ['false', 'f', '0', 'no']
+        except:
+            self.paging = True
+        try:
             self.page = int(args.get('page'))
         except:
             self.page = 1
@@ -20,10 +25,14 @@ class Pager(object):
 
     @property
     def offset(self):
+        if not self.paging: 
+            return 0
         return (self.page-1)*self.limit
 
     @property
     def pages(self):
+        if not self.paging:
+            return 1
         return int(math.ceil(len(self)/float(self.limit)))
 
     @property
@@ -68,8 +77,10 @@ class Pager(object):
         return url_for(self.route, **dict(kw))
 
     def __iter__(self):
-        query = self.query.limit(self.limit)
-        query = query.offset(self.offset)
+        query = self.query
+        if self.paging:
+            query = query.limit(self.limit)
+            query = query.offset(self.offset)
         return query.all().__iter__()
 
     def __len__(self):
