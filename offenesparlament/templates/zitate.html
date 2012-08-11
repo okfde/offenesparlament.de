@@ -12,7 +12,7 @@
       {% endif %}
       {% if searcher.has_facet('person.name') %}
         <h3>Sprecher</h3>
-        {{ macros.facet_list(searcher, pager, 'person.name', limit=100) }}
+        {{ macros.facet_list(searcher, pager, 'redner', limit=100) }}
       {% endif %}
     </div>
     <div class="mainbar">

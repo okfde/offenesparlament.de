@@ -41,20 +41,7 @@
       {% endif %}
     </div>
     <div class="mainbar">
-      <ul class="search-results ablauf">
-      {% for ablauf in pager %}
-      <li>
-        <h3><a href="{{ url_for('ablauf', wahlperiode=ablauf.wahlperiode,
-            key=ablauf.key) }}">{{ ablauf.titel }}</a></h3>
-        <p>
-          <span class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
-          {{ ablauf.stand }} 
-          </span> ({{ablauf.latest.strftime("%d.%m.%Y")}}) &mdash; 
-          <strong>{{ ablauf.typ }}</strong> &mdash; {{ ablauf.initiative or
-        ablauf.sachgebiet or ablauf.stand }}</p>
-      </li>
-      {% endfor %}
-      </ul>
+      {{ snippets.ablaeufe(pager) }}
       {{ macros.pager(pager) }}
     </div>
   </div>

@@ -20,11 +20,11 @@
   {% block head %} {% endblock %}
 </head>
 <body>
-  <div class="beta-banner">
+  <!--div class="beta-banner">
     Diese Seite ist im Testbetrieb und enthält Fehler.
     Informationen zur <a href="{{ url_for("page", path="qualitaet") }}">Datenqualität</a>,
     <a href="{{ url_for("page", path='faq') }}">FAQ</a>.
-  </div>
+  </div-->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <ul class="flashes site">

@@ -1,4 +1,5 @@
 {% import "searches.html" as macros %}
+{% import "snippets.html" as snippets %}
 {% extends "layout.html" %}
 
 {% block title %}
@@ -53,16 +54,7 @@
     <div class="mainbar">
       <h3>Abläufe</h3>
       {{ macros.search(searcher, pager) }}
-      <ul class="search-results ablauf">
-      {% for ablauf in pager %}
-      <li>
-        <h3><a href="{{ url_for('ablauf', wahlperiode=ablauf.wahlperiode,
-            key=ablauf.key) }}">{{ ablauf.titel }}</a></h3>
-        <p><strong>{{ ablauf.typ }}</strong> &mdash; {{ ablauf.initiative or
-        ablauf.sachgebiet or ablauf.stand }}</p>
-      </li>
-      {% endfor %}
-      </ul>
+      {{ snippets.ablaeufe(pager) }}
       {{ macros.pager(pager) }}
     </div>
   </div>
