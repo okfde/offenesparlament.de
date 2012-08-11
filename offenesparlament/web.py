@@ -47,7 +47,6 @@ def make_feed(title, author='OffenesParlament.de',
         'Was passiert im Bundestag?', author_name=author)
     items = sorted(items, key=lambda i: i.get('pubdate').isoformat(), reverse=True)
     for item in items[:10]:
-        print item
         feed.add_item(**item)
     sio = StringIO()
     feed.write(sio, 'utf-8')
@@ -63,6 +62,8 @@ def debatte(wahlperiode, nummer, debatte, format=None):
             .filter(Sitzung.nummer == nummer).first()
     if debatte is None:
         abort(404)
+    if format == 'json':
+        return jsonify(debatte)
     sitzung_url = url_for('sitzung', wahlperiode=wahlperiode, nummer=nummer)
     url = sitzung_url + '?debatte.titel=' + quote(debatte.titel.encode('utf-8'))
     url = url + '&paging=false'
@@ -85,6 +86,10 @@ def sitzung(wahlperiode, nummer, format=None):
     pager = Pager(searcher, 'sitzung', request.args,
             wahlperiode=wahlperiode, nummer=nummer)
     pager.limit = 100
+    if format == 'json':
+        data = sitzung.to_dict()
+        data['results'] = pager
+        return jsonify(data)
     return render_template('sitzung_view.html',
             sitzung=sitzung, pager=pager, searcher=searcher)
 
@@ -96,6 +101,8 @@ def sitzungen(format=None):
     searcher.add_facet('wahlperiode')
     searcher.sort('date', 'desc')
     pager = Pager(searcher, 'sitzungen', request.args)
+    if format == 'json':
+        return jsonify({'results': pager})
     return render_template('sitzung_search.html',
             searcher=searcher, pager=pager)
 
@@ -106,6 +113,8 @@ def position(key, format=None):
     position = Position.query.filter_by(key=key).first()
     if position is None:
         abort(404)
+    if format == 'json':
+        return jsonify(position)
     return redirect(url_for('ablauf',
         wahlperiode=position.ablauf.wahlperiode,
         key=position.ablauf.key) + '#' + position.key)
@@ -118,6 +127,8 @@ def ablauf(wahlperiode, key, format=None):
                                     key=key).first()
     if ablauf is None:
         abort(404)
+    if format == 'json':
+        return jsonify(ablauf)
     referenzen = defaultdict(set)
     for ref in ablauf.referenzen:
         if ref.dokument.typ == 'plpr' and ref.dokument.hrsg == 'BT':
@@ -142,6 +153,8 @@ def ablaeufe(format=None):
     searcher.add_facet('sachgebiet')
     searcher.add_facet('schlagworte')
     pager = Pager(searcher, 'ablaeufe', request.args)
+    if format == 'json':
+        return jsonify({'results': pager})
     return render_template('ablauf_search.html',
             searcher=searcher, pager=pager)
 
@@ -168,6 +181,8 @@ def gremien(format=None):
             order_by(Gremium.name.asc()).all()
     others = Gremium.query.filter_by(typ='sonstiges').\
             order_by(Gremium.name.asc()).all()
+    if format == 'json':
+        return jsonify({'results': committees + others})
     return render_template('gremium_list.html',
             committees=committees, others=others)
 
@@ -178,6 +193,8 @@ def gremium(key, format=None):
     gremium = Gremium.query.filter_by(key=key).first()
     if gremium is None:
         abort(404)
+    if format == 'json':
+        return jsonify(gremium)
     searcher = SolrSearcher(Ablauf, request.args)
     #searcher.sort('positionen.date')
     searcher.filter('positionen.zuweisungen.gremium', gremium.key)
@@ -194,6 +211,8 @@ def persons(format=None):
     searcher.add_facet('rollen.fraktion')
     searcher.add_facet('berufsfeld')
     pager = Pager(searcher, 'persons', request.args)
+    if format == 'json':
+        return jsonify({'results': pager})
     return render_template('person_search.html',
             searcher=searcher, pager=pager)
 
@@ -204,6 +223,8 @@ def person(slug, format=None):
     person = Person.query.filter_by(slug=slug).first()
     if person is None:
         abort(404)
+    if format == 'json':
+        return jsonify(person)
     return person_render(person, format)
 
 
