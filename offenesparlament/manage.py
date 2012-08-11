@@ -65,7 +65,15 @@ def transform():
     persons.generate_person_long_names(engine)
     speechmatch.extend_speeches(engine)
     persons.generate_person_long_names(engine)
+    from offenesparlament.transform import drs
+    drs.merge_speeches(engine)
 
+@manager.command
+def devtf():
+    """ Transform and clean up content (dev bits) """
+    engine = etl_engine()
+    from offenesparlament.transform import drs
+    drs.merge(engine)
 
 @manager.command
 def load():

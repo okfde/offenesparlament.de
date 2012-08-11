@@ -286,6 +286,12 @@ def load_position(data, ablauf_id, ablauf, engine):
     position.typ = data.get('typ')
     position.ablauf = ablauf
 
+    if data.get('debatte_item_id'):
+        dq = Debatte.query.filter(Debatte.nummer==data.get('debatte_item_id'))
+        dq = dq.filter(Debatte.sitzung.wahlperiode==data.get('debatte_wp'))
+        dq = dq.filter(Debatte.sitzung.nummer==data.get('debatte_session'))
+        position.debatte = dq.first()
+
     _Referenz = sl.get_table(engine, 'referenz')
     for ddata in sl.find(engine, _Referenz, fundstelle=position.fundstelle,
             urheber=position.urheber, ablauf_id=ablauf_id):
@@ -377,7 +383,8 @@ def load_sitzung(engine, session):
         sitzung = Sitzung()
         sitzung.wahlperiode = session.get('wp')
         sitzung.nummer = session.get('session')
-
+    else:
+        return
     sitzung.titel = session.get('session_name')
     sitzung.date = date(session.get('session_date'))
     sitzung.source_url = session.get('session_url')
@@ -440,6 +447,7 @@ def load_zitate(engine, debatte, zitate, speeches):
         zitat.typ = speech['type']
         zitat.speech_id = data['speech_id']
         zitat.sprecher = speech['speaker']
+        zitat.redner = data['speaker']
         zitat.source_url = speech['source_url']
 
         if speech['fingerprint']:
@@ -493,8 +501,8 @@ def load(engine):
     load_gremien(engine)
     #load_news(engine)
     load_persons(engine)
-    load_ablaeufe(engine)
     load_sitzungen(engine)
+    load_ablaeufe(engine)
     load_abstimmungen(engine)
 
 

@@ -575,6 +575,8 @@ class Position(db.Model):
 
     ablauf_id = db.Column(db.Integer, db.ForeignKey('ablauf.id'))
     dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
+    debatte_id = db.Column(db.Integer, db.ForeignKey('debatte.id'),
+            nullable=True)
 
     zuweisungen = db.relationship('Zuweisung', backref='position', 
             lazy='dynamic')
@@ -609,6 +611,7 @@ class Position(db.Model):
             'quelle': self.quelle,
             'typ': self.typ,
             'ablauf': self.ablauf.to_ref(),
+            'debatte': self.debatte.to_ref() if self.debatte else None,
             'dokument': self.dokument.to_ref() if self.dokument else None,
             'zuweisungen': [z.to_ref() for z in self.zuweisungen],
             'beschluesse': [b.to_ref() for b in self.beschluesse],
@@ -747,6 +750,9 @@ class Debatte(db.Model):
     zitate = db.relationship('Zitat', backref='debatte',
                            lazy='dynamic', order_by='Zitat.sequenz.asc()')
 
+    positionen = db.relationship('Position', backref='debatte',
+                           lazy='dynamic')
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                            onupdate=datetime.utcnow)
@@ -763,6 +769,7 @@ class Debatte(db.Model):
         data.update({
             'sitzung': self.sitzung.to_ref() if self.sitzung else None,
             'text': self.text,
+            'positionen': [p.to_ref() for p in self.positionen],
             'created_at': self.created_at,
             'updated_at': self.updated_at
             })
@@ -775,6 +782,7 @@ class Zitat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sequenz = db.Column(db.Integer())
     sprecher = db.Column(db.Unicode())
+    redner = db.Column(db.Unicode())
     text = db.Column(db.Unicode())
     typ = db.Column(db.Unicode())
     speech_id = db.Column(db.Integer())
