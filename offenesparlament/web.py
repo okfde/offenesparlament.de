@@ -2,12 +2,10 @@
 from collections import defaultdict
 from datetime import datetime
 from urllib import quote
-from StringIO import StringIO
 
 from colander import Invalid
 from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify, Response
-from webhelpers.feedgenerator import Rss201rev2Feed
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
@@ -16,41 +14,10 @@ from offenesparlament.model import Sitzung, Zitat, Debatte
 from offenesparlament.model import Abo
 
 from offenesparlament.pager import Pager
-from offenesparlament.util import jsonify
+from offenesparlament.util import jsonify, make_feed
 from offenesparlament.searcher import SolrSearcher
 from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
-
-
-def make_feed(title, author='OffenesParlament.de',
-    positionen=[], debatten=[], limit=10):
-    items = []
-    for position in positionen:
-        items.append({
-            'title': '[Drs] ' + position.typ + ': ' + position.ablauf.titel,
-            'pubdate': position.date,
-            'link': url_for('position', key=position.key, _external=True),
-            'description': position.ablauf.abstrakt
-            })
-    for debatte in debatten:
-        if debatte.nummer is None:
-            continue
-        items.append({
-            'title': '[Rede] ' + debatte.titel,
-            'pubdate': debatte.sitzung.date,
-            'link': url_for('debatte', wahlperiode=debatte.sitzung.wahlperiode,
-                nummer=debatte.sitzung.nummer, debatte=debatte.nummer,
-                _external=True),
-            'description': debatte.text
-            })
-    feed = Rss201rev2Feed(title, url_for('index', _external=True), 
-        'Was passiert im Bundestag?', author_name=author)
-    items = sorted(items, key=lambda i: i.get('pubdate').isoformat(), reverse=True)
-    for item in items[:10]:
-        feed.add_item(**item)
-    sio = StringIO()
-    feed.write(sio, 'utf-8')
-    return Response(sio.getvalue(), status=200, mimetype='application/xml')
 
 
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
@@ -81,7 +48,7 @@ def sitzung(wahlperiode, nummer, format=None):
     searcher.filter('sitzung.wahlperiode', sitzung.wahlperiode)
     searcher.filter('sitzung.nummer', sitzung.nummer)
     searcher.add_facet('debatte.titel')
-    searcher.add_facet('person.name')
+    searcher.add_facet('redner')
     searcher.sort('sequenz', 'asc')
     pager = Pager(searcher, 'sitzung', request.args,
             wahlperiode=wahlperiode, nummer=nummer)
