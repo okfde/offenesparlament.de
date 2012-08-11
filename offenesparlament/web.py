@@ -22,7 +22,7 @@ from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
 
 
-def make_feed(title, author='Deutscher Bundestag (inoffiziell)',
+def make_feed(title, author='OffenesParlament.de',
     positionen=[], debatten=[], limit=10):
     items = []
     for position in positionen:
@@ -54,31 +54,18 @@ def make_feed(title, author='Deutscher Bundestag (inoffiziell)',
     return Response(sio.getvalue(), status=200, mimetype='application/xml')
 
 
-@app.route("/plenum/<wahlperiode>/<nummer>/<debatte>/<speech>")
-@app.route("/plenum/<wahlperiode>/<nummer>/<debatte>/<speech>.<format>")
-def speech(wahlperiode, nummer, debatte, format=None):
-    debatte = Debatte.query.filter_by(nummer=debatte)\
-            .join(Debatte.sitzung)\
-            .filter(Debatte.sitzung.wahlperiode == wahlperiode)\
-            .filter(Debatte.sitzung.nummer == nummer).first()
-    if debatte is None:
-        abort(404)
-    sitzung_url = url_for('sitzung', wahlperiode=wahlperiode, nummer=nummer)
-    url = sitzung_url + '?debatte.titel=' + quote(debatte.titel)
-    return redirect(url)
-
-
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
 def debatte(wahlperiode, nummer, debatte, format=None):
     debatte = Debatte.query.filter_by(nummer=debatte)\
-            .join(Debatte.sitzung)\
-            .filter(Debatte.sitzung.wahlperiode == wahlperiode)\
-            .filter(Debatte.sitzung.nummer == nummer).first()
+            .join(Sitzung)\
+            .filter(Sitzung.wahlperiode == wahlperiode)\
+            .filter(Sitzung.nummer == nummer).first()
     if debatte is None:
         abort(404)
     sitzung_url = url_for('sitzung', wahlperiode=wahlperiode, nummer=nummer)
-    url = sitzung_url + '?debatte.titel=' + quote(debatte.titel)
+    url = sitzung_url + '?debatte.titel=' + quote(debatte.titel.encode('utf-8'))
+    url = url + '&paging=false'
     return redirect(url)
 
 

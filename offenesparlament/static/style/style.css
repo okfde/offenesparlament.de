@@ -476,6 +476,11 @@ ul.votes-list h4 {
   margin-bottom: 0.2em;
 }
 
+img.minipic {
+  background-color: black;
+  border: 0;
+}
+
 ul.votes-list h4 a {
   text-decoration: none;
 }

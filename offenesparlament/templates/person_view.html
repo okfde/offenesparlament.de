@@ -99,10 +99,7 @@
       <h3>Beiträge im Plenum</h3>
       <ul>
         {% for debatte in debatten %}
-          <li><a href="{{ url_for('sitzung',
-            wahlperiode=debatte.sitzung.wahlperiode,
-            nummer=debatte.sitzung.nummer) }}?debatte.titel={{
-            debatte.titel }}">
+          <li><a href="{{ url_for('debatte', wahlperiode=debatte.sitzung.wahlperiode, nummer=debatte.sitzung.nummer, debatte=debatte.nummer) }}">
             {{ debatte.sitzung.date.strftime('%d.%m.%Y') }}: 
             {{ debatte.titel }}</a></li>
         {% endfor %}

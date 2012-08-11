@@ -88,29 +88,27 @@
             <span class="typ">{{position.typ}}</span>
           </span>
           <span class="body">
-            <ul>
               {% for beitrag in position.beitraege %}
-                {% if beitrag.person.name %}
-              <li><strong>{{ beitrag.art }}:</strong> 
-                <a href="{{ url_for('person', slug=beitrag.person.slug) }}">{{ beitrag.person.name
-                  }} 
-                  {% if beitrag.rolle %}
-                  ({{ (beitrag.rolle.fraktion or beitrag.rolle.ressort or '') + ', ' + beitrag.rolle.funktion }})
-                  {% endif %}
-                </a></li>
-                {% endif %}
+                <a href="{{ url_for('person', slug=beitrag.person.slug) }}">
+                  <img title="{{beitrag.person.name}}: {{beitrag.art}}" class="minipic"
+                    src="{{beitrag.person.foto_url or ''}}" height="45px" width="30px"></a>
               {% endfor %}
-            </ul>
           </span>
           <span class="bottom">
-            Quelle: 
-            {% if position.quelle %}
-              {{position.quelle}} &middot;
-            {% endif %}
-            {% if position.dokument %}
-              <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+            {% if position.debatte %}
+              Plenarprotokoll {{position.debatte.sitzung.titel}}, TOP
+              <a href="{{ url_for('debatte', wahlperiode=ablauf.wahlperiode,
+                nummer=position.debatte.sitzung.nummer,
+                debatte=position.debatte.nummer) }}">{{ position.debatte.titel }}</a>
             {% else %}
-              {{position.fundstelle}}
+              {% if position.quelle %}
+                {{position.quelle}} &middot;
+              {% endif %}
+              {% if position.dokument %}
+                <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+              {% else %}
+                {{position.fundstelle}}
+              {% endif %}
             {% endif %}
           </span>
         </li>

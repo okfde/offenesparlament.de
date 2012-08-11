@@ -1,4 +1,5 @@
 {% import "searches.html" as macros %}
+{% import "zitate.html" as zitate %}
 {% extends "layout.html" %}
 
 {% block title %}
@@ -7,53 +8,9 @@
 
 {% block content %}
   <h1>{{ sitzung.titel }}</h1>
-  <div class="box">
-    {{ macros.search(searcher, pager) }}
-    
-    <div class="sidebar">
-      {% if searcher.has_facet('debatte.titel') %}
-        <h3>Tagesordnung</h3>
-        {{ macros.facet_list(searcher, pager, 'debatte.titel',
-                             limit=500) }}
-      {% endif %}
-      {% if searcher.has_facet('person.name') %}
-        <h3>Sprecher</h3>
-        {{ macros.facet_list(searcher, pager, 'person.name', limit=100) }}
-      {% endif %}
-    </div>
-    <div class="mainbar">
-      <table class="search-results zitate">
-      {% for zitat in pager %}
-      <tr class="{{ zitat.typ }}">
-        <td class="speaker" width="40%">
-          {% if zitat.person %}
-          <a href="{{ url_for('person', slug=zitat.person.slug) }}">{{
-            zitat.person.name }}</a>
-          {% elif zitat.sprecher %}
-            {{ zitat.sprecher }}
-          {% endif %}
-          {% if zitat.typ == 'chair' %}
-            <div class="meta">Sitzungsleitung</div>
-          {% elif zitat.typ == 'speech' %}
-            {% if zitat.person %}
-              <div class="meta">{{ zitat.person.partei or
-                zitat.person.rollen[0].ressort }}</div>
-            {% endif %}
-          {% endif %}
-          </td>
-        <td class="text">
-          {{ zitat.text | replace('\n\n', '<hr/>') | safe }}
-        </td>
-        <td class="details">
-          <a name="z{{zitat.sequenz}}" href="#z{{zitat.sequenz}}" title="Link zum zitieren">&para;</a>
-        </td>
-      </tr>
-      {% endfor %}
-      </table>
-      {{ macros.pager(pager) }}
-    </div>
-  </div>
+  {{ zitate.viewer(sitzung, searcher, pager) }}
 {% endblock %}
 
-
-
+{% block script %}
+  {{ zitate.annotate() }}
+{% endblock %}
