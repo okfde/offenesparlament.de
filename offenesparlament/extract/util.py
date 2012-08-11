@@ -2,7 +2,7 @@ import logging
 from Queue import Queue
 from threading import Thread
 
-def threaded(items, func, num_threads=10, max_queue=200):
+def threaded(items, func, num_threads=5, max_queue=200):
     def queue_consumer():
         while True:
             item = queue.get(True)
