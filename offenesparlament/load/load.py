@@ -197,7 +197,7 @@ def load_ablaeufe(engine):
     _Ablauf = sl.get_table(engine, 'ablauf')
 
     for i, data in enumerate(sl.find(engine, _Ablauf, wahlperiode=str(17))):
-        log.info("Loading Ablauf: %s..." % data['titel'])
+        log.info("Loading Ablauf: %s - %s..." % (data['key'], data['titel']))
         load_ablauf(engine, data)
         if i % 500 == 0:
             db.session.commit()
@@ -267,6 +267,8 @@ def load_ablauf(engine, data):
     for position in sl.find(engine, _Position, ablauf_id=ablauf_id):
         load_position(position, ablauf_id, ablauf, engine)
 
+    db.session.commit()
+
 
 def load_position(data, ablauf_id, ablauf, engine):
     position = Position.query.filter_by(
@@ -288,8 +290,9 @@ def load_position(data, ablauf_id, ablauf, engine):
 
     if data.get('debatte_item_id'):
         dq = Debatte.query.filter(Debatte.nummer==data.get('debatte_item_id'))
-        dq = dq.filter(Debatte.sitzung.wahlperiode==data.get('debatte_wp'))
-        dq = dq.filter(Debatte.sitzung.nummer==data.get('debatte_session'))
+        dq = dq.join(Sitzung)
+        dq = dq.filter(Sitzung.wahlperiode==data.get('debatte_wp'))
+        dq = dq.filter(Sitzung.nummer==data.get('debatte_session'))
         position.debatte = dq.first()
 
     _Referenz = sl.get_table(engine, 'referenz')
