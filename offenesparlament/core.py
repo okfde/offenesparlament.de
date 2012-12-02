@@ -28,12 +28,6 @@ def solr():
                 http_user=app.config.get('SOLR_USER'),
                 http_pass=app.config.get('SOLR_PASSWORD'))
 
-
-def master_data():
-    from webstore.client import URL as WebStore
-    db, _ = WebStore(app.config['MASTER_URL'])
-    return db
-
 def etl_engine():
     from sqlaload import connect
     return connect(app.config['ETL_URL'])
@@ -45,3 +39,12 @@ def nk_persons():
         _nkp = NKDataset(app.config['NOMENKLATURA_PERSONS_DATASET'],
                      api_key=app.config['NOMENKLATURA_API_KEY'])
     return _nkp
+
+def nk_types():
+    from nkclient import NKDataset
+    global _nkp
+    if _nkp is None:
+        _nkp = NKDataset(app.config['NOMENKLATURA_TYPES_DATASET'],
+                     api_key=app.config['NOMENKLATURA_API_KEY'])
+    return _nkp
+

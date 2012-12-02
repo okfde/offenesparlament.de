@@ -321,6 +321,8 @@
    <field name="zurodnung" type="string" indexed="true" stored="true" />
    <field name="zustimmungsbeduerftig" type="string" indexed="true" stored="true" />
    <field name="sequenz" type="int" indexed="true" stored="true" />
+   <field name="speaker" type="string" indexed="true" stored="true" />
+   <field name="redner" type="string" indexed="true" stored="true" />
    
    <field name="zitate.id" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="zitate.sequenz" type="string" indexed="true" stored="true" multiValued="true"/>
