@@ -7,7 +7,7 @@ import re
 from colander import Invalid
 from jinja2 import Markup
 from flask import Flask, g, request, render_template, abort, flash, json
-from flask import url_for, redirect, jsonify, Response
+from flask import url_for, redirect, jsonify, Response, make_response
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
@@ -20,6 +20,14 @@ from offenesparlament.util import jsonify, make_feed
 from offenesparlament.searcher import SolrSearcher
 from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament import aggregates
+
+
+def render_sitemap(items, prio=0.8):
+    res = make_response(render_template('sitemap.xml',
+        items=items, prio=prio))
+    res.headers['Content-Type'] = 'text/xml; charset=utf-8'
+    return res
+
 
 @app.template_filter()
 def drslink(text, verbose=False):
@@ -80,6 +88,20 @@ def sitzung(wahlperiode, nummer, format=None):
     return render_template('sitzung_view.html',
             sitzung=sitzung, pager=pager, searcher=searcher)
 
+@app.route("/sitemap/plenum-<year>.xml")
+def plenum_sitemap(year):
+    items = []
+    query = Debatte.query.join(Sitzung)
+    query = query.filter(db.extract('year', Sitzung.date)==int(year))
+    query = query.distinct(Debatte.id)
+    for debatte in query:
+        item = {'lastmod': debatte.updated_at,
+                'loc': url_for('debatte', wahlperiode=debatte.sitzung.wahlperiode,
+                               nummer=debatte.sitzung.nummer, debatte=debatte.id,
+                               _external=True)}
+        items.append(item)
+    return render_sitemap(items, prio=0.9)
+
 
 @app.route("/plenum")
 @app.route("/plenum.<format>")
@@ -106,6 +128,18 @@ def position(key, format=None):
         wahlperiode=position.ablauf.wahlperiode,
         key=position.ablauf.key) + '#' + position.key)
 
+@app.route("/sitemap/ablauf-<year>.xml")
+def ablauf_sitemap(year):
+    items = []
+    query = Ablauf.query.join(Position)
+    query = query.filter(db.extract('year', Position.date)==int(year))
+    query = query.distinct(Ablauf.id)
+    for ablauf in query:
+        item = {'lastmod': ablauf.latest,
+                'loc': url_for('ablauf', wahlperiode=ablauf.wahlperiode,
+                               key=ablauf.key, _external=True)}
+        items.append(item)
+    return render_sitemap(items, prio=0.6)
 
 @app.route("/ablauf/<wahlperiode>/<key>")
 @app.route("/ablauf/<wahlperiode>/<key>.<format>")
@@ -127,7 +161,6 @@ def ablauf(wahlperiode, key, format=None):
     referenzen = sorted(referenzen.items(), key=lambda (r, s): r.name)
     return render_template('ablauf_view.html',
             ablauf=ablauf, referenzen=referenzen)
-
 
 @app.route("/ablauf")
 @app.route("/ablauf.<format>")
@@ -203,6 +236,14 @@ def persons(format=None):
     return render_template('person_search.html',
             searcher=searcher, pager=pager)
 
+@app.route("/sitemap/person.xml")
+def person_sitemap():
+    persons = []
+    for person in Person.query.yield_per(1000):
+        data = {'lastmod': person.updated_at,
+                'loc': url_for('person', slug=person.slug, _external=True)}
+        persons.append(data)
+    return render_sitemap(persons)
 
 @app.route("/person/<slug>")
 @app.route("/person/<slug>.<format>")
@@ -213,7 +254,6 @@ def person(slug, format=None):
     if format == 'json':
         return jsonify(person)
     return person_render(person, format)
-
 
 @app.route("/person/mdb/<id>")
 @app.route("/person/mdb/<id>.<format>")
@@ -320,6 +360,15 @@ def page(path):
     page = pages.get_or_404(path)
     template = page.meta.get('template', 'page.html')
     return render_template(template, page=page)
+
+@app.route("/sitemap.xml")
+def sitemap():
+    now = datetime.utcnow()
+    years = range(2000, now.year+1)[::-1]
+    res = make_response(render_template('sitemapindex.xml',
+        years=years, now=now, url=url_for('index', _external=True)))
+    res.headers['Content-Type'] = 'text/xml; charset=utf-8'
+    return res
 
 
 @app.route("/")
