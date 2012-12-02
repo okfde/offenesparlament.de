@@ -1,21 +1,15 @@
-from datetime import datetime
-
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Zuweisung(db.Model):
+class Zuweisung(db.Model, ModelCore):
     __tablename__ = 'zuweisung'
 
-    id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Unicode())
     federfuehrung = db.Column(db.Boolean())
 
     gremium_id = db.Column(db.Integer, db.ForeignKey('gremium.id'))
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

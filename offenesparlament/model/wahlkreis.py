@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
 class Postleitzahl(db.Model):
@@ -14,10 +15,9 @@ class Postleitzahl(db.Model):
                            onupdate=datetime.utcnow)
 
 
-class Wahlkreis(db.Model):
+class Wahlkreis(db.Model, ModelCore):
     __tablename__ = 'wahlkreis'
 
-    id = db.Column(db.Integer, primary_key=True)
     nummer = db.Column(db.Unicode)
     name = db.Column(db.Unicode)
     url = db.Column(db.Unicode)
@@ -26,10 +26,6 @@ class Wahlkreis(db.Model):
                            lazy='dynamic')
     plzs = db.relationship('Postleitzahl', backref='wahlkreis',
                            lazy='dynamic')
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

@@ -1,12 +1,10 @@
-from datetime import datetime
-
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Gremium(db.Model):
+class Gremium(db.Model, ModelCore):
     __tablename__ = 'gremium'
 
-    id = db.Column(db.Integer, primary_key=True)
     vorsitz_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     stellv_vorsitz_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     source_url = db.Column(db.Unicode)
@@ -23,10 +21,6 @@ class Gremium(db.Model):
             lazy='dynamic')
     news = db.relationship('NewsItem', backref='gremium',
                            lazy='dynamic')
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_dict(self):
         return {

@@ -1,12 +1,10 @@
-from datetime import datetime
-
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Sitzung(db.Model):
+class Sitzung(db.Model, ModelCore):
     __tablename__ = 'sitzung'
 
-    id = db.Column(db.Integer, primary_key=True)
     wahlperiode = db.Column(db.Integer())
     nummer = db.Column(db.Integer())
     titel = db.Column(db.Unicode())
@@ -18,10 +16,6 @@ class Sitzung(db.Model):
 
     zitate = db.relationship('Zitat', backref='sitzung',
                            lazy='dynamic', order_by='Zitat.sequenz.asc()')
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

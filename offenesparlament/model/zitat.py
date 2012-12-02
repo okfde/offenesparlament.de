@@ -1,12 +1,10 @@
-from datetime import datetime
-
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Zitat(db.Model):
+class Zitat(db.Model, ModelCore):
     __tablename__ = 'zitat'
 
-    id = db.Column(db.Integer, primary_key=True)
     sequenz = db.Column(db.Integer())
     sprecher = db.Column(db.Unicode())
     redner = db.Column(db.Unicode())
@@ -19,10 +17,6 @@ class Zitat(db.Model):
             nullable=True)
     sitzung_id = db.Column(db.Integer, db.ForeignKey('sitzung.id'))
     debatte_id = db.Column(db.Integer, db.ForeignKey('debatte.id'))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

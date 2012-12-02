@@ -1,21 +1,17 @@
 from datetime import datetime
 
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Beschluss(db.Model):
+class Beschluss(db.Model, ModelCore):
     __tablename__ = 'beschluss'
 
-    id = db.Column(db.Integer, primary_key=True)
     dokument_text = db.Column(db.Unicode())
     tenor = db.Column(db.Unicode())
     seite = db.Column(db.Unicode())
 
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

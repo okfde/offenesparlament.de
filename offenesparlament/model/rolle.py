@@ -1,11 +1,9 @@
-from datetime import datetime
-
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
-class Rolle(db.Model):
+class Rolle(db.Model, ModelCore):
     __tablename__ = 'rolle'
 
-    id = db.Column(db.Integer, primary_key=True)
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     mdb_id = db.Column(db.Unicode)
     status = db.Column(db.Unicode)
@@ -20,10 +18,6 @@ class Rolle(db.Model):
 
     beitraege = db.relationship('Beitrag', backref='rolle',
             lazy='dynamic')
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

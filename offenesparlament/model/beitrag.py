@@ -1,22 +1,18 @@
 from datetime import datetime
 
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Beitrag(db.Model):
+class Beitrag(db.Model, ModelCore):
     __tablename__ = 'beitrag'
 
-    id = db.Column(db.Integer, primary_key=True)
     seite = db.Column(db.Unicode())
     art = db.Column(db.Unicode())
 
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     rolle_id = db.Column(db.Integer, db.ForeignKey('rolle.id'))
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

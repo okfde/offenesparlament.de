@@ -1,11 +1,12 @@
 from datetime import datetime
 
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
-class NewsItem(db.Model):
+
+class NewsItem(db.Model, ModelCore):
     __tablename__ = 'news_item'
 
-    id = db.Column(db.Integer, primary_key=True)
     source_url = db.Column(db.Unicode)
     title = db.Column(db.Unicode)
     text = db.Column(db.UnicodeText)
@@ -15,10 +16,6 @@ class NewsItem(db.Model):
     image_changed_at = db.Column(db.DateTime)
 
     gremium_id = db.Column(db.Integer, db.ForeignKey('gremium.id'))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_dict(self):
         return {

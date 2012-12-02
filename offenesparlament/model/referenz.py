@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
 referenzen = db.Table('referenzen',
@@ -9,20 +8,15 @@ referenzen = db.Table('referenzen',
 )
 
 
-class Referenz(db.Model):
+class Referenz(db.Model, ModelCore):
     __tablename__ = 'referenz'
 
-    id = db.Column(db.Integer, primary_key=True)
     seiten = db.Column(db.Unicode())
     text = db.Column(db.Unicode())
     dokument_id = db.Column(db.Integer, db.ForeignKey('dokument.id'))
 
     ablaeufe = db.relationship('Ablauf', secondary=referenzen,
         backref=db.backref('referenzen', lazy='dynamic'))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

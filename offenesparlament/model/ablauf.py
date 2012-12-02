@@ -2,11 +2,11 @@ from datetime import datetime
 
 from offenesparlament.core import db
 from offenesparlament.model.schlagwort import schlagworte
+from offenesparlament.model.util import ModelCore
 
-class Ablauf(db.Model):
+class Ablauf(db.Model, ModelCore):
     __tablename__ = 'ablauf'
 
-    id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.Unicode())
     source_url = db.Column(db.Unicode())
     wahlperiode = db.Column(db.Unicode())
@@ -25,15 +25,11 @@ class Ablauf(db.Model):
     zustimmungsbeduerftig = db.Column(db.Unicode())
     sachgebiet = db.Column(db.Unicode())
     abgeschlossen = db.Column(db.Boolean())
-    
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
-    
+
     schlagworte = db.relationship('Schlagwort',
         secondary=schlagworte,
         backref=db.backref('ablaeufe', lazy='dynamic'))
-    
+
     positionen = db.relationship('Position', backref='ablauf',
                            lazy='dynamic', order_by='Position.date.desc()')
 

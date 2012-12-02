@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
 obleute = db.Table('obleute',
@@ -19,10 +20,9 @@ stellvertreter = db.Table('stellvertreter',
 )
 
 
-class Person(db.Model):
+class Person(db.Model, ModelCore):
     __tablename__ = 'person'
 
-    id = db.Column(db.Integer, primary_key=True)
     slug = db.Column(db.Unicode)
     fingerprint = db.Column(db.Unicode)
     source_url = db.Column(db.Unicode)
@@ -64,29 +64,25 @@ class Person(db.Model):
     stellv_vorsitze = db.relationship('Gremium', backref='stellv_vorsitz',
                              primaryjoin='Person.id == Gremium.stellv_vorsitz_id',
                              lazy='dynamic')
-    
+
     mitglied = db.relationship('Gremium', secondary=mitglieder,
         backref=db.backref('mitglieder', lazy='dynamic'))
-    
+
     stellvertreter = db.relationship('Gremium', secondary=stellvertreter,
         backref=db.backref('stellvertreter', lazy='dynamic'))
-    
+
     obleute = db.relationship('Gremium', secondary=obleute,
         backref=db.backref('obleute', lazy='dynamic'))
-    
+
     beitraege = db.relationship('Beitrag', backref='person',
                            lazy='dynamic')
-    
+
     zitate = db.relationship('Zitat', backref='person',
                            lazy='dynamic')
-    
+
     stimmen = db.relationship('Stimme', backref='person',
                            lazy='dynamic')
-    
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
-    
+
     @property
     def name(self):
         name = "%s %s %s" % (self.titel if self.titel else '', \

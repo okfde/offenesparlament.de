@@ -1,22 +1,16 @@
-from datetime import datetime
-
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Stimme(db.Model):
+class Stimme(db.Model, ModelCore):
     __tablename__ = 'stimme'
 
-    id = db.Column(db.Integer, primary_key=True)
     entscheidung = db.Column(db.Unicode())
 
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'), 
             nullable=True)
     abstimmung_id = db.Column(db.Integer, db.ForeignKey('abstimmung.id'), 
             nullable=True)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
 
     def to_ref(self):
         return {

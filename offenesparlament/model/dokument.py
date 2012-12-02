@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
 beschluesse_dokumente = db.Table('beschluesse_dokumente',
@@ -9,34 +10,29 @@ beschluesse_dokumente = db.Table('beschluesse_dokumente',
 )
 
 
-class Dokument(db.Model):
+class Dokument(db.Model, ModelCore):
     __tablename__ = 'dokument'
-    
-    id = db.Column(db.Integer, primary_key=True)
+
     nummer = db.Column(db.Unicode())
     hrsg = db.Column(db.Unicode())
     typ = db.Column(db.Unicode())
     link = db.Column(db.Unicode())
-    
+
     referenzen = db.relationship('Referenz', backref='dokument',
                            lazy='dynamic')
-    
+
     positionen = db.relationship('Position', backref='dokument',
                            lazy='dynamic')
 
     beschluesse = db.relationship('Beschluss', secondary=beschluesse_dokumente,
         backref=db.backref('dokumente', lazy='dynamic'))
-    
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
-    
+
     @property
     def typ_lang(self):
         return {'plpr': 'Plenarprotokoll',
                 'drs': 'Drucksache'}.get(self.typ.lower(), 
                         'Drucksache')
-    
+
     @property
     def name(self):
         return "%s (%s) %s" % (self.typ_lang, self.hrsg, self.nummer)

@@ -2,12 +2,12 @@
 from datetime import datetime
 
 from offenesparlament.core import db
+from offenesparlament.model.util import ModelCore
 
 
-class Abstimmung(db.Model):
+class Abstimmung(db.Model, ModelCore):
     __tablename__ = 'abstimmung'
 
-    id = db.Column(db.Integer, primary_key=True)
     thema = db.Column(db.Unicode())
     datum = db.Column(db.DateTime, default=datetime.utcnow)
 
