@@ -61,8 +61,8 @@ def transform():
     speechparser.load_transcripts(engine)
     from offenesparlament.transform import webtv
     webtv.merge_speeches(engine)
-    from offenesparlament.transform import awatch
-    awatch.load_profiles(engine)
+    #from offenesparlament.transform import awatch
+    #awatch.load_profiles(engine)
     from offenesparlament.transform import speechmatch
     persons.generate_person_long_names(engine)
     speechmatch.extend_speeches(engine)
