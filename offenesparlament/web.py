@@ -137,8 +137,8 @@ def ablauf_sitemap(year):
     query = Ablauf.query.join(Position)
     query = query.filter(db.extract('year', Position.date)==int(year))
     query = query.distinct(Ablauf.id)
-    for ablauf in query:
-        item = {'lastmod': ablauf.latest,
+    for ablauf in query.yield_per(5000):
+        item = {'lastmod': ablauf.updated_at, #ablauf.latest,
                 'loc': url_for('ablauf', wahlperiode=ablauf.wahlperiode,
                                key=ablauf.key, _external=True)}
         items.append(item)
