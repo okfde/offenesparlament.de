@@ -7,7 +7,6 @@ import sys
 import sqlaload as sl
 
 from offenesparlament.core import etl_engine
-from offenesparlament.core import master_data
 
 log = logging.getLogger(__name__)
 

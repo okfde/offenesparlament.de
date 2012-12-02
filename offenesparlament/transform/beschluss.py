@@ -7,7 +7,6 @@ from collections import defaultdict
 import sqlaload as sl
 
 from offenesparlament.core import etl_engine
-from offenesparlament.core import master_data
 from offenesparlament.transform.drs import drucksachen
 
 log = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ def cache_abstimmungen(engine):
     return dict(data.items())
 
 
-def extend_beschluesse(engine, master):
+def extend_beschluesse(engine):
     log.info("Re-connecting beschluesse ...")
     abstimmungen = cache_abstimmungen(engine)
     #pprint(abstimmungen)
@@ -41,4 +40,4 @@ def extend_beschluesse(engine, master):
 if __name__ == '__main__':
     engine = etl_engine()
     print "DESTINATION", engine
-    extend_beschluesse(engine, master_data())
+    extend_beschluesse(engine)

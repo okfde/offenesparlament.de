@@ -8,7 +8,6 @@ import sqlaload as sl
 from nkclient import NKNoMatch, NKInvalid
 
 from offenesparlament.core import etl_engine
-from offenesparlament.core import master_data
 from offenesparlament.transform.namematch import match_speaker
 
 from offenesparlament.load.fetch import fetch_stream, fetch

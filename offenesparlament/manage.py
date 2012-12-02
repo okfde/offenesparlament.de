@@ -1,7 +1,7 @@
 from flaskext.script import Manager
 from webstore.client import URL as WebStore
 
-from offenesparlament.core import app, master_data, etl_engine
+from offenesparlament.core import app, etl_engine
 
 manager = Manager(app)
 
