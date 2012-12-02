@@ -5,7 +5,7 @@
   <url>
     <loc>{{item.loc}}</loc>
     {% if item.lastmod %}
-      <lastmod>{{ item.lastmod.strftime('%Y-%d-%m') }}</lastmod>
+      <lastmod>{{ item.lastmod.strftime('%Y-%m-%d') }}</lastmod>
     {% endif %}
     <priority>{{prio}}</priority>
   </url>

@@ -4,17 +4,17 @@
 
    <sitemap>
      <loc>{{url}}sitemap/person.xml</loc>
-      <lastmod>{{ now.strftime('%Y-%d-%m') }}</lastmod>
+      <lastmod>{{ now.strftime('%Y-%m-%d') }}</lastmod>
    </sitemap>
 
    {% for year in years %}
      <sitemap>
        <loc>{{url}}sitemap/ablauf-{{year}}.xml</loc>
-       <lastmod>{{ now.strftime('%Y-%d-%m') }}</lastmod>
+       <lastmod>{{ now.strftime('%Y-%m-%d') }}</lastmod>
      </sitemap>
      <sitemap>
        <loc>{{url}}sitemap/plenum-{{year}}.xml</loc>
-       <lastmod>{{ now.strftime('%Y-%d-%m') }}</lastmod>
+       <lastmod>{{ now.strftime('%Y-%m-%d') }}</lastmod>
      </sitemap>
    {% endfor %}
 </sitemapindex>
