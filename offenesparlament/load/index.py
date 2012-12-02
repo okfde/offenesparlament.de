@@ -4,6 +4,7 @@ from pprint import pprint
 from datetime import datetime
 from dateutil import tz
 from sqlalchemy.orm import eagerload_all
+from unicodedata import category
 
 from offenesparlament.core import db, solr
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
@@ -46,37 +47,15 @@ def flatten(data, sep='.'):
             _data[k] = v
     return _data
 
-
-def gather_index_fields():
-    from collections import defaultdict
-    fields = defaultdict(set)
-    for _type in [Person, Gremium, Position, Dokument]:
-        print _type.__name__
-        for entity in _type.query:
-            d = flatten(entity.to_dict())
-            for k, v in d.items():
-                fields[k].add(type(v))
-    for entity in Ablauf.query:
-        data = entity.to_dict()
-        data['positionen'] = [p.to_dict() for p in \
-                entity.positionen]
-        d = flatten(data)
-        for k, v in d.items():
-            fields[k].add(type(v))
-    pprint(dict([(f, [t for t in v if t is not type(None)]) \
-            for (f, v) in fields.items()]))
-
 def strip_control_characters(text):
     if not isinstance(text, basestring):
         return text
     _filtered = []
-    from unicodedata import category
     for c in unicode(text):
         cat = category(c)[:1]
         if cat not in 'C':
             _filtered.append(c)
     return ''.join(_filtered)
-    #.encode('ascii', 'ignore')
 
 def type_info(entity):
     name = entity.__class__.__name__.lower()
@@ -264,6 +243,4 @@ def index():
     index_zitate()
 
 if __name__ == '__main__':
-    #gather_index_fields()
     index()
-    #index_debatten()
