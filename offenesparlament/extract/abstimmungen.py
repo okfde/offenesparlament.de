@@ -15,7 +15,7 @@ from offenesparlament.core import etl_engine
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
 
-INDEX = "http://www.bundestag.de/bundestag/plenum/abstimmung/index.html"
+INDEX = "http://www.bundestag.de/bundestag/plenum/abstimmung/%s/index.html"
 DATE_RE = re.compile(r"Berlin.*den.*(\d{2})[^\d]*(\w{3,4}).*(\d{2})[^\d]*")
 
 MONTHS = {
@@ -115,10 +115,13 @@ def load_vote(url, engine, incremental=True):
     handle_xml(xml, engine, url)
 
 def load_index(engine, incremental=True):
-    doc = _html(INDEX)
-    for a in doc.findall('//ul[@class="standardLinkliste"]//a'):
-        url = urlparse.urljoin(INDEX, a.get('href'))
-        load_vote(url, engine, incremental=incremental)
+    for year in range(2009, datetime.now().year):
+        index_url = INDEX % year
+        doc = _html(index_url)
+        for a in doc.findall('//a'):
+            url = urlparse.urljoin(index_url , a.get('href'))
+            if url.endswith('.pdf'):
+                load_vote(url, engine, incremental=incremental)
 
 if __name__ == '__main__':
     engine = etl_engine()
