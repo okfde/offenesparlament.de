@@ -106,36 +106,36 @@ def load_mdb(url, engine):
         sl.upsert(engine, table_rolle, {
             'person_source_url': url, 
             'funktion': u'Bundestagsvizepräsident',
-            }, 
+            },
             unique=['person_source_url', 'funktion'])
-    
+
     for n in doc.findall('//mdbObleuteGremium'):
         add_to_gremium(n, url, 'obleute', engine)
-    
+
     for n in doc.findall('//mdbVorsitzGremium'):
         add_to_gremium(n, url, 'vorsitz', engine)
-    
+
     for n in doc.findall('//mdbStellvertretenderVorsitzGremium'):
         add_to_gremium(n, url, 'stellv_vorsitz', engine)
-    
+
     for n in doc.findall('//mdbVorsitzSonstigesGremium'):
         add_to_gremium(n, url, 'vorsitz', engine)
-    
+
     for n in doc.findall('//mdbStellvVorsitzSonstigesGremium'):
         add_to_gremium(n, url, 'stellv_vorsitz', engine)
-    
+
     for n in doc.findall('//mdbOrdentlichesMitgliedGremium'):
         add_to_gremium(n, url, 'mitglied', engine)
-    
+
     for n in doc.findall('//mdbStellvertretendesMitgliedGremium'):
         add_to_gremium(n, url, 'stellv_mitglied', engine)
-    
+
     for n in doc.findall('//mdbOrdentlichesMitgliedSonstigesGremium'):
         add_to_gremium(n, url, 'mitglied', engine)
-    
+
     for n in doc.findall('//mdbStellvertretendesMitgliedSonstigesGremium'):
         add_to_gremium(n, url, 'stellv_mitglied', engine)
-    
+
     sl.upsert(engine, table_person, p, unique=['source_url'])
     sl.upsert(engine, table_rolle, r, unique=['person_source_url', 'funktion'])
 

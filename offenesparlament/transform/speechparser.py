@@ -14,10 +14,6 @@ from offenesparlament.load.fetch import fetch_stream, fetch
 
 log = logging.getLogger(__name__)
 
-# pdftotext -x 70 -y 80 -W 470 -H 900 -raw 17173.pdf - |less
-
-TEST_URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/17121.txt"
-
 URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/%s%03.d.txt"
 
 CHAIRS = [u'Vizepräsidentin', u'Vizepräsident', u'Präsident']
@@ -85,8 +81,6 @@ class SpeechParser(object):
             line = line.decode('latin-1')
             line = line.replace(u'\u2014', '-')
             line = line.replace(u'\x96', '-')
-            #if 'Iris Gleicke [SPD]' in line:
-            #    import ipdb; ipdb.set_trace()
             if not self.in_session and BEGIN_MARK.match(line):
                 self.in_session = True
                 continue
@@ -102,7 +96,7 @@ class SpeechParser(object):
             is_top = False
             if TOP_MARK.match(line):
                 is_top = True
-            
+
             has_stopword = False
             for sw in SPEAKER_STOPWORDS:
                 if sw.lower() in line.lower():

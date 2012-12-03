@@ -72,14 +72,12 @@ def handle_xml(xml, engine, source_url):
                 name += ' ' + txt
             if txt == 'X':
                 field = field.strip().strip('.').strip()
-                data = {'subject': unicode(subject), 
+                data = {'subject': unicode(subject),
                         'person': name.strip() + ' ' + fraktion,
                         'date': unicode(date),
                         'vote': unicode(field),
                         'source_url': source_url}
                 sl.upsert(engine, Vote, data, unique=['subject', 'person'])
-                #pprint({'person': name.strip() + ' ' + fraktion, 
-                #        'vote': field})
                 name = u''
 
     for page in doc.findall(".//page"):

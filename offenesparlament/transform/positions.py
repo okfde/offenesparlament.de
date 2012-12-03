@@ -44,9 +44,6 @@ def extend_positions(engine):
         data['hash'] = hash[:10]
         sl.upsert(engine, Position, data, unique=UNIQUE)
 
-def generate_beschluss_referenzen(engine):
-    log.info("Generating document references for 'beschluss'....")
-
 
 if __name__ == '__main__':
     engine = etl_engine()
