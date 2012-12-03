@@ -129,7 +129,8 @@ def position(key, format=None):
         return jsonify(position)
     return redirect(url_for('ablauf',
         wahlperiode=position.ablauf.wahlperiode,
-        key=position.ablauf.key) + '#' + position.key)
+        key=position.ablauf.key) + '#' + position.key,
+        code=301)
 
 @app.route("/sitemap/ablauf-<year>.xml")
 def ablauf_sitemap(year):
