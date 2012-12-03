@@ -73,3 +73,12 @@ class Ablauf(db.Model, ModelCore):
             })
         return data
 
+    def to_index(self):
+        data = super(Ablauf, self).to_index()
+        data['positionen'] = [p.to_dict() for p in \
+                self.positionen]
+        data['positionen'] = [p.to_dict() for p in self.positionen]
+        dates = [p['date'] for p in data['positionen'] if p['date'] is not None]
+        if len(dates):
+            data['date'] = max(dates)
+        return data

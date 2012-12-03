@@ -38,3 +38,7 @@ class Debatte(db.Model, ModelCore):
             })
         return data
 
+    def to_index(self):
+        data = super(Debatte, self).to_index()
+        data['sitzung'] = self.sitzung.to_dict()
+        return data

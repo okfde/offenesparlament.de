@@ -40,3 +40,8 @@ class Zitat(db.Model, ModelCore):
             })
         return data
 
+    def to_index(self):
+        data = super(Zitat, self).to_index()
+        data['debatte'] = self.debatte.to_dict()
+        data['sitzung'] = self.sitzung.to_dict()
+        return data

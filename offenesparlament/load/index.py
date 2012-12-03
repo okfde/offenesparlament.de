@@ -8,12 +8,11 @@ from unicodedata import category
 
 from offenesparlament.core import db, solr
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
-        Wahlkreis, obleute, mitglieder, stellvertreter, Ablauf, \
+        Wahlkreis, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
         Schlagwort, Sitzung, Debatte, Zitat
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 def datetime_add_tz(dt):
     """ Solr requires time zone information on all dates. """
@@ -57,13 +56,6 @@ def strip_control_characters(text):
             _filtered.append(c)
     return ''.join(_filtered)
 
-def type_info(entity):
-    name = entity.__class__.__name__.lower()
-    return {
-            'index_type': name, 
-            'typed_id': "%s:%s" % (name, entity.id)
-            }
-
 def convert_data(data):
     for k, v in data.items():
         if isinstance(v, datetime):
@@ -81,154 +73,36 @@ def convert_data(data):
             data[k] = strip_control_characters(v)
     return data
 
-
-def index_persons():
+def index_class(cls, step=1000):
     _solr = solr()
-    for person in Person.query:
-        log.info("indexing %s..." % person.name)
-        data = flatten(person.to_dict())
-        data.update(type_info(person))
-        data = convert_data(data)
-        _solr.add_many([data])
-    _solr.commit()
-
-def index_gremien():
-    _solr = solr()
-    for gremium in Gremium.query:
-        log.info("indexing %s..." % gremium.name)
-        data = flatten(gremium.to_dict())
-        data.update(type_info(gremium))
-        data = convert_data(data)
-        _solr.add_many([data])
-    _solr.commit()
-
-def index_positionen():
-    _solr = solr()
-    datas = []
-    for position in Position.query.yield_per(1000):
-        log.info("indexing %s - %s..." % (
-            position.ablauf.titel, position.fundstelle))
-        data = flatten(position.to_dict())
-        data.update(type_info(position))
-        data = convert_data(data)
-        datas.append(data)
-        if len(datas) % 1000 == 0:
+    entities = []
+    log.info("Indexing %s", cls.__name__)
+    for obj in cls.query.yield_per(step):
+        entity = obj.to_index()
+        entity = convert_data(flatten(entity))
+        entities.append(entity)
+        if len(entities) % step == 0:
             sys.stdout.write(".")
             sys.stdout.flush()
-            _solr.add_many(datas)
+            _solr.add_many(entities)
             _solr.commit()
-            datas = []
+            entities = []
+    if len(entities):
+        _solr.add_many(entities)
     _solr.commit()
 
-def index_dokumente():
-    _solr = solr()
-    datas = []
-    for dokument in Dokument.query.yield_per(1000):
-        log.info("indexing %s..." % dokument.name)
-        data = flatten(dokument.to_dict())
-        data.update(type_info(dokument))
-        data = convert_data(data)
-        datas.append(data)
-        if len(datas) % 1000 == 0:
-            sys.stdout.write(".")
-            sys.stdout.flush()
-            _solr.add_many(datas)
-            _solr.commit()
-            datas = []
-    _solr.commit()
-
-def index_ablaeufe():
-    _solr = solr()
-    datas = []
-    for ablauf in Ablauf.query.yield_per(1000):
-        log.info("indexing %s..." % ablauf.titel)
-        data = ablauf.to_dict()
-        data['positionen'] = [p.to_dict() for p in \
-                ablauf.positionen]
-        data['positionen'] = [p.to_dict() for p in ablauf.positionen]
-        dates = [p['date'] for p in data['positionen'] if p['date'] is not None]
-        if len(dates):
-            data['date'] = max(dates)
-        data = flatten(data)
-        data.update(type_info(ablauf))
-        data = convert_data(data)
-        datas.append(data)
-        if len(datas) % 500 == 0:
-            sys.stdout.write(".")
-            sys.stdout.flush()
-            _solr.add_many(datas)
-            _solr.commit()
-            datas = []
-    _solr.commit()
-
-
-def index_sitzungen():
-    _solr = solr()
-    datas = []
-    for sitzung in Sitzung.query:
-        log.info("indexing %s..." % sitzung.titel)
-        data = sitzung.to_dict()
-        #data['zitate'] = [z.to_dict() for z in sitzung.zitate]
-        data = flatten(data)
-        data.update(type_info(sitzung))
-        data = convert_data(data)
-        datas.append(data)
-        if len(datas) % 5 == 0:
-            _solr.add_many(datas)
-            datas = []
-    _solr.add_many(datas)
-    _solr.commit()
-
-def index_debatten():
-    _solr = solr()
-    datas = []
-    for debatte in Debatte.query:
-        log.info("indexing %s..." % debatte.titel)
-        data = debatte.to_dict()
-        data['sitzung'] = debatte.sitzung.to_dict()
-        data = flatten(data)
-        data.update(type_info(debatte))
-        data = convert_data(data)
-        datas.append(data)
-        if len(datas) % 20 == 0:
-            _solr.add_many(datas)
-            datas = []
-    _solr.add_many(datas)
-    _solr.commit()
-
-def index_zitate():
-    _solr = solr()
-    log.info("indexing transcripts...")
-    datas = []
-    for zitat in Zitat.query.yield_per(5000):
-        data = zitat.to_dict()
-        data['sitzung'] = zitat.sitzung.to_dict()
-        data['debatte'] = zitat.debatte.to_dict()
-        data = flatten(data)
-        data.update(type_info(zitat))
-        data = convert_data(data)
-        data['date'] = data.get('sitzung.date')
-        datas.append(data)
-        if len(datas) % 1000 == 0:
-            sys.stdout.write(".")
-            sys.stdout.flush()
-            _solr.add_many(datas)
-            _solr.commit()
-            datas = []
-    _solr.add_many(datas)
-    _solr.commit()
 
 def index():
     _solr = solr()
     #_solr.delete_query("*:*")
-    index_persons()
-    index_gremien()
-    index_positionen()
-    index_dokumente()
-    index_ablaeufe()
-    index_sitzungen()
-    index_debatten()
-    index_zitate()
+    index_class(Person)
+    index_class(Gremium)
+    index_class(Position)
+    index_class(Dokument)
+    index_class(Ablauf)
+    index_class(Sitzung)
+    index_class(Debatte)
+    index_class(Zitat)
 
 if __name__ == '__main__':
     index()
