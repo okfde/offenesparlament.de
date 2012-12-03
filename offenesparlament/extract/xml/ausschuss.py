@@ -5,12 +5,11 @@ from lxml import etree
 from webstore.client import URL as WebStore
 import sqlaload as sl
 
-from offenesparlament.load.fetch import _xml
-from offenesparlament.core import etl_engine
+from offenesparlament.extract.util import _xml
 from offenesparlament.extract.xml import news
+from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 AUSSCHUSS_INDEX_URL = "http://www.bundestag.de/xml/ausschuesse/index.xml"
 URL_PATTERN = "http://www.bundestag.de/bundestag/ausschuesse17/%s/index.jsp"
@@ -60,8 +59,6 @@ def load_ausschuss(url, engine, table):
     a['url'] = URL_PATTERN % a['key']
     a['type'] = 'ausschuss'
     sl.upsert(engine, table, a, unique=['key'])
-    #for url in doc.findall("//news/detailsXML"):
-    #    news.load_item(url.text, engine, gremium=a)
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ from datetime import datetime
 
 import sqlaload as sl
 
-from offenesparlament.load.fetch import _xml
+from offenesparlament.extract.util import _xml
 from offenesparlament.core import etl_engine
 
 MDB_INDEX_URL = "http://www.bundestag.de/xml/mdb/index.xml"

@@ -2,15 +2,13 @@ from pprint import pprint
 from itertools import count
 import logging
 from datetime import datetime
-from lxml import html
 
 import sqlaload as sl
 
 from offenesparlament.core import etl_engine
-from offenesparlament.load.fetch import _html
+from offenesparlament.extract.util import _html
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 WEBTV_BASE = 'http://webtv.bundestag.de/iptv/player/macros/bttv/list.html?pageOffset=0&pageLength=20000&sort=2&lastName=&firstName=&fraction=&meetingNumber=%s&period=%s&startDay=&endDay=&topic=&submit=Suchen'
 WEBTV_SPEECHES = 'http://webtv.bundestag.de/player/macros/bttv/contribution_list.html?meetingPeriod=%s&meetingNumber=%s&agendaItemId=%s'

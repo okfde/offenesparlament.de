@@ -7,11 +7,10 @@ from itertools import count
 from pprint import pprint
 
 import sqlaload as sl
-from offenesparlament.load.fetch import _html
+from offenesparlament.extract.util import _html
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 MEDIATHEK_URL = "http://www.bundestag.de/"
 WP = 17

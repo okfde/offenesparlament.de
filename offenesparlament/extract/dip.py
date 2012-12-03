@@ -2,21 +2,17 @@
 import logging
 import re
 import urllib
-import time
-import requests
 from lxml import etree
 from itertools import count
-from urlparse import urlparse, urljoin, parse_qs
-from StringIO import StringIO
+from urlparse import urljoin
 
 import sqlaload as sl
 
 from offenesparlament.extract.util import threaded
-from offenesparlament.load.fetch import UA, _html, fetch
+from offenesparlament.extract.util import UA, fetch, _html
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.WARN)
 
 MAKE_SESSION_URL = "http://dipbt.bundestag.de/dip21.web/bt"
 BASE_URL = "http://dipbt.bundestag.de/dip21.web/searchProcedures/simple_search.do?method=Suchen&offset=%s&anzahl=100"
