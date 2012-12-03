@@ -64,7 +64,7 @@ def type_info(entity):
             'typed_id': "%s:%s" % (name, entity.id)
             }
 
-def convert_dates(data):
+def convert_data(data):
     for k, v in data.items():
         if isinstance(v, datetime):
             data[k] = datetime_add_tz(v)
@@ -73,21 +73,14 @@ def convert_dates(data):
             for e in v:
                 if isinstance(e, datetime):
                     e = datetime_add_tz(e)
-                _v.append(e)
-            data[k] = _v
-    return data
-
-def convert_text(data):
-    for k, v in data.items():
-        if isinstance(v, (list, tuple, set)):
-            _v = []
-            for e in v:
-                e = strip_control_characters(e)
+                else:
+                    e = strip_control_characters(e)
                 _v.append(e)
             data[k] = _v
         else:
             data[k] = strip_control_characters(v)
     return data
+
 
 def index_persons():
     _solr = solr()
@@ -95,7 +88,7 @@ def index_persons():
         log.info("indexing %s..." % person.name)
         data = flatten(person.to_dict())
         data.update(type_info(person))
-        data = convert_dates(data)
+        data = convert_data(data)
         _solr.add_many([data])
     _solr.commit()
 
@@ -105,7 +98,7 @@ def index_gremien():
         log.info("indexing %s..." % gremium.name)
         data = flatten(gremium.to_dict())
         data.update(type_info(gremium))
-        data = convert_dates(data)
+        data = convert_data(data)
         _solr.add_many([data])
     _solr.commit()
 
@@ -117,7 +110,7 @@ def index_positionen():
             position.ablauf.titel, position.fundstelle))
         data = flatten(position.to_dict())
         data.update(type_info(position))
-        data = convert_dates(data)
+        data = convert_data(data)
         datas.append(data)
         if len(datas) % 1000 == 0:
             sys.stdout.write(".")
@@ -134,7 +127,7 @@ def index_dokumente():
         log.info("indexing %s..." % dokument.name)
         data = flatten(dokument.to_dict())
         data.update(type_info(dokument))
-        data = convert_dates(data)
+        data = convert_data(data)
         datas.append(data)
         if len(datas) % 1000 == 0:
             sys.stdout.write(".")
@@ -158,7 +151,7 @@ def index_ablaeufe():
             data['date'] = max(dates)
         data = flatten(data)
         data.update(type_info(ablauf))
-        data = convert_dates(data)
+        data = convert_data(data)
         datas.append(data)
         if len(datas) % 500 == 0:
             sys.stdout.write(".")
@@ -178,8 +171,7 @@ def index_sitzungen():
         #data['zitate'] = [z.to_dict() for z in sitzung.zitate]
         data = flatten(data)
         data.update(type_info(sitzung))
-        data = convert_dates(data)
-        data = convert_text(data)
+        data = convert_data(data)
         datas.append(data)
         if len(datas) % 5 == 0:
             _solr.add_many(datas)
@@ -193,13 +185,10 @@ def index_debatten():
     for debatte in Debatte.query:
         log.info("indexing %s..." % debatte.titel)
         data = debatte.to_dict()
-        #data['zitate'] = [dz.zitat.to_dict() for dz in \
-        #    debatte.debatten_zitate]
         data['sitzung'] = debatte.sitzung.to_dict()
         data = flatten(data)
         data.update(type_info(debatte))
-        data = convert_dates(data)
-        data = convert_text(data)
+        data = convert_data(data)
         datas.append(data)
         if len(datas) % 20 == 0:
             _solr.add_many(datas)
@@ -217,8 +206,7 @@ def index_zitate():
         data['debatte'] = zitat.debatte.to_dict()
         data = flatten(data)
         data.update(type_info(zitat))
-        data = convert_dates(data)
-        data = convert_text(data)
+        data = convert_data(data)
         data['date'] = data.get('sitzung.date')
         datas.append(data)
         if len(datas) % 1000 == 0:
