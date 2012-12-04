@@ -273,18 +273,10 @@ def scrape_activity(ablauf, elem, engine):
                 ort=b['ort'])
         if p is not None:
             b['person_source_url'] = p['source_url']
-        #q = Rolle.query.filter_by(funktion=funktion)
-        #r = q.filter_by(person_id=p.id).first()
-        #if r is None:
-        #    r = Rolle()
-        #    r.funktion = funktion
         b['ressort'] = belem.findtext("RESSORT")
         b['land'] = belem.findtext("BUNDESLAND")
         b['fraktion'] = FACTION_MAPS.get(belem.findtext("FRAKTION"), 
             belem.findtext("FRAKTION"))
-        #    r.person = ps
-        #    db.session.add(r)
-
         b['seite'] = belem.findtext("SEITE")
         b['art'] = belem.findtext("AKTIVITAETSART")
         sl.upsert(engine, Beitrag, b, unique=[])
