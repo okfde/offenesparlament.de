@@ -15,8 +15,8 @@ def make_long_name(data):
     #ressort = hashlib.sha1(pg('ressort').encode('utf-8')).hexdigest()[:5]
     ressort = "".join([x[0] for x in pg('ressort').split(' ') if len(x)])
     fraktion = pg('fraktion').replace(u"BÜNDNIS ", "B")
-    return "%s %s %s %s %s" % (pg('titel'), 
-            pg('vorname'), pg('nachname'), pg('ort'), 
+    return "%s %s %s %s %s" % (pg('titel'),
+            pg('vorname'), pg('nachname'), pg('ort'),
             fraktion or ressort)
 
 def make_person(beitrag, fp, engine):

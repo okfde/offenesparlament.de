@@ -21,14 +21,18 @@ def load_profiles(engine):
     Person = sl.get_table(engine, 'person')
     for profile in doc.findall('//PROFIL'):
         name = profile.findtext('.//VORNAME')
+        if name is None:
+            continue
         name += ' ' + profile.findtext('.//NACHNAME')
         partei = profile.findtext('.//PARTEI')
         name += ' ' + PARTEI_MAPPING.get(partei, partei)
         try:
             fp = match_speaker(name)
-            sl.upsert(engine, Person, 
+            if not len(fp.strip()):
+                continue
+            sl.upsert(engine, Person,
                       {'awatch_url': profile.get('url'),
-                       'fingerprint': fp}, 
+                       'fingerprint': fp},
                     unique=['fingerprint'])
         except NKNoMatch:
             pass
