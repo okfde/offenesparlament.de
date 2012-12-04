@@ -14,11 +14,6 @@ from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 
-MAKE_SESSION_URL = "http://dipbt.bundestag.de/dip21.web/bt"
-BASE_URL = "http://dipbt.bundestag.de/dip21.web/searchProcedures/simple_search.do?method=Suchen&offset=%s&anzahl=100"
-ABLAUF_URL = "http://dipbt.bundestag.de/dip21.web/searchProcedures/simple_search_list.do?selId=%s&method=select&offset=100&anzahl=100&sort=3&direction=desc"
-DETAIL_VP_URL = "http://dipbt.bundestag.de/dip21.web/searchProcedures/simple_search_detail_vp.do?vorgangId=%s"    
-
 FACTION_MAPS = {
         u"BÜNDNIS 90/DIE GRÜNEN": u"B90/Die Grünen",
         u"DIE LINKE.": u"Die LINKE.",
@@ -293,8 +288,6 @@ def scrape_activity(ablauf, elem, engine):
         b['seite'] = belem.findtext("SEITE")
         b['art'] = belem.findtext("AKTIVITAETSART")
         sl.upsert(engine, Beitrag, b, unique=[])
-
-class TooFarInThePastException(Exception): pass
 
 class NoContentException(Exception): pass
 

@@ -9,9 +9,11 @@ from offenesparlament.core import etl_engine
 
 from offenesparlament.core import db
 from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
-        Wahlkreis, obleute, mitglieder, stellvertreter, Ablauf, \
+        Wahlkreis, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
         Schlagwort, Sitzung, Debatte, Zitat, Stimme, Abstimmung
+from offenesparlament.model.person import obleute, mitglieder, \
+        stellvertreter
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.NOTSET)
