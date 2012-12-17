@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from offenesparlament.core import db
