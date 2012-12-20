@@ -6,7 +6,6 @@ from webstore.client import URL as WebStore
 import sqlaload as sl
 
 from offenesparlament.extract.util import _xml
-from offenesparlament.extract.xml import news
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)

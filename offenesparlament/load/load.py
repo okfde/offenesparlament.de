@@ -8,7 +8,7 @@ import sqlaload as sl
 from offenesparlament.core import etl_engine
 
 from offenesparlament.core import db
-from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
+from offenesparlament.model import Gremium, Person, Rolle, \
         Wahlkreis, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
         Schlagwort, Sitzung, Debatte, Zitat, Stimme, Abstimmung
@@ -43,34 +43,6 @@ def load_gremien(engine):
         gremium.image_url = data.get('image_url')
         gremium.image_copyright = data.get('image_copyright')
         db.session.add(gremium)
-    db.session.commit()
-
-
-def load_news(engine):
-    log.info("Loading news into production DB...")
-    _NewsSource = sl.get_table(engine, 'news')
-    for data in sl.all(engine, _NewsSource):
-        news = NewsItem.query.filter_by(
-                source_url=data.get('source_url')).first()
-        if news is None:
-            news = NewsItem()
-        news.key = data.get('key')
-        news.source_url = data.get('source_url')
-        news.title = data.get('title')
-        news.text = data.get('text')
-        news.date = date(data.get('date'))
-        news.image_url = data.get('image_url')
-        news.image_copyright = data.get('image_copyright')
-        news.image_changed_at = date(data.get('image_changed_at'))
-
-        if data.get('gremium'):
-            gremium = Gremium.query.filter_by(
-                    key=data.get('gremium')).first()
-            if gremium is None:
-                log.error("Gremium %s not found!" % data.get('gremium'))
-            else:
-                news.gremium = gremium
-        db.session.add(news)
     db.session.commit()
 
 
@@ -504,7 +476,6 @@ def load_abstimmungen(engine):
 
 def load(engine):
     load_gremien(engine)
-    #load_news(engine)
     load_persons(engine)
     load_sitzungen(engine)
     load_ablaeufe(engine)

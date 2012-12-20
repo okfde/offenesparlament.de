@@ -7,7 +7,7 @@ from sqlalchemy.orm import eagerload_all
 from unicodedata import category
 
 from offenesparlament.core import db, solr
-from offenesparlament.model import Gremium, NewsItem, Person, Rolle, \
+from offenesparlament.model import Gremium, Person, Rolle, \
         Wahlkreis, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
         Schlagwort, Sitzung, Debatte, Zitat

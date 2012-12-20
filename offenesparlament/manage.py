@@ -12,8 +12,6 @@ def extract_base():
     engine = etl_engine()
     from offenesparlament.extract.xml import ausschuss
     ausschuss.load_index(engine)
-    from offenesparlament.extract.xml import news
-    #news.load_index(engine)
     from offenesparlament.extract.xml import mdb
     mdb.load_index(engine)
 

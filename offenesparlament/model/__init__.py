@@ -1,5 +1,4 @@
 
-from offenesparlament.model.news import NewsItem
 from offenesparlament.model.person import Person
 from offenesparlament.model.rolle import Rolle
 from offenesparlament.model.gremium import Gremium

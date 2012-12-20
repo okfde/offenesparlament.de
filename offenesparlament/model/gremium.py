@@ -19,8 +19,6 @@ class Gremium(db.Model, ModelCore):
 
     zuweisungen = db.relationship('Zuweisung', backref='gremium', 
             lazy='dynamic')
-    news = db.relationship('NewsItem', backref='gremium',
-                           lazy='dynamic')
 
     def to_dict(self):
         return {
