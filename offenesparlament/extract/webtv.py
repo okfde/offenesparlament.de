@@ -27,7 +27,7 @@ def load_speeches(engine, data):
             data['speaker'] = data['speaker'].encode('latin-1').decode('utf-8')
         data['speech_id'] = rows[i + 2].find('.//a').get('href').split('=')[-1]
         sl.upsert(engine, table, data, ['speech_id'])
-        pprint(data)
+        #pprint(data)
 
 
 def load_agenda(engine, wp, session):
@@ -70,3 +70,4 @@ def load_sessions(engine, wp='17'):
             continue
         if not load_agenda(engine, wp, i):
             return
+
