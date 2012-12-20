@@ -2,11 +2,12 @@
 import sys
 import logging
 
-from nkclient import NKNoMatch, NKInvalid
 import sqlaload as sl
 
 from offenesparlament.transform.persons import make_person, make_long_name
-from offenesparlament.core import etl_engine, nk_persons
+from offenesparlament.data.lib.reference import resolve_person, \
+    BadReference, InvalidReference
+from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 
@@ -22,20 +23,16 @@ def ensure_rolle(beitrag, fp, engine):
             unique=['fingerprint', 'funktion'])
 
 def match_beitrag(engine, beitrag):
-    nkp = nk_persons()
     beitrag_print = make_long_name(beitrag)
     log.info("Matching: %s", beitrag_print)
     try:
-        value = match_speaker(beitrag_print)
+        value = resolve_person(beitrag_print)
         if sl.find_one(engine, sl.get_table(engine, 'person'),
                 fingerprint=value) is None:
             make_person(beitrag, value, engine)
         return value
-    except NKNoMatch, nm:
+    except BadReference:
         log.info("Beitrag person is unknown: %s", beitrag_print)
-        return None
-    except NKInvalid, inv:
-        log.error("Beitrag person is invalid: %s", beitrag_print)
         return None
 
 def speaker_name_transform(name):
@@ -49,23 +46,6 @@ def speaker_name_transform(name):
     fragment.replace('(', '').replace(')', '')
     return fragment
 
-_SPEAKER_CACHE = {}
-
-def match_speaker(speaker):
-    nkp = nk_persons()
-    if speaker not in _SPEAKER_CACHE:
-        try:
-            obj = nkp.lookup(speaker)
-        except NKInvalid, inv:
-            obj = inv
-        except NKNoMatch, nm:
-            obj = nm
-        _SPEAKER_CACHE[speaker] = obj
-    obj = _SPEAKER_CACHE[speaker]
-    if isinstance(obj, (NKInvalid, NKNoMatch)):
-        raise obj
-    return obj.value
-
 def match_speakers_webtv(engine):
     WebTV = sl.get_table(engine, 'webtv')
     for i, speech in enumerate(sl.distinct(engine, WebTV, 'speaker')):
@@ -74,10 +54,10 @@ def match_speakers_webtv(engine):
         speaker = speaker_name_transform(speech['speaker'])
         matched = True
         try:
-            fp = match_speaker(speaker)
-        except NKInvalid, inv:
+            fp = resolve_person(speaker)
+        except InvalidReference:
             fp = None
-        except NKNoMatch, nm:
+        except BadReference:
             fp = None
             matched = False
         sl.upsert(engine, WebTV, {'fingerprint': fp,

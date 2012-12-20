@@ -1,12 +1,11 @@
-import sys
 import logging
 from pprint import pprint
 
 import sqlaload as sl
-from nkclient import NKNoMatch, NKInvalid
 
 from offenesparlament.core import etl_engine
-from offenesparlament.transform.namematch import match_speaker
+from offenesparlament.data.lib.reference import resolve_person, \
+    BadReference
 
 log = logging.getLogger(__name__)
 
@@ -15,11 +14,8 @@ def extend_abstimmungen(engine):
     Abstimmung = sl.get_table(engine, 'abstimmung')
     for data in sl.distinct(engine, Abstimmung, 'person'):
         try:
-            fp = match_speaker(data['person'])
-        except NKInvalid, inv:
-            log.exception(ve)
-            continue
-        except NKNoMatch, nm:
+            fp = resolve_person(data['person'])
+        except BadReference:
             fp = None
             log.info("No match for: %s", data['person'])
         sl.upsert(engine, Abstimmung,

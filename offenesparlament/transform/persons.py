@@ -2,10 +2,11 @@
 import logging
 
 import sqlaload as sl
-from nkclient import NKInvalid, NKNoMatch
 
-from offenesparlament.core import etl_engine, nk_persons
-from offenesparlament.transform.text import url_slug
+from offenesparlament.core import etl_engine
+from offenesparlament.data.lib.text import url_slug
+from offenesparlament.data.lib.reference import resolve_person, \
+    BadReference
 
 log = logging.getLogger(__name__)
 
@@ -20,10 +21,8 @@ def make_long_name(data):
             fraktion or ressort)
 
 def make_person(beitrag, fp, engine):
-    from offenesparlament.transform.namematch import match_speaker
-    nkp = nk_persons()
     try:
-        fp = match_speaker(fp)
+        fp = resolve_person(fp)
         person = {
             'fingerprint': fp,
             'vorname': beitrag['vorname'],
@@ -35,30 +34,25 @@ def make_person(beitrag, fp, engine):
         }
         sl.upsert(engine, sl.get_table(engine, 'person'), person,
                   unique=['fingerprint'])
-        nkp.ensure_value(fp, data=person)
-    except NKNoMatch:
+    except BadReference:
         pass
     return fp
 
 def generate_person_long_names(engine):
     log.info("Generating person fingerprints and slugs...")
-    from offenesparlament.transform.namematch import match_speaker
-    nkp = nk_persons()
     Person = sl.get_table(engine, 'person')
     for person in sl.find(engine, Person):
-        long_name = make_long_name(person)
         try:
-            long_name = match_speaker(long_name)
-        except NKNoMatch:
+            long_name = make_long_name(person)
+            long_name = resolve_person(long_name)
+            log.info(" -> %s" % long_name.strip())
+            sl.upsert(engine, Person, {
+                             'fingerprint': long_name,
+                             'slug': url_slug(long_name),
+                             'id': person['id']},
+                             unique=['id'])
+        except BadReference:
             pass
-        log.info(" -> %s" % long_name.strip())
-        slug = url_slug(long_name)
-        sl.upsert(engine, Person, {
-                         'fingerprint': long_name,
-                         'slug': slug,
-                         'id': person['id']},
-                         unique=['id'])
-        nkp.ensure_value(long_name, data=person)
 
     log.info("Updating 'rollen' to have fingerprints...")
     Rolle = sl.get_table(engine, 'rolle')

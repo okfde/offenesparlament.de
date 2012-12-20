@@ -4,9 +4,9 @@ from pprint import pprint
 from datetime import datetime
 from dateutil import tz
 from sqlalchemy.orm import eagerload_all
-from unicodedata import category
 
 from offenesparlament.core import db, solr
+from offenesparlament.data.lib.text import strip_control_characters
 from offenesparlament.model import Gremium, Person, Rolle, \
         Wahlkreis, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
@@ -45,18 +45,6 @@ def flatten(data, sep='.'):
         else:
             _data[k] = v
     return _data
-
-def strip_control_characters(text):
-    """ For text strings, remove control characters as they may cause 
-    the indexer to stumble. """
-    if not isinstance(text, basestring):
-        return text
-    _filtered = []
-    for c in unicode(text):
-        cat = category(c)[:1]
-        if cat not in 'C':
-            _filtered.append(c)
-    return ''.join(_filtered)
 
 def convert_data(data):
     for k, v in data.items():

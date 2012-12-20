@@ -5,10 +5,10 @@ from pprint import pprint
 import re
 
 import sqlaload as sl
-from nkclient import NKNoMatch, NKInvalid
 
 from offenesparlament.core import etl_engine
-from offenesparlament.transform.namematch import match_speaker
+from offenesparlament.data.lib.reference import resolve_person, \
+    BadReference, InvalidReference
 
 from offenesparlament.load.fetch import fetch_stream, fetch
 
@@ -37,9 +37,6 @@ class SpeechParser(object):
         self.fh = fh
         self.missing_recon = False
 
-    def identify_speaker(self, match):
-        return match_speaker(match)
-
     def parse_pois(self, group):
         for poi in group.split(' - '):
             text = poi
@@ -51,10 +48,10 @@ class SpeechParser(object):
                 text = sinfo[1]
                 speaker = speaker_name.replace('Gegenruf des Abg. ', '')
                 try:
-                    fingerprint = self.identify_speaker(speaker)
-                except NKInvalid:
+                    fingerprint = resolve_person(speaker)
+                except InvalidReference:
                     pass
-                except NKNoMatch:
+                except BadReference:
                     self.missing_recon = True
             yield (speaker_name, fingerprint, text)
 
@@ -109,13 +106,13 @@ class SpeechParser(object):
                 _speaker = m.group(1)
                 role = line.strip().split(' ')[0]
                 try:
-                    fingerprint = self.identify_speaker(_speaker)
+                    fingerprint = resolve_person(_speaker)
                     speaker = _speaker
                     chair_[0] = role in CHAIRS
                     continue
-                except NKInvalid:
+                except InvalidReference:
                     pass
-                except NKNoMatch:
+                except BadReference:
                     self.missing_recon = True
 
             m = POI_MARK.match(line)

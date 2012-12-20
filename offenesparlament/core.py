@@ -20,8 +20,6 @@ app.config.from_envvar('PARLAMENT_SETTINGS', silent=True)
 db = SQLAlchemy(app)
 pages = FlatPages(app)
 mail = Mail(app)
-_nkp = None
-
 
 def solr():
     return SolrConnection(app.config['SOLR_URL'],
@@ -41,19 +39,4 @@ def archive_path(*a):
         os.makedirs(dir_name)
     return path
 
-def nk_persons():
-    from nkclient import NKDataset
-    global _nkp
-    if _nkp is None:
-        _nkp = NKDataset(app.config['NOMENKLATURA_PERSONS_DATASET'],
-                     api_key=app.config['NOMENKLATURA_API_KEY'])
-    return _nkp
-
-def nk_types():
-    from nkclient import NKDataset
-    global _nkp
-    if _nkp is None:
-        _nkp = NKDataset(app.config['NOMENKLATURA_TYPES_DATASET'],
-                     api_key=app.config['NOMENKLATURA_API_KEY'])
-    return _nkp
 
