@@ -101,18 +101,11 @@ def index():
 
 
 @manager.command
-def longextract():
-    """ Run the extract stage, including long-running tasks """
-    engine = etl_engine()
-    from offenesparlament.extract import wahlkreise
-    wahlkreise.load_wahlkreise(engine)
-
-
-@manager.command
 def notify():
     from offenesparlament.abo import notify
     from offenesparlament.web import app
     notify()
+
 
 if __name__ == "__main__":
     manager.run()
