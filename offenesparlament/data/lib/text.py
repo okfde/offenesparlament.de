@@ -53,3 +53,15 @@ def tokenize(text, splits='COPZ'):
     if len(token):
         yield u''.join(token)
 
+def speaker_name_transform(name):
+    """ Convert a speaker name used in Web TV metadata to the more
+    common format used in other locations. """
+    cparts = name.split(',')
+    if '(' in cparts[1]:
+        cparts[1], pf = cparts[1].split(' (', 1)
+        pf = pf.replace(')', '')
+        cparts.append(pf)
+    cparts[0], cparts[1] = cparts[1], cparts[0]
+    fragment = " ".join(cparts)
+    fragment.replace('(', '').replace(')', '')
+    return fragment

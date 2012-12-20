@@ -7,6 +7,7 @@ import sqlaload as sl
 from offenesparlament.transform.persons import make_person, make_long_name
 from offenesparlament.data.lib.reference import resolve_person, \
     BadReference, InvalidReference
+from offenesparlament.data.lib.text import speaker_name_transform
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
@@ -35,16 +36,6 @@ def match_beitrag(engine, beitrag):
         log.info("Beitrag person is unknown: %s", beitrag_print)
         return None
 
-def speaker_name_transform(name):
-    cparts = name.split(',')
-    if '(' in cparts[1]:
-        cparts[1], pf = cparts[1].split(' (', 1)
-        pf = pf.replace(')', '')
-        cparts.append(pf)
-    cparts[0], cparts[1] = cparts[1], cparts[0]
-    fragment = " ".join(cparts)
-    fragment.replace('(', '').replace(')', '')
-    return fragment
 
 def match_speakers_webtv(engine):
     WebTV = sl.get_table(engine, 'webtv')
