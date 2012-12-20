@@ -98,8 +98,8 @@
                 <h4>Zuweisung</h4>
                 <ul>
                 {% for zuweisung in position.zuweisungen %}
-                  <li><a href="{{ url_for('gremium', key=zuweisung.gremium.key) }}">
-                    {{ zuweisung.gremium.name }}</a>
+                  <li>
+                    {{ zuweisung.gremium.name }}
                     {% if zuweisung.federfuehrung %}
                       (federführend)
                       {% endif %}

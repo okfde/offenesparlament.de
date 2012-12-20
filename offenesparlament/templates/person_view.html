@@ -52,7 +52,7 @@
         <li>Vorsitz
         <ul>
           {% for g in person.vorsitze %}
-            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+            <li>{{ g.name }}</li>
           {% endfor %}
         </ul>
         </li>
@@ -61,7 +61,7 @@
         <li>Stellvertretung
         <ul>
           {% for g in person.stellv_vorsitze %}
-            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+            <li>{{ g.name }}</li>
           {% endfor %}
         </ul>
         </li>
@@ -70,7 +70,7 @@
         <li>ObmannIn
         <ul>
           {% for g in person.obleute %}
-            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+            <li>{{ g.name }}</li>
           {% endfor %}
         </ul>
         </li>
@@ -79,7 +79,7 @@
         <li>Mitgliedschaften
         <ul>
           {% for g in person.mitglied %}
-            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+            <li>{{ g.name }}</li>
           {% endfor %}
         </ul>
         </li>
@@ -88,7 +88,7 @@
         <li>Stellvertretung
         <ul>
           {% for g in person.stellvertreter %}
-            <li><a href="{{ url_for('gremium', key=g.key) }}">{{ g.name }}</a></li>
+            <li>{{ g.name }}</li>
           {% endfor %}
         </ul>
         </li>

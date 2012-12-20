@@ -11,7 +11,7 @@ from flask import url_for, redirect, jsonify, Response, make_response
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Ablauf, Position, Abstimmung, Stimme
-from offenesparlament.model import Person, Gremium, Dokument
+from offenesparlament.model import Person, Dokument
 from offenesparlament.model import Sitzung, Zitat, Debatte
 from offenesparlament.model import Abo
 
@@ -196,35 +196,6 @@ def abstimmung(id, format=None):
 
     return render_template('abstimmung_view.html',
         abstimmung=abstimmung, ja=ja, nein=nein, enth=enth, na=na)
-
-
-@app.route("/gremium")
-@app.route("/gremium.<format>")
-def gremien(format=None):
-    committees = Gremium.query.filter_by(typ='ausschuss').\
-            order_by(Gremium.name.asc()).all()
-    others = Gremium.query.filter_by(typ='sonstiges').\
-            order_by(Gremium.name.asc()).all()
-    if format == 'json':
-        return jsonify({'results': committees + others})
-    return render_template('gremium_list.html',
-            committees=committees, others=others)
-
-
-@app.route("/gremium/<key>")
-@app.route("/gremium/<key>.<format>")
-def gremium(key, format=None):
-    gremium = Gremium.query.filter_by(key=key).first()
-    if gremium is None:
-        abort(404)
-    if format == 'json':
-        return jsonify(gremium)
-    searcher = SolrSearcher(Ablauf, request.args)
-    #searcher.sort('positionen.date')
-    searcher.filter('positionen.zuweisungen.gremium', gremium.key)
-    pager = Pager(searcher, 'gremium', request.args, key=key)
-    return render_template('gremium_view.html',
-            gremium=gremium, searcher=searcher, pager=pager)
 
 
 @app.route("/person")
