@@ -47,6 +47,8 @@ def flatten(data, sep='.'):
     return _data
 
 def strip_control_characters(text):
+    """ For text strings, remove control characters as they may cause 
+    the indexer to stumble. """
     if not isinstance(text, basestring):
         return text
     _filtered = []
@@ -96,9 +98,9 @@ def index():
     _solr = solr()
     #_solr.delete_query("*:*")
     index_class(Person)
-    index_class(Gremium)
-    index_class(Position)
-    index_class(Dokument)
+    #index_class(Gremium)
+    #index_class(Position)
+    #index_class(Dokument)
     index_class(Ablauf)
     index_class(Sitzung)
     index_class(Debatte)

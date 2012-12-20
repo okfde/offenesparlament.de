@@ -32,6 +32,15 @@ def etl_engine():
     from sqlaload import connect
     return connect(app.config['ETL_URL'])
 
+def archive_path(*a):
+    import os
+    base_path = app.config.get('ARCHIVE_PATH', '/tmp')
+    path = os.path.join(base_path, *a)
+    dir_name = os.path.dirname(path)
+    if not os.path.isdir(dir_name):
+        os.makedirs(dir_name)
+    return path
+
 def nk_persons():
     from nkclient import NKDataset
     global _nkp

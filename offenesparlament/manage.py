@@ -41,6 +41,12 @@ def extract_docs():
     from offenesparlament.extract import dip
     dip.load_dip(engine)
 
+@manager.command
+def download_docs():
+    """ Download all PDFs from DIP. """
+    engine = etl_engine()
+    from offenesparlament.extract import documents
+    documents.load_documents(engine)
 
 @manager.command
 def transform():
