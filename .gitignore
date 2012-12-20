@@ -3,4 +3,5 @@
 offenesparlament/extract/xmlapi.py
 *.DS_Store
 *.db
-offenesparlament/parlament.db-journal
+*.db-journal
+settings.py
