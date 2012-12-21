@@ -4,6 +4,9 @@ from webstore.client import URL as WebStore
 from offenesparlament.core import app, etl_engine
 from offenesparlament.model.indexer import get_indexer
 
+from offenesparlament.data.persons import process as process_persons, process_person
+from offenesparlament.data.gremien import process as process_gremien, process_gremium
+
 manager = Manager(app)
 
 
@@ -52,11 +55,22 @@ def persons(url=None, force=False):
     """ Load all or a specific person. """
     engine = etl_engine()
     indexer = get_indexer()
-    from offenesparlament.data.persons import process, process_person
     if url is None:
-        process(engine, indexer, force=force)
+        process_persons(engine, indexer, force=force)
     else:
         process_person(engine, indexer, url,
+                       force=force)
+    indexer.flush()
+
+@manager.command
+def gremien(url=None, force=False):
+    """ Load all or a specific committee. """
+    engine = etl_engine()
+    indexer = get_indexer()
+    if url is None:
+        process_gremien(engine, indexer, force=force)
+    else:
+        process_gremium(engine, indexer, url,
                        force=force)
     indexer.flush()
 

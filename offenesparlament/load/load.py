@@ -17,53 +17,6 @@ from offenesparlament.model.person import obleute, mitglieder, \
 
 log = logging.getLogger(__name__)
 
-def del_foo():
-    log.info("Loading persons into production DB...")
-    db.session.commit()
-    db.session.execute(obleute.delete())
-    db.session.execute(mitglieder.delete())
-    db.session.execute(stellvertreter.delete())
-
-def load_gremien(engine):
-    log.info("Loading gremien into production DB...")
-    _GremiumSource = sl.get_table(engine, 'gremium')
-    for data in sl.all(engine, _GremiumSource):
-        gremium = Gremium.query.filter_by(key=data.get('key')).first()
-        if gremium is None:
-            gremium = Gremium()
-        gremium.key = data.get('key')
-        gremium.source_url = data.get('source_url')
-        gremium.name = data.get('name')
-        gremium.typ = data.get('type')
-        gremium.url = data.get('url')
-        gremium.aufgabe = data.get('aufgabe')
-        gremium.rss_url = data.get('rss_url')
-        gremium.image_url = data.get('image_url')
-        gremium.image_copyright = data.get('image_copyright')
-        db.session.add(gremium)
-    db.session.commit()
-
-def load_gremium_mitglieder(engine, person, rolle):
-    _GremiumMitglieder = sl.get_table(engine, 'gremium_mitglieder')
-    for gmdata in sl.find(engine, _GremiumMitglieder,
-                          person_source_url=person.source_url):
-        gremium = Gremium.query.filter_by(key=gmdata['gremium_key']).first()
-        if gremium is None:
-            log.error("Gremium not found: %s" % gmdata['gremium_key'])
-        role = gmdata['role']
-        if role == 'obleute':
-            gremium.obleute.append(person)
-        elif role == 'vorsitz':
-            gremium.vorsitz = person
-        elif role == 'stellv_vorsitz':
-            gremium.stellv_vorsitz = person
-        elif role == 'mitglied':
-            gremium.mitglieder.append(person)
-        elif role == 'stellv_mitglied':
-            gremium.stellvertreter.append(person)
-        else:
-            raise TypeError("Invalid ms type: %s" % role)
-
 
 def load_ablaeufe(engine):
     _Ablauf = sl.get_table(engine, 'ablauf')
@@ -373,8 +326,6 @@ def load_abstimmungen(engine):
 
 
 def load(engine):
-    load_gremien(engine)
-    load_persons(engine)
     load_sitzungen(engine)
     load_ablaeufe(engine)
     load_abstimmungen(engine)
@@ -386,3 +337,4 @@ def aggregate():
     make_current_schlagwort()
     make_period_sachgebiete()
     make_person_schlagworte()
+

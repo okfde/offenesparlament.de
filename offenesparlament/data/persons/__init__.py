@@ -9,7 +9,6 @@ from offenesparlament.data.persons.scrape import scrape_index, scrape_mdb
 from offenesparlament.data.persons.resolve import make_fingerprint
 from offenesparlament.data.persons.load import load_person
 
-
 log = logging.getLogger(__name__)
 
 def process_person(engine, indexer, url, force=False):
