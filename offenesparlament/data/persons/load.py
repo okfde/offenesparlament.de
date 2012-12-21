@@ -4,6 +4,7 @@ import sqlaload as sl
 
 from offenesparlament.core import db
 from offenesparlament.model.util import to_date
+from offenesparlament.data.gremien.load import lazyload_gremium
 from offenesparlament.model import Person, Rolle, Gremium, Wahlkreis
 from offenesparlament.model.person import obleute, mitglieder, \
         stellvertreter
@@ -63,13 +64,16 @@ def load_person(engine, data):
     db.session.commit()
     return person
 
+
 def load_gremium_mitglieder(engine, person):
     _GremiumMitglieder = sl.get_table(engine, 'gremium_mitglieder')
     for gmdata in sl.find(engine, _GremiumMitglieder,
                           person_source_url=person.source_url):
         gremium = Gremium.query.filter_by(key=gmdata['gremium_key']).first()
         if gremium is None:
-            log.error("Gremium not found: %s" % gmdata['gremium_key'])
+            gremium = lazyload_gremium(engine, gmdata['gremium_key'])
+            if gremium is None:
+                log.error("Gremium not found: %s" % gmdata['gremium_key'])
         role = gmdata['role']
         if role == 'obleute':
             gremium.obleute.append(person)
@@ -81,8 +85,7 @@ def load_gremium_mitglieder(engine, person):
             gremium.mitglieder.append(person)
         elif role == 'stellv_mitglied':
             gremium.stellvertreter.append(person)
-        else:
-            raise TypeError("Invalid ms type: %s" % role)
+
 
 def load_wahlkreis(engine, rolle, data):
     if data.get('wk_nummer'):

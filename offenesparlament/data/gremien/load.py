@@ -8,6 +8,12 @@ from offenesparlament.model import Gremium
 
 log = logging.getLogger(__name__)
 
+def lazyload_gremium(engine, key):
+    table = sl.get_table(engine, 'gremium')
+    data = sl.find_one(engine, table, key=key)
+    if data is None:
+        return None
+    return load_gremium(engine, data)
 
 def load_gremium(engine, data):
     gremium = Gremium.query.filter_by(key=data.get('key')).first()

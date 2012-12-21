@@ -1,5 +1,4 @@
 from flaskext.script import Manager
-from webstore.client import URL as WebStore
 
 from offenesparlament.core import app, etl_engine
 from offenesparlament.model.indexer import get_indexer
@@ -10,15 +9,6 @@ from offenesparlament.data.abstimmungen import process as \
     process_abstimmungen, process_abstimmung
 
 manager = Manager(app)
-
-
-
-@manager.command
-def extract_votes():
-    """ Run the extract stage """
-    engine = etl_engine()
-    from offenesparlament.extract import abstimmungen
-    abstimmungen.load_index(engine)
 
 
 @manager.command
@@ -86,6 +76,7 @@ def update(force=False):
     indexer = get_indexer()
     process_gremien(engine, indexer, force=force)
     process_persons(engine, indexer, force=force)
+    process_abstimmungen(engine, indexer, force=force)
     indexer.flush()
 
 
@@ -101,8 +92,6 @@ def transform():
     #ablaeufe.extend_ablaeufe(engine)
     from offenesparlament.transform import namematch
     namematch.match_persons(engine)
-    from offenesparlament.transform import abstimmungen
-    abstimmungen.extend_abstimmungen(engine)
     persons.generate_person_long_names(engine)
     from offenesparlament.transform import speechparser
     speechparser.load_transcripts(engine)
