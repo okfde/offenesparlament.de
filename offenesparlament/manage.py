@@ -1,6 +1,6 @@
 from flaskext.script import Manager
 
-from offenesparlament.core import app, etl_engine
+from offenesparlament.core import app, etl_engine, solr
 from offenesparlament.model.indexer import get_indexer
 
 from offenesparlament.data.persons import process as process_persons, process_person
@@ -139,12 +139,18 @@ def load():
 
 
 @manager.command
-def index():
-    """ Rebuild the FTS index. """
-    #engine = etl_engine()
-    from offenesparlament.load import index
-    index.index()
+def dumpindex():
+    """ Destroy the FTS index. """
+    _solr = solr()
+    _solr.delete_query("*:*")
 
+@manager.command
+def aggregate():
+    from offenesparlament.aggregates import make_current_schlagwort, \
+        make_period_sachgebiete, make_person_schlagworte
+    make_current_schlagwort()
+    make_period_sachgebiete()
+    make_person_schlagworte()
 
 @manager.command
 def notify():

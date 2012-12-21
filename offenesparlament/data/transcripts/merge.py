@@ -1,24 +1,13 @@
 from pprint import pprint
 import re
 import logging
-from datetime import datetime
-import sys
 
 import sqlaload as sl
 
-from offenesparlament.core import etl_engine
-
-log = logging.getLogger(__name__)
-
-def merge_speeches(engine):
-    Speech = sl.get_table(engine, 'speech')
-    for combo in sl.distinct(engine, Speech, 'wahlperiode', 'sitzung'):
-        merge_speech(engine, str(combo['wahlperiode']),
-                     str(combo['sitzung']))
-
-
 TOPS = re.compile("(TOP|Tagesordnungspunkte?)\s*(\d{1,3})")
 ZPS = re.compile("(ZP|Zusatzpunkte?)\s*(\d{1,3})")
+
+log = logging.getLogger(__name__)
 
 
 def top_calls(text):
@@ -36,6 +25,7 @@ def match_chair(speech, recd):
     calls = top_calls(title) - set(recd['item_key'].split())
     if len(tops.intersection(calls)) > 0:
         log.debug("TOP --- %s" % title)
+
 
 def merge_speech(engine, wp, session):
     log.info("Merging media + transcript: %s/%s" % (wp, session))

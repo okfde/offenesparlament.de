@@ -7,8 +7,6 @@ import sqlaload as sl
 from offenesparlament.transform.persons import make_person, make_long_name
 from offenesparlament.data.lib.reference import resolve_person, \
     BadReference, InvalidReference
-from offenesparlament.data.lib.text import speaker_name_transform
-from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 
@@ -37,26 +35,6 @@ def match_beitrag(engine, beitrag):
         return None
 
 
-def match_speakers_webtv(engine):
-    WebTV = sl.get_table(engine, 'webtv')
-    for i, speech in enumerate(sl.distinct(engine, WebTV, 'speaker')):
-        if speech['speaker'] is None:
-            continue
-        speaker = speaker_name_transform(speech['speaker'])
-        matched = True
-        try:
-            fp = resolve_person(speaker)
-        except InvalidReference:
-            fp = None
-        except BadReference:
-            fp = None
-            matched = False
-        sl.upsert(engine, WebTV, {'fingerprint': fp,
-                                  'matched': matched,
-                                  'speaker': speech['speaker']},
-                    unique=['speaker'])
-
-
 def match_beitraege(engine):
     Beitrag = sl.get_table(engine, 'beitrag')
     for i, beitrag in enumerate(sl.distinct(engine, Beitrag, 'vorname',
@@ -71,12 +49,3 @@ def match_beitraege(engine):
         sl.upsert(engine, Beitrag, beitrag, unique=['vorname', 'nachname',
             'funktion', 'land', 'fraktion', 'ressort', 'ort'])
 
-
-def match_persons(db):
-    match_beitraege(db)
-    match_speakers_webtv(db)
-
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    match_persons(engine)

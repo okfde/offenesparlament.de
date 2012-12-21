@@ -9,7 +9,9 @@ from offenesparlament.data.lib.reference import InvalidReference
 from offenesparlament.data.transcripts.scrape_plpr import scrape_index, \
     scrape_transcript, url_metadata
 from offenesparlament.data.transcripts.scrape_webtv import scrape_agenda
-#from offenesparlament.data.gremien.load import load_gremium
+from offenesparlament.data.transcripts.resolve import speakers_webtv
+from offenesparlament.data.transcripts.merge import merge_speech
+from offenesparlament.data.transcripts.load import load_sitzung
 
 log = logging.getLogger(__name__)
 
@@ -23,9 +25,11 @@ def process_transcript(engine, indexer, url, force=False):
             wp, session = url_metadata(url)
         if not scrape_agenda(engine, wp, session):
             return
-        print url
-        #data = scrape_gremium(engine, url, force=force)
 
+        speakers_webtv(engine, wp, session)
+        merge_speech(engine, wp, session)
+        
+        load_sitzung(engine, indexer, wp, session)
         #data = fetch_row(engine, 'gremium', key=data['key'])
         #gremium = load_gremium(engine, data)
         #indexer.add(gremium)
