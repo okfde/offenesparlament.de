@@ -65,3 +65,14 @@ def speaker_name_transform(name):
     fragment = " ".join(cparts)
     fragment.replace('(', '').replace(')', '')
     return fragment
+
+def strip_control_characters(text):
+    if not isinstance(text, basestring):
+        return text
+    _filtered = []
+    for c in unicode(text):
+        cat = category(c)[:1]
+        if cat not in 'C':
+            _filtered.append(c)
+    return ''.join(_filtered)
+

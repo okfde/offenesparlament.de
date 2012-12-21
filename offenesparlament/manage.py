@@ -51,11 +51,11 @@ def transform():
     """ Transform and clean up content """
     engine = etl_engine()
     from offenesparlament.transform import persons
-    persons.generate_person_long_names(engine)
+    #persons.generate_person_long_names(engine)
     from offenesparlament.transform import positions
-    positions.extend_positions(engine)
+    #positions.extend_positions(engine)
     from offenesparlament.transform import ablaeufe
-    ablaeufe.extend_ablaeufe(engine)
+    #ablaeufe.extend_ablaeufe(engine)
     from offenesparlament.transform import namematch
     namematch.match_persons(engine)
     from offenesparlament.transform import abstimmungen
