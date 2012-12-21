@@ -1,36 +1,11 @@
 import logging
-from Queue import Queue
-from threading import Thread
 from lxml import etree, html
 from StringIO import StringIO
 import requests
 import time
 
 log = logging.getLogger(__name__)
-UA = 'OPA // Neuer Scraper; weniger Zugriffe - bitte nicht blocken! <friedrich.lindenberg@okfn.org>'
-
-def threaded(items, func, num_threads=5, max_queue=200):
-    def queue_consumer():
-        while True:
-            item = queue.get(True)
-            try:
-                func(item)
-            except Exception, e:
-                log.exception(e)
-            queue.task_done()
-
-    queue = Queue(maxsize=max_queue)
-
-    for i in range(num_threads):
-        t = Thread(target=queue_consumer)
-        t.daemon = True
-        t.start()
-
-    for item in items:
-        queue.put(item, True)
-
-    queue.join()
-
+UA = 'OffenesParlament.de // <friedrich.lindenberg@okfn.org>'
 
 def fetch(url, timeout=2.0, keep_alive=True):
     #url = url.replace('http://', 'https://')

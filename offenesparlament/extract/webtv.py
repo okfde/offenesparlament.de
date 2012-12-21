@@ -6,7 +6,7 @@ from datetime import datetime
 import sqlaload as sl
 
 from offenesparlament.core import etl_engine
-from offenesparlament.extract.util import _html
+from offenesparlament.data.lib.retrieval import _html
 
 log = logging.getLogger(__name__)
 

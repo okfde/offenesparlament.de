@@ -9,7 +9,7 @@ import tempfile
 from lxml import etree
 
 import sqlaload as sl
-from offenesparlament.extract.util import fetch, _html
+from offenesparlament.data.lib.retrieval import fetch, _html
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)

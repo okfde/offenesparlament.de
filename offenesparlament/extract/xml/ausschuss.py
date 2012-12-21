@@ -3,7 +3,7 @@ import logging
 import sqlaload as sl
 
 from offenesparlament.data.lib.constants import GREMIUM_RSS_FEEDS
-from offenesparlament.extract.util import _xml
+from offenesparlament.data.lib.retrieval import _xml
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)

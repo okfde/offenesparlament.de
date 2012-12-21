@@ -10,13 +10,11 @@ import sqlaload as sl
 
 from offenesparlament.data.lib.constants import FACTION_MAPS, \
     DIP_GREMIUM_TO_KEY, DIP_ABLAUF_STATES_FINISHED
-from offenesparlament.extract.util import threaded
-from offenesparlament.extract.util import UA, fetch, _html
+from offenesparlament.data.lib.threaded import threaded
+from offenesparlament.data.lib.retrieval import fetch, _html
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-
-
 
 inline_re = re.compile(r"<!--(.*?)-->", re.M + re.S)
 inline_comments_re = re.compile(r"<-.*->", re.M + re.S)
