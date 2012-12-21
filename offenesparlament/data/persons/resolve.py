@@ -23,7 +23,7 @@ def make_fingerprint(engine, person):
         Rolle = sl.get_table(engine, 'rolle')
         sl.upsert(engine, Rolle, {
             'mdb_id': person['mdb_id'],
-            'fingerprint': person['fingerprint']
+            'fingerprint': long_name
             }, unique=['mdb_id'])
     except BadReference:
         pass
