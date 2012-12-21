@@ -14,7 +14,7 @@ WEBTV_BASE = 'http://webtv.bundestag.de/iptv/player/macros/bttv/list.html?pageOf
 WEBTV_SPEECHES = 'http://webtv.bundestag.de/player/macros/bttv/contribution_list.html?meetingPeriod=%s&meetingNumber=%s&agendaItemId=%s'
 
 
-def load_speeches(engine, data):
+def scrape_speeches(engine, data):
     url = WEBTV_SPEECHES % (data['wp'], data['session'], data['item_id'])
     response, doc = _html(url)
     rows = doc.findall('//tr')
@@ -30,7 +30,7 @@ def load_speeches(engine, data):
         #pprint(data)
 
 
-def load_agenda(engine, wp, session):
+def scrape_agenda(engine, wp, session):
     url = WEBTV_BASE % (session, wp)
     response, doc = _html(url, timeout=4.0)
     if doc is None:
@@ -58,16 +58,6 @@ def load_agenda(engine, wp, session):
 
             text = rows[i + 1].find('.//span[@class="hiddenTopText"]')
             data['item_description'] = text.xpath('string()').strip()
-            load_speeches(engine, data.copy())
+            scrape_speeches(engine, data.copy())
     return True
-
-
-def load_sessions(engine, wp='17'):
-    table = sl.get_table(engine, 'webtv')
-    for i in count(1):
-        i = str(i)
-        if sl.find_one(engine, table, wp=wp, session=i):
-            continue
-        if not load_agenda(engine, wp, i):
-            return
 

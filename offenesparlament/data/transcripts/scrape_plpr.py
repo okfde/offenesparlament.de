@@ -6,34 +6,25 @@ import re
 
 import sqlaload as sl
 
-from offenesparlament.core import etl_engine
+from offenesparlament.data.lib.constants import SPEAKER_STOPWORDS, CHAIRS
+from offenesparlament.data.lib.retrieval import fetch, fetch_stream
+from offenesparlament.data.lib.refresh import check_tags
 from offenesparlament.data.lib.reference import resolve_person, \
     BadReference, InvalidReference
-
-from offenesparlament.load.fetch import fetch_stream, fetch
 
 log = logging.getLogger(__name__)
 
 URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/%s%03.d.txt"
-
-CHAIRS = [u'Vizepräsidentin', u'Vizepräsident', u'Präsident']
-
 BEGIN_MARK = re.compile('Beginn: [X\d]{1,2}.\d{1,2} Uhr')
 END_MARK = re.compile('\(Schluss: \d{1,2}.\d{1,2} Uhr\).*')
 SPEAKER_MARK = re.compile('  (.{5,140}):\s*$')
 TOP_MARK = re.compile('.*(rufe.*die Frage|zur Frage|Tagesordnungspunkt|Zusatzpunkt).*')
 POI_MARK = re.compile('\((.*)\)\s*$', re.M)
 
-SPEAKER_STOPWORDS = ['ich zitiere', 'zitieren', 'Zitat', 'zitiert',
-                     'ich rufe den', 'ich rufe die',
-                     'wir kommen zur Frage', 'kommen wir zu Frage', 'bei Frage',
-                     'fordert', 'fordern', u'Ich möchte', 
-                     'Darin steht', ' Aspekte ', ' Punkte ']
 
 class SpeechParser(object):
 
-    def __init__(self, engine, fh):
-        self.engine = engine
+    def __init__(self, fh):
         self.fh = fh
         self.missing_recon = False
 
@@ -131,46 +122,48 @@ class SpeechParser(object):
             text.append(line)
         yield emit()
 
-def load_transcript(engine, wp, session, incremental=True):
-    url = URL % (wp, session)
-    Speech = sl.get_table(engine, 'speech')
-    if incremental and sl.find_one(engine, Speech,
-        source_url=url, matched=True):
-        return True
-    if '404 Seite nicht gefunden' in fetch(url):
-        return False
-    sio = fetch_stream(url)
-    if sio is None:
-        return False
+def url_metadata(url):
+    fname = url.rsplit('/')[-1]
+    return int(fname[:2]), int(fname[2:5])
+
+def scrape_transcript(engine, url, force=False):
+    wp, session = url_metadata(url)
+    table = sl.get_table(engine, 'speech')
+    sample = sl.find_one(engine, table, source_url=url, matched=True)
+    response, sio = fetch_stream(url)
+    sample = check_tags(sample or {}, response, force)
+    base_data = {'source_url': url, 
+                 'sitzung': session,
+                 'wahlperiode': wp,
+                 'matched': False,
+                 'source_etag': sample['source_etag']}
     log.info("Loading transcript: %s/%s" % (wp, session))
     seq = 0
-    parser = SpeechParser(engine, sio)
+    parser = SpeechParser(sio)
     for contrib in parser:
         if not len(contrib['text'].strip()):
             continue
-        contrib['sitzung'] = session
+        contrib.update(base_data)
         contrib['sequence'] = seq
-        contrib['wahlperiode'] = wp
-        contrib['source_url'] = url
-        contrib['matched'] = True
-        sl.upsert(engine, Speech, contrib, 
-                  unique=['sequence', 'sitzung', 'wahlperiode'])
+        sl.upsert(engine, table, contrib, 
+                  unique=['source_url', 'sequence'])
         seq += 1
-    if parser.missing_recon:
-        sl.upsert(engine, Speech, {
-                    'matched': False,
-                    'sitzung': session,
-                    'wahlperiode': wp
-            }, unique=['sitzung', 'wahlperiode'])
+    if not parser.missing_recon:
+        sl.upsert(engine, table, {
+                    'matched': True,
+                    'source_url': url,
+            }, unique=['source_url'])
+    else:
+        raise InvalidReference()
+    return base_data
 
-    return True
 
-def load_transcripts(engine, incremental=True):
+def scrape_index(wp=17):
     for i in count(33):
-        if not load_transcript(engine, 17, i, incremental=incremental) and i > 180:
-            break
-
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    load_transcripts(engine)
+        url = URL % (wp, i)
+        response = fetch(url)
+        if response.status_code != 200: 
+            if i > 180:
+                return
+            continue
+        yield url

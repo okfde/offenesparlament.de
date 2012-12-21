@@ -1,5 +1,14 @@
 # -*- coding: UTF-8 -*-
 
+CHAIRS = [u'Vizepräsidentin', u'Vizepräsident', u'Präsident']
+
+SPEAKER_STOPWORDS = ['ich zitiere', 'zitieren', 'Zitat', 'zitiert',
+                     'ich rufe den', 'ich rufe die',
+                     'wir kommen zur Frage', 'kommen wir zu Frage', 'bei Frage',
+                     'fordert', 'fordern', u'Ich möchte', 
+                     'Darin steht', ' Aspekte ', ' Punkte ']
+
+
 FACTION_MAPS = {
         u"BÜNDNIS 90/DIE GRÜNEN": u"B90/Die Grünen",
         u"DIE LINKE.": u"Die LINKE.",

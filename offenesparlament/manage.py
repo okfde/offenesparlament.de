@@ -7,6 +7,8 @@ from offenesparlament.data.persons import process as process_persons, process_pe
 from offenesparlament.data.gremien import process as process_gremien, process_gremium
 from offenesparlament.data.abstimmungen import process as \
     process_abstimmungen, process_abstimmung
+from offenesparlament.data.transcripts import process as \
+    process_transcripts, process_transcript
 
 manager = Manager(app)
 
@@ -66,6 +68,18 @@ def abstimmungen(url=None, force=False):
         process_abstimmungen(engine, indexer, force=force)
     else:
         process_abstimmung(engine, indexer, url,
+                       force=force)
+    indexer.flush()
+
+@manager.command
+def transcripts(url=None, force=False):
+    """ Load all or a specific transcript. """
+    engine = etl_engine()
+    indexer = get_indexer()
+    if url is None:
+        process_transcripts(engine, indexer, force=force)
+    else:
+        process_transcript(engine, indexer, url,
                        force=force)
     indexer.flush()
 
