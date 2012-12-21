@@ -10,15 +10,6 @@ from offenesparlament.data.gremien import process as process_gremien, process_gr
 manager = Manager(app)
 
 
-@manager.command
-def extract_base():
-    """ Run the extract stage """
-    engine = etl_engine()
-    from offenesparlament.extract.xml import ausschuss
-    ausschuss.load_index(engine)
-    from offenesparlament.extract.xml import mdb
-    mdb.load_index(engine)
-
 
 @manager.command
 def extract_votes():
@@ -73,6 +64,16 @@ def gremien(url=None, force=False):
         process_gremium(engine, indexer, url,
                        force=force)
     indexer.flush()
+
+@manager.command
+def update(force=False):
+    """ Update the entire database. """
+    engine = etl_engine()
+    indexer = get_indexer()
+    process_gremien(engine, indexer, force=force)
+    process_persons(engine, indexer, force=force)
+    indexer.flush()
+
 
 @manager.command
 def transform():
