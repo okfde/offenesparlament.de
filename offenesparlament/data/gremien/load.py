@@ -1,8 +1,6 @@
 import logging
 import sqlaload as sl
 
-from offenesparlament.core import etl_engine
-
 from offenesparlament.core import db
 from offenesparlament.model import Gremium
 

@@ -1,19 +1,10 @@
-import sys
 import logging
-from collections import defaultdict
-from datetime import datetime
 
 import sqlaload as sl
 
-from offenesparlament.core import etl_engine
-
 from offenesparlament.core import db
-from offenesparlament.model import Gremium, Person, Rolle, \
-        Wahlkreis, Ablauf, \
-        Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
-        Schlagwort, Sitzung, Debatte, Zitat, Stimme, Abstimmung
-from offenesparlament.model.person import obleute, mitglieder, \
-        stellvertreter
+from offenesparlament.model.util import to_date
+from offenesparlament.model import Stimme, Abstimmung, Person
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +21,7 @@ def load_abstimmung(engine, source_url):
     if abst is None:
         abst = Abstimmung()
         abst.thema = thema
-        abst.datum = date(stimmen[0].get('date'))
+        abst.datum = to_date(stimmen[0].get('date'))
     db.session.add(abst)
     db.session.flush()
     for stimme_ in stimmen:

@@ -7,7 +7,6 @@ import sqlaload as sl
 
 from offenesparlament.data.lib.retrieval import _xml
 from offenesparlament.data.lib.refresh import check_tags
-from offenesparlament.core import etl_engine
 
 MDB_INDEX_URL = "http://www.bundestag.de/xml/mdb/index.xml"
 
