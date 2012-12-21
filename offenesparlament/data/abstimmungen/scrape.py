@@ -86,9 +86,7 @@ def scrape_abstimmung(engine, url, force=False):
     abstimmung = sl.get_table(engine, 'abstimmung')
     sample = sl.find_one(engine, abstimmung, source_url=url)
     response = fetch(url)
-    if sample is None:
-        sample = {'source_url': url}
-    sample = check_tags(sample, response, force)
+    sample = check_tags(sample or {}, response, force)
     
     base_data = {'source_url': url, 
                  'source_etag': sample['source_etag']}
