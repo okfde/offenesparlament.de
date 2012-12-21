@@ -5,7 +5,7 @@ import requests
 import time
 
 log = logging.getLogger(__name__)
-UA = 'OffenesParlament.de // <friedrich.lindenberg@okfn.org>'
+UA = 'OffenesParlament.de // <friedrich@pudo.org>'
 
 def fetch(url, timeout=2.0, keep_alive=True):
     #url = url.replace('http://', 'https://')
@@ -18,13 +18,13 @@ def fetch(url, timeout=2.0, keep_alive=True):
                 'https': app.config.get('HTTP_PROXY')
                 }
             body = requests.get(url, 
-                headers={'user-agent': UA},
+                headers={'User-Agent': UA},
                 timeout=timeout,
                 config={'max_retries': 2,
                         'keep_alive': keep_alive},
                 proxies=proxies,
                 verify=False)
-            return body.content
+            return body
         except requests.exceptions.Timeout:
             #keep_alive = False
             time.sleep(1)
@@ -35,18 +35,20 @@ def fetch(url, timeout=2.0, keep_alive=True):
 
 
 def fetch_stream(url, timeout=2.0):
-    data = fetch(url, timeout=timeout)
-    if data is None:
+    response = fetch(url, timeout=timeout)
+    if response is None:
         return None
-    return StringIO(data)
+    return response, StringIO(response.content)
 
 
 def _xml(url, timeout=2.0):
-    d = fetch_stream(url, timeout=timeout)
-    return etree.parse(d) if d is not None else d
+    response, d = fetch_stream(url, timeout=timeout)
+    doc = etree.parse(d) if d is not None else d
+    return response, doc
 
 
 def _html(url, timeout=2.0):
-    d = fetch_stream(url, timeout=timeout)
-    return html.parse(d) if d is not None else d
+    response, d = fetch_stream(url, timeout=timeout)
+    doc = html.parse(d) if d is not None else d
+    return response, doc
 

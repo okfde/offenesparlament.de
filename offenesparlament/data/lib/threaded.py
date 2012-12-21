@@ -4,6 +4,11 @@ import logging
 
 log = logging.getLogger(__name__)
 
+def unthreaded(items, func):
+    """ Debug placeholder. """
+    for item in items:
+        func(item)
+
 def threaded(items, func, num_threads=5, max_queue=200):
     def queue_consumer():
         while True:

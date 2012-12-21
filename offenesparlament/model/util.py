@@ -35,6 +35,13 @@ def datetime_add_tz(dt):
                     dt.minute, dt.second, tzinfo=tz.tzutc())
 
 
+def to_date(text):
+    try:
+        return datetime.strptime(text, "%Y-%m-%dT%H:%M:%S")
+    except:
+        pass
+
+
 def flatten(data, sep='.'):
     _data = {}
     for k, v in data.items():

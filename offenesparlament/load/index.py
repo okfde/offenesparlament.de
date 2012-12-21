@@ -8,7 +8,6 @@ from offenesparlament.model import Gremium, Person, Rolle, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
         Schlagwort, Sitzung, Debatte, Zitat
 
-from offenesparlament.model.util import convert_data_to_index
 from offenesparlament.model.indexer import get_indexer
 
 log = logging.getLogger(__name__)

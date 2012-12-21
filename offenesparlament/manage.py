@@ -2,6 +2,7 @@ from flaskext.script import Manager
 from webstore.client import URL as WebStore
 
 from offenesparlament.core import app, etl_engine
+from offenesparlament.model.indexer import get_indexer
 
 manager = Manager(app)
 
@@ -45,6 +46,19 @@ def download_docs():
     engine = etl_engine()
     from offenesparlament.extract import documents
     documents.load_documents(engine)
+
+@manager.command
+def persons(url=None, force=False):
+    """ Load all or a specific person. """
+    engine = etl_engine()
+    indexer = get_indexer()
+    from offenesparlament.data.persons import process, process_person
+    if url is None:
+        process(engine, indexer, force=force)
+    else:
+        process_person(engine, indexer, url,
+                       force=force)
+    indexer.flush()
 
 @manager.command
 def transform():

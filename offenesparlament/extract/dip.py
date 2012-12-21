@@ -211,7 +211,7 @@ def scrape_ablauf(url, engine, wahlperiode=17):
     if a is None:
         a = {}
     a['key'] = key
-    doc = inline_xml_from_page(fetch(url))
+    doc = inline_xml_from_page(fetch(url).content)
     if doc is None: 
         raise NoContentException()
     
@@ -296,7 +296,7 @@ def load_dip(engine):
 EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP17/'
 
 def load_dip_index():
-    doc = _html(EXTRAKT_INDEX, timeout=120.0)
+    response, doc = _html(EXTRAKT_INDEX, timeout=120.0)
     for result in doc.findall("//a[@class='linkIntern']"):
         yield urljoin(EXTRAKT_INDEX, result.get('href'))
 

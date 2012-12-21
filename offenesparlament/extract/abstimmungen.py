@@ -107,7 +107,7 @@ def load_vote(url, engine, incremental=True):
         return
     fh, path = tempfile.mkstemp('.pdf')
     fo = open(path, 'wb')
-    fo.write(fetch(url))
+    fo.write(fetch(url).content)
     fo.close()
     xml = pdftoxml(path)
     handle_xml(xml, engine, url)
@@ -115,7 +115,7 @@ def load_vote(url, engine, incremental=True):
 def load_index(engine, incremental=True):
     for year in range(2009, datetime.now().year):
         index_url = INDEX % year
-        doc = _html(index_url)
+        response, doc = _html(index_url)
         for a in doc.findall('//a'):
             url = urlparse.urljoin(index_url , a.get('href'))
             if url.endswith('.pdf'):

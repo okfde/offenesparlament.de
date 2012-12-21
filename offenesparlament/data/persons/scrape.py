@@ -6,12 +6,13 @@ from datetime import datetime
 import sqlaload as sl
 
 from offenesparlament.data.lib.retrieval import _xml
+from offenesparlament.data.lib.refresh import check_tags
 from offenesparlament.core import etl_engine
 
 MDB_INDEX_URL = "http://www.bundestag.de/xml/mdb/index.xml"
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
+
 
 def add_to_gremium(node, url, role, engine):
     key = node.get('id')
@@ -29,17 +30,21 @@ def add_to_gremium(node, url, role, engine):
         'role': role
         }, unique=['person_source_url', 'gremium_key', 'role'])
 
-def load_index(engine): 
-    doc = _xml(MDB_INDEX_URL)
-    for info_url in doc.findall("//mdbInfoXMLURL"):
-        load_mdb(info_url.text, engine)
 
-def load_mdb(url, engine):
-    doc = _xml(url)
+def scrape_index(): 
+    response, doc = _xml(MDB_INDEX_URL)
+    for info_url in doc.findall("//mdbInfoXMLURL"):
+        yield info_url.text
+
+
+def scrape_mdb(engine, url, force=False):
+    response, doc = _xml(url)
     id = int(doc.findtext('//mdbID'))
     table_person = sl.get_table(engine, 'person')
     table_rolle = sl.get_table(engine, 'rolle')
     p = sl.find_one(engine, table_person, mdb_id=id)
+    if not force:
+        p = check_tags(p, response)
     r = {'person_source_url': url, 
          'funktion': 'MdB'}
     if p is None:
@@ -138,9 +143,6 @@ def load_mdb(url, engine):
 
     sl.upsert(engine, table_person, p, unique=['source_url'])
     sl.upsert(engine, table_rolle, r, unique=['person_source_url', 'funktion'])
+    return p
 
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    load_index(engine)
 

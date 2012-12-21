@@ -16,7 +16,7 @@ WEBTV_SPEECHES = 'http://webtv.bundestag.de/player/macros/bttv/contribution_list
 
 def load_speeches(engine, data):
     url = WEBTV_SPEECHES % (data['wp'], data['session'], data['item_id'])
-    doc = _html(url)
+    response, doc = _html(url)
     rows = doc.findall('//tr')
     table = sl.get_table(engine, 'webtv')
     for i, row in enumerate(rows):
@@ -32,7 +32,7 @@ def load_speeches(engine, data):
 
 def load_agenda(engine, wp, session):
     url = WEBTV_BASE % (session, wp)
-    doc = _html(url, timeout=4.0)
+    response, doc = _html(url, timeout=4.0)
     if doc is None:
         return False
     table = doc.find('//div[@class="meetingTable"]/table')
