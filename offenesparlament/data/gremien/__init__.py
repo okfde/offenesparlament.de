@@ -25,6 +25,3 @@ def process(engine, indexer, force=False):
             force=force)
     unthreaded(scrape_index(), func)
 
-
-
-

@@ -2,44 +2,26 @@
 from pprint import pprint
 from datetime import datetime
 import urlparse
-import subprocess
 import logging
 import re
-import tempfile
 from lxml import etree
 
 import sqlaload as sl
+
 from offenesparlament.data.lib.retrieval import fetch, _html
+from offenesparlament.data.lib.constants import GERMAN_MONTHS
+from offenesparlament.data.lib.refresh import check_tags
+from offenesparlament.data.lib.pdftoxml import pdftoxml
 from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.NOTSET)
 
 INDEX = "http://www.bundestag.de/bundestag/plenum/abstimmung/%s/index.html"
 DATE_RE = re.compile(r"Berlin.*den.*(\d{2})[^\d]*(\w{3,4}).*(\d{2})[^\d]*")
 
-MONTHS = {
-    'Jan': 1,
-    'Feb': 2,
-    'Mrz': 3,
-    'Apr': 4,
-    'Mai': 5,
-    'Jun': 6,
-    'Jul': 7,
-    'Aug': 8,
-    'Sep': 9, 
-    'Okt': 10,
-    'Nov': 11,
-    'Dez': 12
-    }
 
-def pdftoxml(file_path):
-    process = subprocess.Popen(['pdftohtml', '-xml', '-noframes', '-stdout',
-            file_path], shell=False, stdout=subprocess.PIPE)
-    return process.stdout.read()
-
-def handle_xml(xml, engine, source_url):
-    doc = etree.fromstring(xml)
+def handle_xml(engine, base_data, data):
+    doc = etree.fromstring(pdftoxml(data))
     Vote = sl.get_table(engine, 'abstimmung')
     subject = ''
     date = None
@@ -75,8 +57,8 @@ def handle_xml(xml, engine, source_url):
                 data = {'subject': unicode(subject),
                         'person': name.strip() + ' ' + fraktion,
                         'date': unicode(date),
-                        'vote': unicode(field),
-                        'source_url': source_url}
+                        'vote': unicode(field)}
+                data.update(base_data)
                 sl.upsert(engine, Vote, data, unique=['subject', 'person'])
                 name = u''
 
@@ -89,7 +71,7 @@ def handle_xml(xml, engine, source_url):
                 m = DATE_RE.match(text)
                 if m:
                     dstr = "%s.%s.%s" % (m.group(1),
-                                         MONTHS[m.group(2)],
+                                         GERMAN_MONTHS[m.group(2)],
                                          m.group(3))
                     date = datetime.strptime(dstr, '%d.%m.%y').isoformat()
             subject = subject.strip()
@@ -100,29 +82,25 @@ def handle_xml(xml, engine, source_url):
         else:
             handle_list(page)
 
-def load_vote(url, engine, incremental=True):
-    Vote = sl.get_table(engine, 'abstimmung')
-    if incremental and sl.find_one(engine, Vote, source_url=url):
-        log.info("%s is done, skipping.", url)
-        return
-    fh, path = tempfile.mkstemp('.pdf')
-    fo = open(path, 'wb')
-    fo.write(fetch(url).content)
-    fo.close()
-    xml = pdftoxml(path)
-    handle_xml(xml, engine, url)
+def scrape_abstimmung(engine, url, force=False):
+    abstimmung = sl.get_table(engine, 'abstimmung')
+    sample = sl.find_one(engine, abstimmung, source_url=url)
+    response = fetch(url)
+    if sample is None:
+        sample = {'source_url': url}
+    sample = check_tags(sample, response, force)
+    
+    base_data = {'source_url': url, 
+                 'source_etag': sample['source_etag']}
+    handle_xml(engine, base_data, response.content)
+    return base_data
 
-def load_index(engine, incremental=True):
+def scrape_index():
     for year in range(2009, datetime.now().year):
         index_url = INDEX % year
         response, doc = _html(index_url)
         for a in doc.findall('//a'):
             url = urlparse.urljoin(index_url , a.get('href'))
             if url.endswith('.pdf'):
-                load_vote(url, engine, incremental=incremental)
-
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    load_index(engine)
+                yield url
 

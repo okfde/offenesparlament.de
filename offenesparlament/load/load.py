@@ -288,47 +288,11 @@ def load_zitate(engine, debatte, zitate, speeches):
                 SPEAKERS[speech['fingerprint']] = zitat.person
 
         db.session.add(zitat)
-        #db.session.flush()
-
-
-def load_abstimmungen(engine):
-    _Abstimmung = sl.get_table(engine, 'abstimmung')
-    i = 0
-    for row in sl.distinct(engine, _Abstimmung, 'subject', 'date'):
-        thema = row.get('subject')
-        abst = Abstimmung.query.filter_by(thema=thema).first()
-        if abst is None:
-            abst = Abstimmung()
-            abst.thema = thema
-            abst.datum = date(row.get('date'))
-        db.session.add(abst)
-        for stimme_ in sl.find(engine, _Abstimmung, subject=thema,
-            matched=True):
-            if i % 1000 == 0:
-                sys.stdout.write(".")
-                sys.stdout.flush()
-            i += 1
-            person = Person.query.filter_by(
-                fingerprint=stimme_.get('fingerprint')).first()
-            if person is None:
-                continue
-            stimme = Stimme.query.filter_by(
-                abstimmung=abst).filter_by(
-                person=person).first()
-            if stimme is not None:
-                continue
-            stimme = Stimme()
-            stimme.entscheidung = stimme_['vote']
-            stimme.person = person
-            stimme.abstimmung = abst
-            db.session.add(stimme)
-        db.session.commit()
 
 
 def load(engine):
     load_sitzungen(engine)
     load_ablaeufe(engine)
-    load_abstimmungen(engine)
 
 
 def aggregate():

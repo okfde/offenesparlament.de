@@ -115,3 +115,19 @@ GREMIUM_RSS_FEEDS = {
         "a19": "http://www.bundestag.de/rss_feeds/entwicklung.rss",
         "eig": "http://www.bundestag.de/rss_feeds/internetenquete.rss"
     }
+
+GERMAN_MONTHS = {
+    'Jan': 1,
+    'Feb': 2,
+    'Mrz': 3,
+    'Apr': 4,
+    'Mai': 5,
+    'Jun': 6,
+    'Jul': 7,
+    'Aug': 8,
+    'Sep': 9, 
+    'Okt': 10,
+    'Nov': 11,
+    'Dez': 12
+    }
+

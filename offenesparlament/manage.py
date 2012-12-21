@@ -6,6 +6,8 @@ from offenesparlament.model.indexer import get_indexer
 
 from offenesparlament.data.persons import process as process_persons, process_person
 from offenesparlament.data.gremien import process as process_gremien, process_gremium
+from offenesparlament.data.abstimmungen import process as \
+    process_abstimmungen, process_abstimmung
 
 manager = Manager(app)
 
@@ -62,6 +64,18 @@ def gremien(url=None, force=False):
         process_gremien(engine, indexer, force=force)
     else:
         process_gremium(engine, indexer, url,
+                       force=force)
+    indexer.flush()
+
+@manager.command
+def abstimmungen(url=None, force=False):
+    """ Load all or a specific vote. """
+    engine = etl_engine()
+    indexer = get_indexer()
+    if url is None:
+        process_abstimmungen(engine, indexer, force=force)
+    else:
+        process_abstimmung(engine, indexer, url,
                        force=force)
     indexer.flush()
 
