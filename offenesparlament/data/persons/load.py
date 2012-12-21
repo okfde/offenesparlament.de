@@ -4,7 +4,9 @@ import sqlaload as sl
 
 from offenesparlament.core import db
 from offenesparlament.model.util import to_date
-from offenesparlament.model import Person, Rolle, Wahlkreis
+from offenesparlament.model import Person, Rolle, Gremium, Wahlkreis
+from offenesparlament.model.person import obleute, mitglieder, \
+        stellvertreter
 
 log = logging.getLogger(__name__)
 
@@ -13,6 +15,13 @@ def load_person(engine, data):
             fingerprint=data.get('fingerprint')).first()
     if person is None:
         person = Person()
+    else:
+        s = obleute.delete(obleute.c.person_id==person.id)
+        db.session.execute(s)
+        s = mitglieder.delete(mitglieder.c.person_id==person.id)
+        db.session.execute(s)
+        s = stellvertreter.delete(stellvertreter.c.person_id==person.id)
+        db.session.execute(s)
 
     person.slug = data.get('slug')
     person.fingerprint = data.get('fingerprint')
@@ -50,10 +59,30 @@ def load_person(engine, data):
     db.session.add(person)
     db.session.flush()
     mdb_rolle = load_rollen(engine, person, data)
-    #load_gremium_mitglieder(engine, person, mdb_rolle)
+    load_gremium_mitglieder(engine, person)
     db.session.commit()
     return person
 
+def load_gremium_mitglieder(engine, person):
+    _GremiumMitglieder = sl.get_table(engine, 'gremium_mitglieder')
+    for gmdata in sl.find(engine, _GremiumMitglieder,
+                          person_source_url=person.source_url):
+        gremium = Gremium.query.filter_by(key=gmdata['gremium_key']).first()
+        if gremium is None:
+            log.error("Gremium not found: %s" % gmdata['gremium_key'])
+        role = gmdata['role']
+        if role == 'obleute':
+            gremium.obleute.append(person)
+        elif role == 'vorsitz':
+            gremium.vorsitz = person
+        elif role == 'stellv_vorsitz':
+            gremium.stellv_vorsitz = person
+        elif role == 'mitglied':
+            gremium.mitglieder.append(person)
+        elif role == 'stellv_mitglied':
+            gremium.stellvertreter.append(person)
+        else:
+            raise TypeError("Invalid ms type: %s" % role)
 
 def load_wahlkreis(engine, rolle, data):
     if data.get('wk_nummer'):

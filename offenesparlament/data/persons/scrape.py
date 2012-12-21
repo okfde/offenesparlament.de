@@ -43,16 +43,15 @@ def scrape_mdb(engine, url, force=False):
     table_person = sl.get_table(engine, 'person')
     table_rolle = sl.get_table(engine, 'rolle')
     p = sl.find_one(engine, table_person, mdb_id=id)
-    if not force:
-        p = check_tags(p, response)
-    r = {'person_source_url': url, 
-         'funktion': 'MdB'}
     if p is None:
         p = {'source_url': url}
     else:
         r_ = sl.find_one(engine, table_rolle, mdb_id=id, funktion='MdB')
         if r_ is not None:
             r = r_
+    p = check_tags(p, response, force)
+    r = {'person_source_url': url, 
+         'funktion': 'MdB'}
 
     r['mdb_id'] = p['mdb_id'] = id
     r['status'] = doc.find('//mdbID').get('status')
