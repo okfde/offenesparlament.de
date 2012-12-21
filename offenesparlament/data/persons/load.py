@@ -59,7 +59,7 @@ def load_person(engine, data):
     person.awatch_url = data.get('awatch_url')
     db.session.add(person)
     db.session.flush()
-    mdb_rolle = load_rollen(engine, person, data)
+    load_rollen(engine, person, data)
     load_gremium_mitglieder(engine, person)
     db.session.commit()
     return person
@@ -102,7 +102,6 @@ def load_wahlkreis(engine, rolle, data):
 
 def load_rollen(engine, person, data):
     _RolleSource = sl.get_table(engine, 'rolle')
-    mdb_rolle = None
     for rdata in sl.find(engine, _RolleSource, fingerprint=data['fingerprint']):
         rolle = Rolle.query.filter_by(
                 person=person,
@@ -125,8 +124,6 @@ def load_rollen(engine, person, data):
 
         if rdata.get('mdb_id'):
             rolle.wahlkreis = load_wahlkreis(engine, rolle, data)
-            mdb_rolle = rolle
         db.session.add(rolle)
-    return mdb_rolle
 
 
