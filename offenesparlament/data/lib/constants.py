@@ -90,3 +90,28 @@ DIP_ABLAUF_STATES_FINISHED = {
     u'Zuleitung in Neufassung beschlossen': True,
     u'Untersuchungsausschuss eingesetzt': False
 }
+
+GREMIUM_RSS_FEEDS = {
+        "a11": "http://www.bundestag.de/rss_feeds/arbeitsoziales.rss",
+        "a03": "http://www.bundestag.de/rss_feeds/auswaertiges.rss",
+        "a18": "http://www.bundestag.de/rss_feeds/bildung.rss",
+        "a10": "http://www.bundestag.de/rss_feeds/landwirtschaftverbraucher.rss",
+        "a21": "http://www.bundestag.de/rss_feeds/eu.rss",
+        "a13": "http://www.bundestag.de/rss_feeds/familie.rss",
+        "a07": "http://www.bundestag.de/rss_feeds/finanzen.rss",
+        "a14": "http://www.bundestag.de/rss_feeds/gesundheit.rss",
+        "a08": "http://www.bundestag.de/rss_feeds/haushalt.rss",
+        "a04": "http://www.bundestag.de/rss_feeds/inneres.rss",
+        "a22": "http://www.bundestag.de/rss_feeds/kultur.rss",
+        "a17": "http://www.bundestag.de/rss_feeds/menschenrechte.rss",
+        "a02": "http://www.bundestag.de/rss_feeds/petitionen.rss",
+        "a06": "http://www.bundestag.de/rss_feeds/recht.rss",
+        "a05": "http://www.bundestag.de/rss_feeds/sport.rss",
+        "a20": "http://www.bundestag.de/rss_feeds/tourismus.rss",
+        "a16": "http://www.bundestag.de/rss_feeds/umwelt.rss",
+        "a15": "http://www.bundestag.de/rss_feeds/verkehr.rss",
+        "a14": "http://www.bundestag.de/rss_feeds/verteidigung.rss",
+        "a09": "http://www.bundestag.de/rss_feeds/wirtschaft.rss",
+        "a19": "http://www.bundestag.de/rss_feeds/entwicklung.rss",
+        "eig": "http://www.bundestag.de/rss_feeds/internetenquete.rss"
+    }

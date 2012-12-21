@@ -1,10 +1,8 @@
 import logging
-import sys
-from lxml import etree
 
-from webstore.client import URL as WebStore
 import sqlaload as sl
 
+from offenesparlament.data.lib.constants import GREMIUM_RSS_FEEDS
 from offenesparlament.extract.util import _xml
 from offenesparlament.core import etl_engine
 
@@ -12,32 +10,6 @@ log = logging.getLogger(__name__)
 
 AUSSCHUSS_INDEX_URL = "http://www.bundestag.de/xml/ausschuesse/index.xml"
 URL_PATTERN = "http://www.bundestag.de/bundestag/ausschuesse17/%s/index.jsp"
-
-RSS_FEEDS = {
-        "a11": "http://www.bundestag.de/rss_feeds/arbeitsoziales.rss",
-        "a03": "http://www.bundestag.de/rss_feeds/auswaertiges.rss",
-        "a18": "http://www.bundestag.de/rss_feeds/bildung.rss",
-        "a10": "http://www.bundestag.de/rss_feeds/landwirtschaftverbraucher.rss",
-        "a21": "http://www.bundestag.de/rss_feeds/eu.rss",
-        "a13": "http://www.bundestag.de/rss_feeds/familie.rss",
-        "a07": "http://www.bundestag.de/rss_feeds/finanzen.rss",
-        "a14": "http://www.bundestag.de/rss_feeds/gesundheit.rss",
-        "a08": "http://www.bundestag.de/rss_feeds/haushalt.rss",
-        "a04": "http://www.bundestag.de/rss_feeds/inneres.rss",
-        "a22": "http://www.bundestag.de/rss_feeds/kultur.rss",
-        "a17": "http://www.bundestag.de/rss_feeds/menschenrechte.rss",
-        "a02": "http://www.bundestag.de/rss_feeds/petitionen.rss",
-        "a06": "http://www.bundestag.de/rss_feeds/recht.rss",
-        "a05": "http://www.bundestag.de/rss_feeds/sport.rss",
-        "a20": "http://www.bundestag.de/rss_feeds/tourismus.rss",
-        "a16": "http://www.bundestag.de/rss_feeds/umwelt.rss",
-        "a15": "http://www.bundestag.de/rss_feeds/verkehr.rss",
-        "a14": "http://www.bundestag.de/rss_feeds/verteidigung.rss",
-        "a09": "http://www.bundestag.de/rss_feeds/wirtschaft.rss",
-        "a19": "http://www.bundestag.de/rss_feeds/entwicklung.rss",
-        "eig": "http://www.bundestag.de/rss_feeds/internetenquete.rss"
-    }
-
 
 def load_index(engine):
     doc = _xml(AUSSCHUSS_INDEX_URL)
