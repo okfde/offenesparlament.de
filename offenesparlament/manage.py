@@ -121,13 +121,6 @@ def transform():
     drs.merge_speeches(engine)
 
 @manager.command
-def devtf():
-    """ Transform and clean up content (dev bits) """
-    engine = etl_engine()
-    from offenesparlament.transform import drs
-    drs.merge(engine)
-
-@manager.command
 def load():
     """ Load and index staging DB into production """
     engine = etl_engine()

@@ -82,18 +82,3 @@ def merge_speeches(engine):
                      'debatte_item_id': item_id}
                 sl.upsert(engine, pos_tbl, d, unique=['ablauf_id', 'hash'])
 
-def merge_votes(engine):
-    _referenzen = defaultdict(set)
-    referenz_tbl = sl.get_table(engine, 'referenz')
-    for ref in sl.all(engine, referenz_tbl):
-        if ref['typ'] == 'drs':
-            #print ref
-            _referenzen[ref['nummer']].add(ref['ablauf_key'])
-    mref = dict([(c, d) for c,d in _referenzen.items() if len(d)>1])
-    print len(_referenzen), len(mref)
-
-
-
-def merge(engine):
-    #merge_speeches(engine)
-    merge_votes(engine)

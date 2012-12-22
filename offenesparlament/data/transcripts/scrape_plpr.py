@@ -136,6 +136,7 @@ def scrape_transcript(engine, url, force=False):
                  'sitzung': session,
                  'wahlperiode': wp,
                  'matched': False,
+                 'loaded': False,
                  'source_etag': sample['source_etag']}
     log.info("Loading transcript: %s/%s" % (wp, session))
     seq = 0
