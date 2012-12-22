@@ -20,8 +20,10 @@ from offenesparlament.lib.searcher import SolrSearcher
 from offenesparlament.data import aggregates
 from offenesparlament.views.filters import drslink
 from offenesparlament.views.abo import abo
+from offenesparlament.views.person import person
 
 app.register_blueprint(abo)
+app.register_blueprint(person)
 
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
@@ -168,67 +170,6 @@ def abstimmung(id, format=None):
 
     return render_template('abstimmung_view.html',
         abstimmung=abstimmung, ja=ja, nein=nein, enth=enth, na=na)
-
-
-@app.route("/person")
-@app.route("/person.<format>")
-def persons(format=None):
-    searcher = SolrSearcher(Person, request.args)
-    searcher.add_facet('rollen.funktion')
-    searcher.add_facet('rollen.fraktion')
-    searcher.add_facet('berufsfeld')
-    pager = Pager(searcher, 'persons', request.args)
-    if format == 'json':
-        return jsonify({'results': pager})
-    return render_template('person_search.html',
-            searcher=searcher, pager=pager)
-
-@app.route("/sitemap/person.xml")
-def person_sitemap():
-    persons = []
-    for person in Person.query.yield_per(1000):
-        data = {'lastmod': person.updated_at,
-                'loc': url_for('person', slug=person.slug, _external=True)}
-        persons.append(data)
-    return render_sitemap(persons)
-
-@app.route("/person/<slug>")
-@app.route("/person/<slug>.<format>")
-def person(slug, format=None):
-    person = Person.query.filter_by(slug=slug).first()
-    if person is None:
-        abort(404)
-    if format == 'json':
-        return jsonify(person)
-    searcher = SolrSearcher(Position, request.args)
-    searcher.sort('date')
-    searcher.filter('beitraege.person.id', str(person.id))
-    pager = Pager(searcher, 'person', request.args, slug=person.slug)
-    schlagworte = aggregates.person_schlagworte(person)
-    debatten = Debatte.query.join(Zitat).\
-            filter(Zitat.person == person).distinct().all()
-    if format == 'json':
-        data = person.to_dict()
-        data['positionen'] = pager
-        data['debatten'] = debatten
-        return jsonify(data)
-    elif format == 'rss':
-        return make_feed(person.name, author=person.name,
-            positionen=pager, debatten=debatten)
-    return render_template('person_view.html',
-            person=person, searcher=searcher,
-            pager=pager, schlagworte=schlagworte,
-            debatten=debatten[::-1])
-
-
-@app.route("/person/<slug>/votes")
-@app.route("/person/<slug>/votes.<format>")
-def person_votes(slug, format=None):
-    person = Person.query.filter_by(slug=slug).first()
-    if person is None:
-        abort(404)
-    return render_template('person_votes.html',
-            person=person)
 
 
 @app.route("/pages/<path:path>")

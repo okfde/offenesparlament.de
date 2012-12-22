@@ -29,7 +29,7 @@
       {% for person in pager %}
       <li>
         <h3>
-          <a href="{{ url_for('person', slug=person.slug) }}">{{ person.name }}</a>
+          <a href="{{ url_for('person.view', slug=person.slug) }}">{{ person.name }}</a>
         </h3>
         <p>{% for rolle in person.rollen %}
           {{ rolle.funktion }} 

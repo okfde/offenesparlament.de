@@ -11,7 +11,7 @@
   <ul>
     {% for s in votes %}
       <li>
-        <a href="{{ url_for('person', slug=s.person.slug) }}">{{
+        <a href="{{ url_for('person.view', slug=s.person.slug) }}">{{
           s.person.name }}</a> {{ s.person.partei }}
       </li>
     {% endfor %}

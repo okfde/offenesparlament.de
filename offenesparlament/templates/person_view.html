@@ -41,7 +41,7 @@
         <li><a href="{{ person.bio_url }}">Bundestag</a></li>
       {% endif %}
       {% if person.stimmen[0] %}
-        <li><strong><a href="{{ url_for('person_votes', slug=person.slug)
+        <li><strong><a href="{{ url_for('person.votes', slug=person.slug)
             }}">Abstimmungsverhalten</a></strong></li>
       {% endif %}
     </ul>

@@ -21,7 +21,7 @@
       <tr class="{{ zitat.typ }}">
         <td class="speaker" width="40%">
           {% if zitat.person %}
-          <a href="{{ url_for('person', slug=zitat.person.slug) }}">{{
+          <a href="{{ url_for('person.view', slug=zitat.person.slug) }}">{{
             zitat.person.name }}</a>
           {% elif zitat.sprecher %}
             {{ zitat.sprecher }}

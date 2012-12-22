@@ -90,7 +90,7 @@
           </span>
           <span class="body">
               {% for beitrag in position.beitraege %}
-                <a href="{{ url_for('person', slug=beitrag.person.slug) }}">
+                <a href="{{ url_for('person.view', slug=beitrag.person.slug) }}">
                   <img title="{{beitrag.person.name}}: {{beitrag.art}}" class="minipic"
                     src="{{beitrag.person.foto_url or ''}}" height="45px" width="30px"></a>
               {% endfor %}
