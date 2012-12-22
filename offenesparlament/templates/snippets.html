@@ -1,10 +1,10 @@
 
 {% macro sitzung_list_inner(sitzung) %}
-  <h3><a href="{{ url_for('sitzung', wahlperiode=sitzung.wahlperiode,
+  <h3><a href="{{ url_for('sitzung.view', wahlperiode=sitzung.wahlperiode,
           nummer=sitzung.nummer) }}">{{ sitzung.titel }}</a></h3>
   <ul>
   {% for d in sitzung.debatten %}
-    <li><a href="{{ url_for('debatte', wahlperiode=sitzung.wahlperiode,
+    <li><a href="{{ url_for('debatte.view', wahlperiode=sitzung.wahlperiode,
           nummer=sitzung.nummer, debatte=d.nummer) }}">{{ d.titel.split("TOP",1)[-1] }}</a>
           <!--p>{{d.text|safe}}</p-->
     </li>

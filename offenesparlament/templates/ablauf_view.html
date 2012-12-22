@@ -122,7 +122,7 @@
           <span class="bottom">
             {% if position.debatte %}
               Plenarprotokoll {{position.debatte.sitzung.titel}}, TOP
-              <a href="{{ url_for('debatte', wahlperiode=ablauf.wahlperiode,
+              <a href="{{ url_for('debatte.view', wahlperiode=ablauf.wahlperiode,
                 nummer=position.debatte.sitzung.nummer,
                 debatte=position.debatte.nummer) }}">{{ position.debatte.titel }}</a>
             {% else %}

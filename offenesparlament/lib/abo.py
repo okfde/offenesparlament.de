@@ -70,7 +70,7 @@ def format_activities(results):
     for ablauf, positionen in ablaeufe.items():
         msg = '[%s] %s (Ereignisse: ' % (ablauf.typ, ablauf.titel.replace('\n', ''))
         msg += ', '.join(set([p.typ.strip() for p in positionen if p.typ]))
-        msg += ')\nLink: %s\n' % url_external(url_for('ablauf',
+        msg += ')\nLink: %s\n' % url_external(url_for('ablauf.view',
             wahlperiode=ablauf.wahlperiode,
             key=ablauf.key))
         yield msg
@@ -84,7 +84,7 @@ def format_speeches(results):
     for debatte, zitate in debatten.items():
         msg = debatte.sitzung.titel + ': ' + debatte.titel
         msg = u'\nErwähnung: %s' % (', '.join([z.sprecher for z in zitate]))
-        msg += '\nLink: %s\n' % url_external(url_for('debatte',
+        msg += '\nLink: %s\n' % url_external(url_for('debatte.view',
             wahlperiode=debatte.sitzung.wahlperiode,
             nummer=debatte.sitzung.nummer,
             debatte=debatte.nummer))
