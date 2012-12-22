@@ -41,6 +41,8 @@ def transform():
 def process_ablauf(engine, indexer, url, force=False):
     try:
         print url
+        data = scrape_ablauf(engine, url, force=force)
+        print data
     except Unmodified: pass
 
 ABLAUF = {

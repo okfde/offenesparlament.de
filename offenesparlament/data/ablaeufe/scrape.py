@@ -9,6 +9,7 @@ import sqlaload as sl
 
 from offenesparlament.data.lib.constants import FACTION_MAPS, \
     DIP_GREMIUM_TO_KEY, DIP_ABLAUF_STATES_FINISHED
+from offenesparlament.data.lib.refresh import check_tags, Unmodified    
 from offenesparlament.data.lib.retrieval import fetch, _html
 
 EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP17/'
@@ -114,22 +115,17 @@ def expand_dok_nr(ablauf):
     return ablauf
 
 
-def scrape_activities(ablauf, doc, engine):
-    if doc is not None: 
-        for elem in doc.findall(".//VORGANGSPOSITION"):
-            scrape_activity(ablauf, elem, engine)
-
-def scrape_activity(ablauf, elem, engine):
+def scrape_activity(engine, url, elem):
     urheber = elem.findtext("URHEBER")
     fundstelle = elem.findtext("FUNDSTELLE")
     Position = sl.get_table(engine, 'position')
     p = sl.find_one(engine, Position, 
                     urheber=urheber, 
                     fundstelle=fundstelle, 
-                    ablauf_id=ablauf['ablauf_id'])
+                    source_url=url)
     if p is not None:
         return 
-    p = {'ablauf_id': ablauf['ablauf_id'], 
+    p = {'source_url': url, 
          'urheber': urheber,
          'fundstelle': fundstelle}
     pos_keys = p.copy()
@@ -159,10 +155,8 @@ def scrape_activity(ablauf, elem, engine):
         dokument = dokument_by_url(p['fundstelle_url']) or \
             dokument_by_name(p['fundstelle'])
         dokument.update(pos_keys)
-        dokument['ablauf_key'] = ablauf['key']
-        dokument['wahlperiode'] = ablauf['wahlperiode']
         sl.upsert(engine, Referenz, dokument, unique=[
-                'link', 'wahlperiode', 'ablauf_key', 'seiten'
+                'link', 'source_url', 'seiten'
                 ])
     except Exception, e:
         log.exception(e)
@@ -192,29 +186,22 @@ def scrape_activity(ablauf, elem, engine):
 
 class NoContentException(Exception): pass
 
-def scrape_ablauf(url, engine, wahlperiode=17):
-    wahlperiode = str(wahlperiode)
+def scrape_ablauf(engine, url, force=False):
     Ablauf = sl.get_table(engine, 'ablauf')
 
-    key = url.rsplit('/', 1)[-1].split('.')[0]
-    a = sl.find_one(engine, Ablauf, key=key, 
-                    bt_wahlperiode=wahlperiode)
-    if a is not None and a['abgeschlossen']:
-        log.info("SKIPPING: %s", a['titel'])
-        return
-    if a is None:
-        a = {}
-    a['key'] = key
-    doc = inline_xml_from_page(fetch(url).content)
+    key = int(url.rsplit('/', 1)[-1].split('.')[0])
+    a = sl.find_one(engine, Ablauf, source_url=url)
+    if a is not None and a['abgeschlossen'] and not force:
+        raise Unmodified()
+    response = fetch(url)
+    a = check_tags(a or {}, response, force)
+    a.update({'key': key, 
+              'source_url': url})
+    doc = inline_xml_from_page(response.content)
     if doc is None: 
         raise NoContentException()
     
-    a['wahlperiode'] = wahlperiode
-    a['bt_wahlperiode'] = wahlperiode
-    if doc.findtext("WAHLPERIODE"):
-        wahlperiode != doc.findtext("WAHLPERIODE")
-    
-    a['ablauf_id'] = "%s/%s" % (wahlperiode, key)
+    a['wahlperiode'] = int(doc.findtext("WAHLPERIODE"))
     a['typ'] = doc.findtext("VORGANGSTYP")
     a['titel'] = doc.findtext("TITEL")
 
@@ -235,11 +222,10 @@ def scrape_ablauf(url, engine, wahlperiode=17):
     a['abstrakt'] = doc.findtext("ABSTRAKT")
     a['sachgebiet'] = doc.findtext("SACHGEBIET")
     a['zustimmungsbeduerftig'] = doc.findtext("ZUSTIMMUNGSBEDUERFTIGKEIT")
-    a['source_url'] = url
     #a.schlagworte = []
     Schlagwort = sl.get_table(engine, 'schlagwort')
     for sw in doc.findall("SCHLAGWORT"):
-        wort = {'wort': sw.text, 'key': key, 'wahlperiode': wahlperiode}
+        wort = {'wort': sw.text, 'source_url': url}
         sl.upsert(engine, Schlagwort, wort, unique=wort.keys())
     log.info("Ablauf %s: %s",key, a['titel'])
     a['titel'] = a['titel'].strip().lstrip('.').strip()
@@ -258,10 +244,9 @@ def scrape_ablauf(url, engine, wahlperiode=17):
                 'drs', elem.findtext("DRS_NUMMER"), link=link)
         dokument['text'] = elem.findtext("DRS_TYP")
         dokument['seiten'] = hash
-        dokument['wahlperiode'] = wahlperiode
-        dokument['ablauf_key'] = key
+        dokument['source_url'] = url
         sl.upsert(engine, Referenz, dokument, unique=[
-            'link', 'wahlperiode', 'ablauf_key', 'seiten'
+            'link', 'source_url', 'seiten'
             ])
 
     for elem in doc.findall("PLENUM"):
@@ -272,15 +257,15 @@ def scrape_ablauf(url, engine, wahlperiode=17):
                 'plpr', elem.findtext("PLPR_NUMMER"), link=link)
         dokument['text'] = elem.findtext("PLPR_KLARTEXT")
         dokument['seiten'] = elem.findtext("PLPR_SEITEN")
-        dokument['wahlperiode'] = wahlperiode
-        dokument['ablauf_key'] = key
+        dokument['source_url'] = url
         sl.upsert(engine, Referenz, dokument, unique=[
-            'link', 'wahlperiode', 'ablauf_key', 'seiten'
+            'link', 'source_url', 'seiten'
             ])
 
-    sl.upsert(engine, Ablauf, a, unique=['key', 'wahlperiode'])
-    scrape_activities(a, doc, engine)
-    engine.dispose()
+    sl.upsert(engine, Ablauf, a, unique=['source_url'])
+    for elem in doc.findall(".//VORGANGSPOSITION"):
+        scrape_activity(engine, url, elem)
+    return a
 
 
 def scrape_index():
