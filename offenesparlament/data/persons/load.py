@@ -11,6 +11,22 @@ from offenesparlament.model.person import obleute, mitglieder, \
 
 log = logging.getLogger(__name__)
 
+
+def lazyload_person(engine, indexer, fingerprint):
+    if fingerprint is None or not len(fingerprint):
+        return
+    person = Person.query.filter_by(fingerprint=fingerprint).first()
+    if person is not None:
+        return person
+    table = sl.get_table(engine, 'person')
+    data = sl.find_one(engine, table, fingerprint=fingerprint)
+    if data is None:
+        log.error("Invalid fingerprint reference: %s", fingerprint)
+        return
+    person = load_person(engine, data)
+    indexer.add(person)
+    return person
+
 def load_person(engine, data):
     person = Person.query.filter_by(
             fingerprint=data.get('fingerprint')).first()

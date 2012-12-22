@@ -1,42 +1,22 @@
-import sys
 import logging
-from collections import defaultdict
-from datetime import datetime
 
 import sqlaload as sl
 
-from offenesparlament.core import etl_engine
-
 from offenesparlament.core import db
-from offenesparlament.model import Gremium, Person, Rolle, \
-        Wahlkreis, Ablauf, \
+from offenesparlament.model.util import to_date
+from offenesparlament.model import Gremium, Person, Rolle, Ablauf, \
         Position, Beschluss, Beitrag, Zuweisung, Referenz, Dokument, \
-        Schlagwort, Sitzung, Debatte, Zitat, Stimme, Abstimmung
-from offenesparlament.model.person import obleute, mitglieder, \
-        stellvertreter
+        Schlagwort, Sitzung, Debatte
+from offenesparlament.data.persons.load import lazyload_person
 
 log = logging.getLogger(__name__)
 
 
-def load_ablaeufe(engine):
-    _Ablauf = sl.get_table(engine, 'ablauf')
-
-    for i, data in enumerate(sl.find(engine, _Ablauf, wahlperiode=str(17))):
-        log.info("Loading Ablauf: %s - %s..." % (data['key'], data['titel']))
-        load_ablauf(engine, data)
-        if i % 500 == 0:
-            db.session.commit()
-    db.session.commit()
-
-
-def load_ablauf(engine, data):
-    ablauf = Ablauf.query.filter_by(
-            wahlperiode=data.get('wahlperiode'),
-            key=data.get('key')).first()
+def load_ablauf(engine, indexer, data):
+    ablauf = Ablauf.query.filter_by(source_url=data.get('source_url')).first()
     if ablauf is None:
         ablauf = Ablauf()
 
-    ablauf_id = data.get('ablauf_id')
     ablauf.key = data.get('key')
     ablauf.source_url = data.get('source_url')
     ablauf.wahlperiode = data.get('wahlperiode')
@@ -65,8 +45,7 @@ def load_ablauf(engine, data):
 
     worte = []
     _Schlagwort = sl.get_table(engine, 'schlagwort')
-    for sw in sl.find(engine, _Schlagwort, wahlperiode=ablauf.wahlperiode,
-            key=ablauf.key):
+    for sw in sl.find(engine, _Schlagwort, source_url=ablauf.source_url):
         wort = Schlagwort()
         wort.name = sw['wort']
         db.session.add(wort)
@@ -74,9 +53,8 @@ def load_ablauf(engine, data):
     ablauf.schlagworte = worte
 
     _Referenz = sl.get_table(engine, 'referenz')
-    for ddata in sl.find(engine, _Referenz, wahlperiode=ablauf.wahlperiode,
-            ablauf_key=ablauf.key):
-        dokument = load_dokument(ddata, engine)
+    for ddata in sl.find(engine, _Referenz, source_url=ablauf.source_url):
+        dokument = load_dokument(engine, indexer, ddata)
         referenz = Referenz.query.filter_by(
                 dokument=dokument,
                 seiten=ddata.get('seiten'),
@@ -89,13 +67,14 @@ def load_ablauf(engine, data):
         referenz.text = ddata.get('text')
 
     _Position = sl.get_table(engine, 'position')
-    for position in sl.find(engine, _Position, ablauf_id=ablauf_id):
-        load_position(position, ablauf_id, ablauf, engine)
+    for position in sl.find(engine, _Position, source_url=ablauf.source_url):
+        load_position(engine, indexer, ablauf, position)
 
     db.session.commit()
+    indexer.add(ablauf)
 
 
-def load_position(data, ablauf_id, ablauf, engine):
+def load_position(engine, indexer, ablauf, data):
     position = Position.query.filter_by(
             ablauf=ablauf,
             urheber=data.get('urheber'),
@@ -108,7 +87,7 @@ def load_position(data, ablauf_id, ablauf, engine):
     position.urheber = data.get('urheber')
     position.fundstelle = data.get('fundstelle')
     position.fundstelle_url = data.get('fundstelle_url')
-    position.date = date(data.get('date'))
+    position.date = to_date(data.get('date'))
     position.quelle = data.get('quelle')
     position.typ = data.get('typ')
     position.ablauf = ablauf
@@ -122,14 +101,15 @@ def load_position(data, ablauf_id, ablauf, engine):
 
     _Referenz = sl.get_table(engine, 'referenz')
     for ddata in sl.find(engine, _Referenz, fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_id=ablauf_id):
-        position.dokument = load_dokument(ddata, engine)
+            urheber=position.urheber, source_url=ablauf.source_url):
+        position.dokument = load_dokument(engine, indexer, ddata)
 
     db.session.add(position)
+    db.session.flush()
 
     _Zuweisung = sl.get_table(engine, 'zuweisung')
     for zdata in sl.find(engine, _Zuweisung, fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_id=ablauf_id):
+            urheber=position.urheber, source_url=ablauf.source_url):
         zuweisung = Zuweisung()
         zuweisung.text = zdata['text']
         zuweisung.federfuehrung = True if \
@@ -141,7 +121,7 @@ def load_position(data, ablauf_id, ablauf, engine):
 
     _Beschluss = sl.get_table(engine, 'beschluss')
     for bdata in sl.find(engine, _Beschluss, fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_id=ablauf_id):
+            urheber=position.urheber, source_url=ablauf.source_url):
         beschluss = Beschluss()
         beschluss.position = position
         beschluss.seite = bdata['seite']
@@ -156,28 +136,36 @@ def load_position(data, ablauf_id, ablauf, engine):
 
     _Beitrag = sl.get_table(engine, 'beitrag')
     for bdata in sl.find(engine, _Beitrag, fundstelle=position.fundstelle,
-            urheber=position.urheber, ablauf_id=ablauf_id, matched=True):
-        load_beitrag(bdata, position, engine)
+            urheber=position.urheber, source_url=ablauf.source_url, matched=True):
+        load_beitrag(engine, indexer, position, bdata)
+
+    indexer.add(position)
 
 
-def load_beitrag(data, position, engine):
+def load_beitrag(engine, indexer, position, data):
     beitrag = Beitrag()
     beitrag.seite = data.get('seite')
     beitrag.art = data.get('art')
     beitrag.position = position
 
-    beitrag.person = Person.query.filter_by(
-            fingerprint=data.get('fingerprint')
-            ).first()
+    beitrag.person = lazyload_person(engine, indexer,
+            data.get('fingerprint'))
     beitrag.rolle = Rolle.query.filter_by(
             person=beitrag.person,
             funktion=data.get('funktion'),
             ressort=data.get('ressort'),
             land=data.get('land')).first()
+    if beitrag.person is not None and beitrag.rolle is None:
+        beitrag.rolle = Rolle()
+        beitrag.rolle.person = beitrag.person
+        beitrag.rolle.funktion = data.get('funktion')
+        beitrag.rolle.ressort = data.get('ressort')
+        beitrag.rolle.land = data.get('land')
+        db.session.add(beitrag.rolle)
     db.session.add(beitrag)
 
 
-def load_dokument(data, engine):
+def load_dokument(engine, indexer, data):
     dokument = Dokument.query.filter_by(
             hrsg=data.get('hrsg'),
             typ=data.get('typ'),
@@ -191,6 +179,6 @@ def load_dokument(data, engine):
         dokument.link = data.get('link')
     db.session.add(dokument)
     db.session.flush()
+    indexer.add(dokument)
     return dokument
-
 
