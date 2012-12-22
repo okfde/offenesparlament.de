@@ -5,16 +5,15 @@ from datetime import datetime
 from collections import defaultdict
 
 from flask import url_for
-from pprint import pprint
+from colander import MappingSchema, SchemaNode, String
+from colander import Email, Length, Boolean
 
 from offenesparlament.core import db, app, solr
 from offenesparlament.model import Abo, Position, Zitat
-from offenesparlament.mailer import send_message
+from offenesparlament.lib.mailer import send_message
 
 log = logging.getLogger(__name__)
 
-from colander import MappingSchema, SchemaNode, String
-from colander import Email, Length, Boolean
 
 class AboSchema(MappingSchema):
     query = SchemaNode(String(), validator=Length(min=4))

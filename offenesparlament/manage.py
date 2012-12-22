@@ -87,7 +87,7 @@ def dumpindex():
 
 @manager.command
 def aggregate():
-    from offenesparlament.aggregates import make_current_schlagwort, \
+    from offenesparlament.data.aggregates import make_current_schlagwort, \
         make_period_sachgebiete, make_person_schlagworte
     make_current_schlagwort()
     make_period_sachgebiete()

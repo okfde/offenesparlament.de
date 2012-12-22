@@ -14,13 +14,12 @@ from offenesparlament.model import Person, Dokument
 from offenesparlament.model import Sitzung, Zitat, Debatte
 from offenesparlament.model import Abo
 
-from offenesparlament.pager import Pager
+from offenesparlament.lib.pager import Pager
+from offenesparlament.lib.seo import render_sitemap
 from offenesparlament.util import jsonify, make_feed
-from offenesparlament.searcher import SolrSearcher
+from offenesparlament.lib.searcher import SolrSearcher
 from offenesparlament.abo import AboSchema, send_activation
-from offenesparlament import aggregates
-
-from offenesparlament.views.seo import render_sitemap
+from offenesparlament.data import aggregates
 from offenesparlament.views.filters import drslink
 
 
