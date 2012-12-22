@@ -29,7 +29,7 @@
       <ul class="votes-list">
         {% for stimme in person.stimmen|sort(attribute='abstimmung.datum', reverse=True) %}
         <li><h4><strong>{{stimme.entscheidung}}</strong>: 
-          <a href="{{ url_for('abstimmung', id=stimme.abstimmung.id) }}">{{
+          <a href="{{ url_for('abstimmung.view', id=stimme.abstimmung.id) }}">{{
             stimme.abstimmung.titel }}</a> ({{ stimme.abstimmung.datum.strftime('%d.%m.%Y') }})</h4>
         
           <!--p class="hint">{{ stimme.abstimmung.thema }}</p--></li> 

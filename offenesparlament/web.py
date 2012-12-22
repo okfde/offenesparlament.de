@@ -22,10 +22,12 @@ from offenesparlament.views.filters import drslink
 from offenesparlament.views.abo import abo
 from offenesparlament.views.person import person
 from offenesparlament.views.ablauf import ablauf
+from offenesparlament.views.abstimmung import abstimmung
 
 app.register_blueprint(abo)
 app.register_blueprint(person)
 app.register_blueprint(ablauf)
+app.register_blueprint(abstimmung)
 
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
@@ -94,20 +96,6 @@ def sitzungen(format=None):
     return render_template('sitzung_search.html',
             searcher=searcher, pager=pager)
 
-
-@app.route("/abstimmung/<id>")
-@app.route("/abstimmung/<id>.<format>")
-def abstimmung(id, format=None):
-    abstimmung = Abstimmung.query.filter_by(id=id).first()
-    if abstimmung is None:
-        abort(404)
-    ja = abstimmung.stimmen.filter(Stimme.entscheidung.like('%Ja%'))
-    nein = abstimmung.stimmen.filter_by(entscheidung='Nein')
-    enth = abstimmung.stimmen.filter_by(entscheidung='Enthaltung')
-    na = abstimmung.stimmen.filter(Stimme.entscheidung.like('%nicht%'))
-
-    return render_template('abstimmung_view.html',
-        abstimmung=abstimmung, ja=ja, nein=nein, enth=enth, na=na)
 
 
 @app.route("/pages/<path:path>")
