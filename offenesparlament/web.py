@@ -18,11 +18,11 @@ from offenesparlament.lib.pager import Pager
 from offenesparlament.lib.seo import render_sitemap
 from offenesparlament.util import jsonify, make_feed
 from offenesparlament.lib.searcher import SolrSearcher
-from offenesparlament.abo import AboSchema, send_activation
 from offenesparlament.data import aggregates
 from offenesparlament.views.filters import drslink
+from offenesparlament.views.abo import abo
 
-
+app.register_blueprint(abo)
 
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
@@ -242,65 +242,6 @@ def person_votes(slug, format=None):
         abort(404)
     return render_template('person_votes.html',
             person=person)
-
-
-@app.route("/abo", methods=['GET'])
-def abo():
-    return render_template('abo_form.html',
-            fields={'query': request.args.get('query', ''),
-                    'email': request.args.get('email', ''),
-                    'include_activity': True,
-                    'include_speeches': True
-                    },
-            errors={}
-            )
-
-
-@app.route("/abo", methods=['POST'])
-def abo_post():
-    schema = AboSchema()
-    try:
-        data = dict(request.form.items())
-        data = schema.deserialize(data)
-        abo_ = Abo()
-        abo_.email = data['email']
-        abo_.query = data['query']
-        abo_.include_speeches = data['include_speeches']
-        abo_.include_activity = data['include_activity']
-        db.session.add(abo_)
-        db.session.commit()
-        send_activation(abo_)
-        flash(u"Das Themen-Abo wurde erfolgreich eingerichtet. Sie erhalten nun "
-              u"eine Bestätigungs-EMail.", 'success')
-        return index()
-    except Invalid, i:
-        return render_template('abo_form.html', fields=request.form,
-                errors=i.asdict())
-
-
-@app.route("/abo/activate/<key>")
-def abo_activation(key):
-    abo = db.session.query(Abo).filter_by(activation_code=key).first()
-    if abo is None:
-        flash(u"Der Bestätigungscode ist ungültig oder das Abo bereits bestätigt.", 'warning')
-    else:
-        abo.activation_code = None
-        db.session.commit()
-        flash("Das Themen-Abo wurde erfolgreich eingerichtet.", 'success')
-    return redirect(url_for('index'))
-
-
-@app.route("/abo/lassmichinruhe/<id>")
-def abo_terminate(id):
-    abo = db.session.query(Abo).filter_by(id=id)\
-            .filter_by(email=request.args.get('email'))
-    if abo is None:
-        flash(u"Abo nicht gefunden.", 'warning')
-    else:
-        abo.activation_code = 'deleted ' + datetime.utcnow().isoformat()
-        db.session.commit()
-        flash("Das Themen-Abo wurde erfolgreich gekündigt.", 'success')
-    return redirect(url_for('index'))
 
 
 @app.route("/pages/<path:path>")

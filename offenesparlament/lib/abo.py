@@ -29,7 +29,7 @@ def url_external(path):
 
 def send_activation(abo):
     try:
-        url = url_external(url_for('abo_activation', key=abo.activation_code))
+        url = url_external(url_for('abo.activate', key=abo.activation_code))
         message = ACTIVATION_MESSAGE % (abo.query, url)
         send_message(abo.email, u"Bestätigen Sie Ihr Themen-Abo", message)
     except Exception, e:
@@ -99,7 +99,7 @@ def format_matching_abos(abos):
     unsubs = []
     for abo in abos:
         unsub = "* '" + abo.query
-        unsub += "' - abmelden: " + url_external(url_for('abo_terminate',
+        unsub += "' - abmelden: " + url_external(url_for('abo.terminate',
             id=str(abo.id), email=abo.email))
         unsubs.append(unsub)
     return '\n'.join(unsubs)
