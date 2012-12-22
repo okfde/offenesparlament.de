@@ -57,7 +57,7 @@ def sitemap(year):
     query = query.distinct(Debatte.id)
     for debatte in query:
         item = {'lastmod': debatte.updated_at,
-                'loc': url_for('debatte', wahlperiode=debatte.sitzung.wahlperiode,
+                'loc': url_for('debatte.view', wahlperiode=debatte.sitzung.wahlperiode,
                                nummer=debatte.sitzung.nummer, debatte=debatte.id,
                                _external=True)}
         items.append(item)
