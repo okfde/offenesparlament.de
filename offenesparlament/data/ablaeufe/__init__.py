@@ -2,7 +2,6 @@ import logging
 
 import sqlaload as sl
 
-from offenesparlament.data.lib.threaded import unthreaded
 from offenesparlament.data.lib.db import fetch_row
 from offenesparlament.model.indexer import get_indexer
 from offenesparlament.data.lib.refresh import Unmodified
@@ -41,6 +40,7 @@ def transform():
 
 def process_ablauf(engine, indexer, url, force=False):
     try:
+        print url
     except Unmodified: pass
 
 ABLAUF = {

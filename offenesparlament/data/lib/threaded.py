@@ -34,6 +34,6 @@ def _threaded(items, func, num_threads=5, max_queue=200):
 def process(engine, indexer, proc, force=False, threaded=False):
     func = lambda url: proc['handler'](engine, indexer, url, \
             force=force)
-    func = _threaded if threaded else unthreaded
-    unthreaded(proc['generator'](), func)
+    processor = _threaded if threaded else unthreaded
+    processor(proc['generator'](), func)
 

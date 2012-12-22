@@ -2,13 +2,13 @@ from flaskext.script import Manager
 
 from offenesparlament.core import app, etl_engine, solr
 from offenesparlament.model.indexer import get_indexer
-from offenesparlament.data.lib.threading import process
+from offenesparlament.data.lib.threaded import process
 
 from offenesparlament.data.persons import PERSON
 from offenesparlament.data.gremien import GREMIUM
 from offenesparlament.data.abstimmungen import ABSTIMMUNG
 from offenesparlament.data.transcripts import TRANSCRIPT
-from offenesparlament.data.ablauf import ABLAUF
+from offenesparlament.data.ablaeufe import ABLAUF
 
 manager = Manager(app)
 
@@ -16,13 +16,15 @@ manager = Manager(app)
 def _stage(proc, url=None, force=False, threaded=False):
     engine = etl_engine()
     indexer = get_indexer()
-    if url is None:
-        process(engine, indexer, proc, force=force,
-                threaded=threaded)
-    else:
-        proc['handler'](engine, indexer, url,
-                        force=force)
-    indexer.flush()
+    try:
+        if url is None:
+            process(engine, indexer, proc, force=force,
+                    threaded=threaded)
+        else:
+            proc['handler'](engine, indexer, url,
+                            force=force)
+    finally:
+        indexer.flush()
 
 
 @manager.command
@@ -68,10 +70,12 @@ def update(force=False, threaded=False):
     """ Update the entire database. """
     engine = etl_engine()
     indexer = get_indexer()
-    for stage in [GREMIUM, PERSON, ABSTIMMUNG, ABLAUF, TRANSCRIPT]:
-        process(engine, indexer, proc, force=force,
-                threaded=threaded)
-    indexer.flush()
+    try:
+        for stage in [GREMIUM, PERSON, ABSTIMMUNG, ABLAUF, TRANSCRIPT]:
+            process(engine, indexer, proc, force=force,
+                    threaded=threaded)
+    finally:
+        indexer.flush()
 
 
 @manager.command

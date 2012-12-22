@@ -9,7 +9,6 @@ import sqlaload as sl
 
 from offenesparlament.data.lib.constants import FACTION_MAPS, \
     DIP_GREMIUM_TO_KEY, DIP_ABLAUF_STATES_FINISHED
-from offenesparlament.data.lib.threaded import threaded
 from offenesparlament.data.lib.retrieval import fetch, _html
 
 EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP17/'
@@ -282,11 +281,6 @@ def scrape_ablauf(url, engine, wahlperiode=17):
     sl.upsert(engine, Ablauf, a, unique=['key', 'wahlperiode'])
     scrape_activities(a, doc, engine)
     engine.dispose()
-
-def load_dip(engine):
-    def bound_scrape(url):
-        scrape_ablauf(url, engine)
-    threaded(load_dip_index(), bound_scrape, num_threads=5)
 
 
 def scrape_index():
