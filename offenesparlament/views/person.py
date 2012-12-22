@@ -7,7 +7,8 @@ from offenesparlament.core import db
 from offenesparlament.lib.searcher import SolrSearcher
 from offenesparlament.lib.pager import Pager
 from offenesparlament.lib.seo import render_sitemap
-from offenesparlament.util import jsonify, make_feed
+from offenesparlament.lib.feeds import make_feed
+from offenesparlament.util import jsonify
 from offenesparlament.data.aggregates import person_schlagworte
 from offenesparlament.model import Abo, Person, Position, Debatte, Zitat
 

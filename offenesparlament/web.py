@@ -2,7 +2,7 @@
 from datetime import datetime
 
 from flask import Flask, g, render_template, abort
-from flask import url_for, make_response
+from flask import url_for, make_response, redirect
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Sitzung, Ablauf
@@ -44,6 +44,10 @@ def robots_txt():
     res = make_response(render_template('robots.txt'))
     res.headers['Content-Type'] = 'text/plain; charset=utf-8'
     return res
+
+@app.route("/favicon.ico")
+def favicon_ico():
+    return redirect('/static/favicon.ico', code=301)
 
 @app.route("/")
 def index():
