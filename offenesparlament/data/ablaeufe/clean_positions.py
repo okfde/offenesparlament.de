@@ -1,4 +1,3 @@
-import sys
 import re
 from hashlib import sha1
 from datetime import datetime
@@ -6,13 +5,10 @@ import logging
 
 import sqlaload as sl
 
-from offenesparlament.core import etl_engine
-
-
 log = logging.getLogger(__name__)
 
 
-def extend_position(engine, data):
+def extend_position(engine, table, data):
     dt, rest = data['fundstelle'].split("-", 1)
     data['date'] = datetime.strptime(dt.strip(), "%d.%m.%Y").isoformat()
     if ',' in data['urheber']:
@@ -34,24 +30,14 @@ def extend_position(engine, data):
 
     hash = sha1(data['fundstelle'].encode('utf-8') \
             + data['urheber'].encode('utf-8') + \
-            data['ablauf_id'].encode('utf-8')).hexdigest()
+            data['source_url'].encode('utf-8')).hexdigest()
     data['hash'] = hash[:10]
-    sl.upsert(engine,
-            sl.get_table(engine, 'position'),
-            data, unique=['id'])
-    return data
+    sl.upsert(engine, table, data, unique=['id'])
 
 
-def extend_positions(engine):
+def extend_positions(engine, source_url):
     log.info("Amending positions ...")
-    Position = sl.get_table(engine, 'position')
-    for i, data in enumerate(sl.find(engine, Position)):
-        if i % 1000 == 0:
-            sys.stdout.write('.')
-            sys.stdout.flush()
-        extend_position(engine, data)
+    table = sl.get_table(engine, 'position')
+    for data in sl.find(engine, table, source_url=source_url):
+        extend_position(engine, table, data)
 
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    extend_positions(engine)

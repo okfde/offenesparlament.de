@@ -9,6 +9,8 @@ from offenesparlament.data.lib.reference import InvalidReference
 
 from offenesparlament.data.ablaeufe.scrape import scrape_index, \
     scrape_ablauf
+from offenesparlament.data.ablaeufe.clean_positions import \
+    extend_positions
 
 log = logging.getLogger(__name__)
 
@@ -24,11 +26,6 @@ def transform():
     #ablaeufe.extend_ablaeufe(engine)
     from offenesparlament.transform import namematch
     namematch.match_persons(engine)
-    persons.generate_person_long_names(engine)
-    from offenesparlament.transform import speechparser
-    speechparser.load_transcripts(engine)
-    from offenesparlament.transform import webtv
-    webtv.merge_speeches(engine)
     #from offenesparlament.transform import awatch
     #awatch.load_profiles(engine)
     from offenesparlament.transform import speechmatch
@@ -42,6 +39,7 @@ def process_ablauf(engine, indexer, url, force=False):
     try:
         print url
         data = scrape_ablauf(engine, url, force=force)
+        extend_positions(engine, url)
         print data
     except Unmodified: pass
 
