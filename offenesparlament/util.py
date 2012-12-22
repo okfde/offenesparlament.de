@@ -41,10 +41,14 @@ def make_feed(title, author='OffenesParlament.de',
     positionen=[], debatten=[], limit=10):
     items = []
     for position in positionen:
+        ablauf = position.ablauf
         items.append({
             'title': '[Drs] ' + position.typ + ': ' + position.ablauf.titel,
             'pubdate': position.date,
-            'link': url_for('position', key=position.key, _external=True),
+            'link': url_for('ablauf.view',
+                wahlperiode=position.ablauf.wahlperiode,
+                key=position.ablauf.key,
+                _external=True) + '#' + position.key,
             'description': position.ablauf.abstrakt
             })
     for debatte in debatten:

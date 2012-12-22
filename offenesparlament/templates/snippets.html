@@ -16,7 +16,7 @@
   <ul class="search-results ablauf">
     {% for ablauf in pager %}
       <li>
-        <h3><a href="{{ url_for('ablauf', wahlperiode=ablauf.wahlperiode,
+        <h3><a href="{{ url_for('ablauf.view', wahlperiode=ablauf.wahlperiode,
             key=ablauf.key) }}">{{ ablauf.titel }}</a></h3>
         <p>
           <span class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">

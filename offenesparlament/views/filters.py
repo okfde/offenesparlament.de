@@ -17,9 +17,12 @@ def drslink(text, verbose=False):
         link = "<a href='" + dok.link + "'>" + dok.nummer + "</a>"
         if verbose and dok.positionen.count() == 1:
             pos = dok.positionen.first()
-            url = url_for('position', key=pos.key)
+            url = url_for('ablauf.view',
+                    wahlperiode=pos.ablauf.wahlperiode,
+                    key=pos.ablauf.key) + '#' + position.key
             link += " <span class='ablauf-ref'>(<a href='"+url+\
                     "'>"+pos.ablauf.titel+"</a>)</span>"
         return link
     text = DOK_PATTERN.sub(r, text)
     return Markup(text)
+

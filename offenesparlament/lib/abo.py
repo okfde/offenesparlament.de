@@ -70,10 +70,6 @@ def format_activities(results):
     for ablauf, positionen in ablaeufe.items():
         msg = '[%s] %s (Ereignisse: ' % (ablauf.typ, ablauf.titel.replace('\n', ''))
         msg += ', '.join(set([p.typ.strip() for p in positionen if p.typ]))
-        #for position in positionen:
-        #    msg += ' * %s (%s, %s)\n' % (position.urheber,
-        #            position.date.strftime('%d.%m.%Y'),
-        #            position.zuordnung)
         msg += ')\nLink: %s\n' % url_external(url_for('ablauf',
             wahlperiode=ablauf.wahlperiode,
             key=ablauf.key))

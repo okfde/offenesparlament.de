@@ -21,9 +21,11 @@ from offenesparlament.data import aggregates
 from offenesparlament.views.filters import drslink
 from offenesparlament.views.abo import abo
 from offenesparlament.views.person import person
+from offenesparlament.views.ablauf import ablauf
 
 app.register_blueprint(abo)
 app.register_blueprint(person)
+app.register_blueprint(ablauf)
 
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
 @app.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
@@ -90,70 +92,6 @@ def sitzungen(format=None):
     if format == 'json':
         return jsonify({'results': pager})
     return render_template('sitzung_search.html',
-            searcher=searcher, pager=pager)
-
-
-@app.route("/position/<key>")
-@app.route("/position/<key>.<format>")
-def position(key, format=None):
-    position = Position.query.filter_by(key=key).first()
-    if position is None:
-        abort(404)
-    if format == 'json':
-        return jsonify(position)
-    return redirect(url_for('ablauf',
-        wahlperiode=position.ablauf.wahlperiode,
-        key=position.ablauf.key) + '#' + position.key,
-        code=301)
-
-@app.route("/sitemap/ablauf-<year>.xml")
-def ablauf_sitemap(year):
-    items = []
-    query = Ablauf.query.join(Position)
-    query = query.filter(db.extract('year', Position.date)==int(year))
-    query = query.distinct(Ablauf.id)
-    for ablauf in query.yield_per(5000):
-        item = {'lastmod': ablauf.updated_at, #ablauf.latest,
-                'loc': url_for('ablauf', wahlperiode=ablauf.wahlperiode,
-                               key=ablauf.key, _external=True)}
-        items.append(item)
-    return render_sitemap(items, prio=0.6)
-
-@app.route("/ablauf/<wahlperiode>/<key>")
-@app.route("/ablauf/<wahlperiode>/<key>.<format>")
-def ablauf(wahlperiode, key, format=None):
-    ablauf = Ablauf.query.filter_by(wahlperiode=wahlperiode,
-                                    key=key).first()
-    if ablauf is None:
-        abort(404)
-    if format == 'json':
-        return jsonify(ablauf)
-    referenzen = defaultdict(set)
-    for ref in ablauf.referenzen:
-        if ref.dokument.typ == 'plpr' and ref.dokument.hrsg == 'BT':
-            continue
-        if ref.seiten:
-            referenzen[ref.dokument].add(ref.seiten)
-        else:
-            referenzen[ref.dokument] = referenzen[ref.dokument] or set()
-    referenzen = sorted(referenzen.items(), key=lambda (r, s): r.name)
-    return render_template('ablauf_view.html',
-            ablauf=ablauf, referenzen=referenzen)
-
-@app.route("/ablauf")
-@app.route("/ablauf.<format>")
-def ablaeufe(format=None):
-    searcher = SolrSearcher(Ablauf, request.args)
-    searcher.sort('date', 'desc')
-    searcher.add_facet('initiative')
-    searcher.add_facet('klasse')
-    searcher.add_facet('stand')
-    searcher.add_facet('sachgebiet')
-    searcher.add_facet('schlagworte')
-    pager = Pager(searcher, 'ablaeufe', request.args)
-    if format == 'json':
-        return jsonify({'results': pager})
-    return render_template('ablauf_search.html',
             searcher=searcher, pager=pager)
 
 

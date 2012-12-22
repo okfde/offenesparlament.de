@@ -139,7 +139,7 @@
     <h3>Themen</h3>
     <div>  
     {% for sw in schlagworte %}
-      <a href="{{ url_for('ablaeufe', schlagworte=sw['schlagwort']) }}">
+      <a href="{{ url_for('ablauf.index', schlagworte=sw['schlagwort']) }}">
       {{sw['schlagwort']}}</a> 
       <span class="facet-count">({{sw['num']}})</span>{% if not loop.last %},{% endif %}
     {% endfor %}
@@ -162,7 +162,9 @@
             <span class="typ">{{position.typ}}</span>
           </span>
           <span class="ablauf">
-            <h4><a href="{{ url_for('position', key=position.key) }}">
+            <h4><a href="{{ url_for('ablauf.view',
+                                    wahlperiode=position.ablauf.wahlperiode,
+                                    key=position.ablauf.key) }}#{{position.key}}">
                 {{position.ablauf.titel}}</a></h4>
           </span>
           <span class="bottom">

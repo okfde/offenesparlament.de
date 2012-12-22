@@ -30,7 +30,7 @@
     <ul>
       {% for c, sw in general %} 
       <li>
-        <a href="{{url_for('ablaeufe', schlagworte=sw) }}">{{ sw }}</a>
+        <a href="{{url_for('ablauf.index', schlagworte=sw) }}">{{ sw }}</a>
         <span class="facet-count">(+{{c|round(2)}}%)</span>
       </li>
       {% endfor %}

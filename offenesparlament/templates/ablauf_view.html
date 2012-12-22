@@ -42,7 +42,7 @@
           <th>Schlagworte:</th>
           <td>
             {% for wort in ablauf.schlagworte %}
-            <a href="{{ url_for('ablaeufe', schlagworte=wort.name) }}">
+            <a href="{{ url_for('ablauf.index', schlagworte=wort.name) }}">
                 {{ wort.name }}</a>{% if not loop.last %},{% endif %}
             {% endfor %}
           </td>
@@ -84,7 +84,9 @@
             <span class="date">
               {{position.date.strftime("%d.%m.%Y")}}</span>
             <span class="zuordnung">{{position.zuordnung}} 
-              <a name="{{position.key}}" href="{{url_for('position', key=position.key)}}">&para;</a>
+              <a name={{position.key}} href="{{ url_for('ablauf.view',
+                                    wahlperiode=position.ablauf.wahlperiode,
+                                    key=position.ablauf.key) }}#{{position.key}}">&para;</a>
             </span>
             <span class="typ">{{position.typ}}</span>
           </span>
