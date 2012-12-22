@@ -1,7 +1,6 @@
 import logging
 
 from offenesparlament.data.lib.db import fetch_row
-from offenesparlament.model.indexer import get_indexer
 from offenesparlament.data.lib.refresh import Unmodified
 
 from offenesparlament.data.gremien.scrape import scrape_index, \

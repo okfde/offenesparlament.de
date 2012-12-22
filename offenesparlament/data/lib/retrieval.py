@@ -7,7 +7,7 @@ import time
 log = logging.getLogger(__name__)
 UA = 'OffenesParlament.de // <friedrich@pudo.org>'
 
-def fetch(url, timeout=2.0, keep_alive=True):
+def fetch(url, timeout=10.0, keep_alive=True):
     #url = url.replace('http://', 'https://')
     for x in range(15):
         try:
@@ -34,7 +34,7 @@ def fetch(url, timeout=2.0, keep_alive=True):
             time.sleep(1)
 
 
-def fetch_stream(url, timeout=2.0):
+def fetch_stream(url, timeout=10.0):
     response = fetch(url, timeout=timeout)
     if response is None:
         return None

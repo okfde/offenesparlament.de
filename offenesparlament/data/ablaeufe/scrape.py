@@ -81,7 +81,6 @@ def dokument_by_name(name):
             }.get(typ, ('BT', 'drs'))
     link = None
     if hrsg == 'BT' and typ == 'drs':
-        print [nummer]
         f, s = nummer.split("/", 1)
         s = s.split(" ")[0]
         s = s.zfill(5)
@@ -227,7 +226,7 @@ def scrape_ablauf(engine, url, force=False):
     for sw in doc.findall("SCHLAGWORT"):
         wort = {'wort': sw.text, 'source_url': url}
         sl.upsert(engine, Schlagwort, wort, unique=wort.keys())
-    log.info("Ablauf %s: %s",key, a['titel'])
+    log.info("Ablauf %s: %s", url, a['titel'])
     a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
     a['abgeschlossen'] = DIP_ABLAUF_STATES_FINISHED.get(a['stand'], False)

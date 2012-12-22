@@ -1,9 +1,7 @@
 import logging
 
 from offenesparlament.data.lib.db import fetch_row
-from offenesparlament.model.indexer import get_indexer
 from offenesparlament.data.lib.refresh import Unmodified
-
 from offenesparlament.data.persons.scrape import scrape_index, scrape_mdb
 from offenesparlament.data.persons.resolve import make_fingerprint
 from offenesparlament.data.persons.load import load_person

@@ -2,11 +2,8 @@ import logging
 
 import sqlaload as sl
 
-from offenesparlament.data.lib.db import fetch_row
-from offenesparlament.model.indexer import get_indexer
 from offenesparlament.data.lib.refresh import Unmodified
 from offenesparlament.data.lib.reference import InvalidReference
-
 from offenesparlament.data.transcripts.scrape_plpr import scrape_index, \
     scrape_transcript, url_metadata
 from offenesparlament.data.transcripts.scrape_webtv import scrape_agenda
