@@ -11,35 +11,20 @@ from offenesparlament.data.ablaeufe.scrape import scrape_index, \
     scrape_ablauf
 from offenesparlament.data.ablaeufe.clean_positions import \
     extend_positions
+from offenesparlament.data.ablaeufe.clean_ablauf import clean_ablauf
+from offenesparlament.data.ablaeufe.clean_beitraege import \
+    match_beitraege
 
 log = logging.getLogger(__name__)
 
-#TEMP:
-def transform():
-    """ Transform and clean up content """
-    engine = etl_engine()
-    from offenesparlament.transform import persons
-    #persons.generate_person_long_names(engine)
-    from offenesparlament.transform import positions
-    #positions.extend_positions(engine)
-    from offenesparlament.transform import ablaeufe
-    #ablaeufe.extend_ablaeufe(engine)
-    from offenesparlament.transform import namematch
-    namematch.match_persons(engine)
-    #from offenesparlament.transform import awatch
-    #awatch.load_profiles(engine)
-    from offenesparlament.transform import speechmatch
-    persons.generate_person_long_names(engine)
-    speechmatch.extend_speeches(engine)
-    persons.generate_person_long_names(engine)
-    from offenesparlament.transform import drs
-    drs.merge_speeches(engine)
 
 def process_ablauf(engine, indexer, url, force=False):
     try:
         print url
         data = scrape_ablauf(engine, url, force=force)
+        clean_ablauf(engine, data)
         extend_positions(engine, url)
+        match_beitraege(engine, url)
         print data
     except Unmodified: pass
 
