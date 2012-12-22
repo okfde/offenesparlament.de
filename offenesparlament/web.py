@@ -4,7 +4,6 @@ from datetime import datetime
 from urllib import quote
 import re
 
-from colander import Invalid
 from flask import Flask, g, request, render_template, abort, flash, json
 from flask import url_for, redirect, jsonify, Response, make_response
 
@@ -201,18 +200,6 @@ def person(slug, format=None):
         abort(404)
     if format == 'json':
         return jsonify(person)
-    return person_render(person, format)
-
-@app.route("/person/mdb/<id>")
-@app.route("/person/mdb/<id>.<format>")
-def person_mdb(id, format=None):
-    person = Person.query.filter_by(mdb_id=id).first()
-    if person is None:
-        abort(404)
-    return person_render(person, format)
-
-
-def person_render(person, format):
     searcher = SolrSearcher(Position, request.args)
     searcher.sort('date')
     searcher.filter('beitraege.person.id', str(person.id))
