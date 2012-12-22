@@ -80,6 +80,7 @@ def load_position(engine, indexer, ablauf, data):
             urheber=data.get('urheber'),
             fundstelle=data.get('fundstelle')).first()
     if position is not None:
+        indexer.add(position)
         return
     position = Position()
     position.key = data.get('hash')
@@ -139,6 +140,7 @@ def load_position(engine, indexer, ablauf, data):
             urheber=position.urheber, source_url=ablauf.source_url, matched=True):
         load_beitrag(engine, indexer, position, bdata)
 
+    db.session.refresh(position)
     indexer.add(position)
 
 

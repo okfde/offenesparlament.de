@@ -84,6 +84,7 @@ def dumpindex():
     """ Destroy the FTS index. """
     _solr = solr()
     _solr.delete_query("*:*")
+    _solr.commit()
 
 
 @manager.command

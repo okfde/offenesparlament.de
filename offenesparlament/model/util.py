@@ -72,7 +72,8 @@ def flatten(data, sep='.'):
 
 def convert_data_to_index(data):
     from offenesparlament.data.lib.text import strip_control_characters
-    for k, v in flatten(data).items():
+    data = flatten(data)
+    for k, v in data.items():
         if isinstance(v, datetime):
             data[k] = datetime_add_tz(v)
         elif isinstance(v, (list, tuple, set)):
