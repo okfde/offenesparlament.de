@@ -21,11 +21,10 @@ def process_person(engine, indexer, url, force=False):
         indexer.add(person)
     except Unmodified: pass
 
-def process(engine, indexer, force=False):
-    func = lambda url: process_person(engine, indexer, url, \
-            force=force)
-    unthreaded(scrape_index(), func)
-
+PERSON = {
+    'generator': scrape_index,
+    'handler': process_person
+    }
 
 
 

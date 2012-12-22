@@ -51,9 +51,8 @@ def process_transcript(engine, indexer, url, force=False):
         mark_done(engine, url)
     except InvalidReference: pass
 
-def process(engine, indexer, force=False):
-    func = lambda url: process_transcript(engine, indexer, url, \
-            force=force)
-    unthreaded(scrape_index(), func)
-
+TRANSCRIPT = {
+    'generator': scrape_index,
+    'handler': process_transcript
+    }
 

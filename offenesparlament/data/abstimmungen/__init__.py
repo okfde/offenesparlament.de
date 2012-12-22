@@ -19,9 +19,9 @@ def process_abstimmung(engine, indexer, url, force=False):
         load_abstimmung(engine, data['source_url'])
     except Unmodified: pass
 
-def process(engine, indexer, force=False):
-    func = lambda url: process_abstimmung(engine, indexer, url, \
-            force=force)
-    unthreaded(scrape_index(), func)
+ABSTIMMUNG = {
+    'generator': scrape_index,
+    'handler': process_abstimmung
+    }
 
 

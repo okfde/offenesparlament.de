@@ -20,8 +20,8 @@ def process_gremium(engine, indexer, url, force=False):
         indexer.add(gremium)
     except Unmodified: pass
 
-def process(engine, indexer, force=False):
-    func = lambda url: process_gremium(engine, indexer, url, \
-            force=force)
-    unthreaded(scrape_index(), func)
+GREMIUM = {
+    'generator': scrape_index,
+    'handler': process_gremium
+    }
 
