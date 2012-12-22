@@ -4,7 +4,7 @@ import logging
 
 import sqlaload as sl
 
-from offenesparlament.transform.persons import make_person, make_long_name
+from offenesparlament.data.lib.persons import make_person, make_long_name
 from offenesparlament.data.lib.reference import resolve_person, \
     BadReference, InvalidReference
 
