@@ -3,7 +3,6 @@ import logging
 import re
 import urllib
 from lxml import etree
-from itertools import count
 from urlparse import urljoin
 
 import sqlaload as sl
@@ -12,18 +11,19 @@ from offenesparlament.data.lib.constants import FACTION_MAPS, \
     DIP_GREMIUM_TO_KEY, DIP_ABLAUF_STATES_FINISHED
 from offenesparlament.data.lib.threaded import threaded
 from offenesparlament.data.lib.retrieval import fetch, _html
-from offenesparlament.core import etl_engine
+
+EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP17/'
+INLINE_RE = re.compile(r"<!--(.*?)-->", re.M + re.S)
+INLINE_COMMENTS_RE = re.compile(r"<-.*->", re.M + re.S)
 
 log = logging.getLogger(__name__)
 
-inline_re = re.compile(r"<!--(.*?)-->", re.M + re.S)
-inline_comments_re = re.compile(r"<-.*->", re.M + re.S)
 
 def inline_xml_from_page(page):
-    for comment in inline_re.findall(page):
+    for comment in INLINE_RE.findall(page):
         comment = comment.strip()
         if comment.startswith("<?xml"):
-            comment = inline_comments_re.sub('', comment).split('>', 1)[-1]
+            comment = INLINE_COMMENTS_RE.sub('', comment).split('>', 1)[-1]
             comment = comment.decode('latin-1')
             return etree.fromstring(comment)
 
@@ -193,13 +193,8 @@ def scrape_activity(ablauf, elem, engine):
 
 class NoContentException(Exception): pass
 
-#from threading import local
-#tl = local()
 def scrape_ablauf(url, engine, wahlperiode=17):
     wahlperiode = str(wahlperiode)
-    #if not hasattr(tl, 'engine'):
-    #    tl.engine = etl_engine()
-    #engine = tl.engine
     Ablauf = sl.get_table(engine, 'ablauf')
 
     key = url.rsplit('/', 1)[-1].split('.')[0]
@@ -293,15 +288,9 @@ def load_dip(engine):
         scrape_ablauf(url, engine)
     threaded(load_dip_index(), bound_scrape, num_threads=5)
 
-EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP17/'
 
-def load_dip_index():
+def scrape_index():
     response, doc = _html(EXTRAKT_INDEX, timeout=120.0)
     for result in doc.findall("//a[@class='linkIntern']"):
         yield urljoin(EXTRAKT_INDEX, result.get('href'))
-
-if __name__ == '__main__':
-    engine = etl_engine()
-    print "DESTINATION", engine
-    load_dip(engine)
 
