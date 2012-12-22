@@ -7,7 +7,7 @@ from offenesparlament.data.lib.refresh import Unmodified
 from offenesparlament.data.lib.reference import InvalidReference
 
 from offenesparlament.data.ablaeufe.scrape import scrape_index, \
-    scrape_ablauf
+    scrape_ablauf, NoContentException
 from offenesparlament.data.ablaeufe.clean_positions import \
     extend_positions
 from offenesparlament.data.ablaeufe.clean_ablauf import clean_ablauf
@@ -28,6 +28,7 @@ def process_ablauf(engine, indexer, url, force=False):
         data = fetch_row(engine, 'ablauf', source_url=url)
         load_ablauf(engine, indexer, data)
     except Unmodified: pass
+    except NoContentException: pass
 
 ABLAUF = {
     'generator': scrape_index,

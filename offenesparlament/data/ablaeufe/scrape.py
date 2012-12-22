@@ -20,12 +20,15 @@ log = logging.getLogger(__name__)
 
 
 def inline_xml_from_page(page):
-    for comment in INLINE_RE.findall(page):
-        comment = comment.strip()
-        if comment.startswith("<?xml"):
-            comment = INLINE_COMMENTS_RE.sub('', comment).split('>', 1)[-1]
-            comment = comment.decode('latin-1')
-            return etree.fromstring(comment)
+    try:
+        for comment in INLINE_RE.findall(page):
+            comment = comment.strip()
+            if comment.startswith("<?xml"):
+                comment = INLINE_COMMENTS_RE.sub('', comment).split('>', 1)[-1]
+                comment = comment.decode('latin-1')
+                return etree.fromstring(comment)
+    except Exception, e:
+        log.exception(e)
 
 def _get_dokument(hrsg, typ, nummer, link=None):
     nummer = nummer.lstrip("0")
