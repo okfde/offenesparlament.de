@@ -22,7 +22,7 @@ def index(format=None):
     pager = Pager(searcher, 'sitzung.index', request.args)
     if format == 'json':
         return jsonify({'results': pager})
-    return render_template('sitzung_search.html',
+    return render_template('sitzung/index.html',
             searcher=searcher, pager=pager)
 
 
@@ -46,7 +46,7 @@ def view(wahlperiode, nummer, format=None):
         data = sitzung.to_dict()
         data['results'] = pager
         return jsonify(data)
-    return render_template('sitzung_view.html',
+    return render_template('sitzung/view.html',
             sitzung=sitzung, pager=pager, searcher=searcher)
 
 @sitzung.route("/sitemap/plenum-<year>.xml")

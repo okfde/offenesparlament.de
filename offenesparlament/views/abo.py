@@ -17,7 +17,7 @@ def form():
         'email': request.args.get('email', ''),
         'include_activity': True,
         'include_speeches': True}
-    return render_template('abo_form.html', fields=fields, errors={})
+    return render_template('abo/form.html', fields=fields, errors={})
 
 
 @abo.route("/abo", methods=['POST'])

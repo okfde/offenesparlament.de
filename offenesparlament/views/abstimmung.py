@@ -19,6 +19,6 @@ def view(id, format=None):
     enth = abstimmung.stimmen.filter_by(entscheidung='Enthaltung')
     na = abstimmung.stimmen.filter(Stimme.entscheidung.like('%nicht%'))
 
-    return render_template('abstimmung_view.html',
+    return render_template('abstimmung/view.html',
         abstimmung=abstimmung, ja=ja, nein=nein, enth=enth, na=na)
 

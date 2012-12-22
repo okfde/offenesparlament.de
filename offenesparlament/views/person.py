@@ -24,7 +24,7 @@ def index(format=None):
     pager = Pager(searcher, 'person.index', request.args)
     if format == 'json':
         return jsonify({'results': pager})
-    return render_template('person_search.html',
+    return render_template('person/index.html',
             searcher=searcher, pager=pager)
 
 
@@ -61,7 +61,7 @@ def view(slug, format=None):
     elif format == 'rss':
         return make_feed(person.name, author=person.name,
             positionen=pager, debatten=debatten)
-    return render_template('person_view.html',
+    return render_template('person/view.html',
             person=person, searcher=searcher,
             pager=pager, schlagworte=schlagworte,
             debatten=debatten[::-1])
@@ -73,6 +73,6 @@ def votes(slug, format=None):
     person = Person.query.filter_by(slug=slug).first()
     if person is None:
         abort(404)
-    return render_template('person_votes.html',
+    return render_template('person/votes.html',
             person=person)
 

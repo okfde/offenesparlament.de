@@ -40,7 +40,7 @@ def index(format=None):
     pager = Pager(searcher, 'ablauf.index', request.args)
     if format == 'json':
         return jsonify({'results': pager})
-    return render_template('ablauf_search.html',
+    return render_template('ablauf/index.html',
             searcher=searcher, pager=pager)
 
 
@@ -62,6 +62,6 @@ def view(wahlperiode, key, format=None):
         else:
             referenzen[ref.dokument] = referenzen[ref.dokument] or set()
     referenzen = sorted(referenzen.items(), key=lambda (r, s): r.name)
-    return render_template('ablauf_view.html',
+    return render_template('ablauf/view.html',
             ablauf=ablauf, referenzen=referenzen)
 
