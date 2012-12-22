@@ -1,6 +1,7 @@
 from flaskext.script import Manager
 
 from offenesparlament.core import app, etl_engine, solr
+from offenesparlament.web import app
 from offenesparlament.model.indexer import get_indexer
 from offenesparlament.data.lib.threaded import process
 
@@ -96,8 +97,7 @@ def aggregate():
 
 @manager.command
 def notify():
-    from offenesparlament.abo import notify
-    from offenesparlament.web import app
+    from offenesparlament.lib.abo import notify
     notify()
 
 

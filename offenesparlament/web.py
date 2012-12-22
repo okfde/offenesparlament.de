@@ -178,6 +178,7 @@ def page(path):
     template = page.meta.get('template', 'page.html')
     return render_template(template, page=page)
 
+
 @app.route("/sitemap.xml")
 def sitemap():
     now = datetime.utcnow()
@@ -187,6 +188,11 @@ def sitemap():
     res.headers['Content-Type'] = 'text/xml; charset=utf-8'
     return res
 
+@app.route("/robots.txt")
+def robots_txt():
+    res = make_response(render_template('robots.txt'))
+    res.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    return res
 
 @app.route("/")
 def index():
