@@ -31,9 +31,13 @@ def _threaded(items, func, num_threads=5, max_queue=200):
 
     queue.join()
 
-def process(engine, indexer, proc, force=False, threaded=False):
-    func = lambda url: proc['handler'](engine, indexer, url, \
-            force=force)
+def process(indexer, proc, force=False, threaded=False):
+    def func(url):
+        from offenesparlament.core import etl_engine
+        engine = etl_engine()
+        proc['handler'](engine, indexer, url, \
+                        force=force)
+        engine.dispose()
     processor = _threaded if threaded else unthreaded
     processor(proc['generator'](), func)
 

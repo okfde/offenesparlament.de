@@ -15,13 +15,13 @@ manager = Manager(app)
 
 
 def _stage(proc, url=None, force=False, threaded=False):
-    engine = etl_engine()
     indexer = get_indexer()
     try:
         if url is None:
-            process(engine, indexer, proc, force=force,
+            process(indexer, proc, force=force,
                     threaded=threaded)
         else:
+            engine = etl_engine()
             proc['handler'](engine, indexer, url,
                             force=force)
     finally:
