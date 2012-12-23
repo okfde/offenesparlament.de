@@ -96,7 +96,7 @@
    <field name="index_type" type="string" indexed="true" stored="true" />
    <field name="date" type="date" indexed="true" stored="false" />
    <field name="sequenz" type="int" indexed="true" stored="true" />
-   <field name="nummer" type="int" indexed="true" stored="true" />
+   <field name="nummer" type="string" indexed="true" stored="true" />
    
    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 

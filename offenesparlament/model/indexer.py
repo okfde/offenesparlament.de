@@ -43,10 +43,11 @@ class BufferedIndexer(object):
         self._lock.acquire()
         try:
             if check_overflow and \
-                len(self._buffer) % self._buffer_size != 0:
+                len(self._buffer) < self._buffer_size:
                 return
             if not len(self._buffer):
                 return
+            log.info("Flushing indexer....")
             self._solr.add_many(self._buffer)
             self._buffer = []
             self._solr.commit()
