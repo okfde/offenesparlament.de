@@ -9,23 +9,11 @@
   <h1>Personen</h1>
   <div class="box">
     {{ macros.search(searcher, pager) }}
-    
-    <div class="sidebar">
-      {% if searcher.has_facet('rollen.funktion') %}
-        <h3>Funktion</h3>
-        {{ macros.facet_list(searcher, pager, 'rollen.funktion') }}
-      {% endif %}
-      {% if searcher.has_facet('rollen.fraktion') %}
-        <h3>Fraktion</h3>
-        {{ macros.facet_list(searcher, pager, 'rollen.fraktion') }}
-      {% endif %}
-      {% if searcher.has_facet('berufsfeld') %}
-        <h3>Berufe</h3>
-        {{ macros.facet_list(searcher, pager, 'berufsfeld') }}
-      {% endif %}
-    </div>
-    <div class="mainbar">
-      <ul class="search-results person">
+  </div>
+
+  <div class="row">
+    <div class="span8">
+      <ul class="result-list person">
       {% for person in pager %}
       <li>
         <h3>
@@ -44,6 +32,20 @@
       {% endfor %}
       </ul>
       {{ macros.pager(pager) }}
+    </div>
+    <div class="span4">
+      {% if searcher.has_facet('rollen.funktion') %}
+        <h3>Funktion</h3>
+        {{ macros.facet_list(searcher, pager, 'rollen.funktion') }}
+      {% endif %}
+      {% if searcher.has_facet('rollen.fraktion') %}
+        <h3>Fraktion</h3>
+        {{ macros.facet_list(searcher, pager, 'rollen.fraktion') }}
+      {% endif %}
+      {% if searcher.has_facet('berufsfeld') %}
+        <h3>Berufe</h3>
+        {{ macros.facet_list(searcher, pager, 'berufsfeld') }}
+      {% endif %}
     </div>
   </div>
 {% endblock %}

@@ -1,41 +1,45 @@
 
 {% macro search(searcher, pager) %}
-  <form id="search-form" method="GET" action="{{ pager.url({}) }}">
-    <input id="search-box" name="q" value="{{ searcher.q }}" autofocus >
-    <input id="search-submit" type="submit" value="Suchen" />
+  <form class="form-inline" method="GET" action="{{ pager.url({}) }}">
+    <input type="text" class="input-xxlarge" name="q" value="{{ searcher.q }}" autofocus >
+    <input class="btn" type="submit" value="Suchen" />
     {% for t, v in searcher.query_filters %}
       <input type="hidden" name="{{ t }}" value="{{ v }}" />
     {% endfor %}
     
     {% if searcher.query_filters %}
-      <ul class="unfilter-list">
+      <div>
+      Filter: 
         {% for k, v in searcher.query_filters %}
-          <li>
-            {{ v }}
-            <a href="{{ pager.remove_url_state(k, v) }}">[x]</a>
-          </li>
+            <a class="label label-important" href="{{ pager.remove_url_state(k, v) }}">{{ v }}</a>
         {% endfor %}
-      </ul>
+      </div>
     {% endif %}
   </form>
 {% endmacro %}
 
 {% macro pager(pager) %}
   {% if pager.pages > 1 %}
-  <div class="pager">
+  <div class="pagination">
+    <ul>
     {% if pager.has_prev %}
-      <div class="prev">
+      <li>
         <a href="{{ pager.prev_url }}">&laquo; zurück</a>
-      </div>
+      </li>
+    {% else %}
+      <li class="disabled"><a>&laquo; zurück</a></li>
     {% endif %}
+    <li class="active">
+      <a>{{ pager.page }} von {{ pager.pages }}</a>
+    </li>
     {% if pager.has_next %}
-      <div class="next">
+      <li>
         <a href="{{ pager.next_url }}">weiter &raquo;</a>
-      </div>
+      </li>
+    {% else %}
+      <li class="disabled"><a>weiter &raquo;</a></li>
     {% endif %}
-    <div class="center">
-      {{ pager.page }} / {{ pager.pages }}     
-    </div>
+    </ul>
   </div>
   {% endif %}
 {% endmacro %}

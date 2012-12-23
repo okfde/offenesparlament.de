@@ -39,10 +39,21 @@ li {
 }
 
 header .navbar-inner {
-  background-color: #fff;
+  background-color: #111;
   background-image: none;
   min-height: 55px;
   padding-top: 10px;
+}
+
+header .navbar .brand,
+header .navbar .nav > li > a {
+  color: #fff;
+  font-weight: 400;
+  text-shadow: none;
+}
+
+header .navbar .brand {
+  font-weight: 600;
 }
 
 footer {
@@ -70,7 +81,29 @@ footer .pull-right .links li {
 }
 
 #content {
-  margin-top: 1em;
+  margin-top: 2em;
+}
+
+ul.facets {
+  list-style-type: none;
+  margin: 0;
+}
+
+ul.facets .count {
+  color: #777;
+  font-size: 0.8em;
+}
+
+ul.result-list {
+  list-style-type: none;
+  margin: 0;
+}
+
+ul.result-list h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  line-height: 1.3em;
+  margin: 1em 0 0 0;
 }
 
 .banner {

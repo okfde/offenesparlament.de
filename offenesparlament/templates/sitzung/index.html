@@ -22,7 +22,7 @@
     
     <div class="">
     
-      <ul class="search-results sitzung">
+      <ul class="result-list sitzung">
       {% for sitzung in pager %}
       <div class="{{ loop.cycle('lleftbar', 'lrightbar') }}">
         {{ snippets.sitzung_list_inner(sitzung) }}

@@ -13,16 +13,16 @@
 {% endmacro %}
 
 {% macro ablaeufe(pager) %}
-  <ul class="search-results ablauf">
+  <ul class="result-list ablauf">
     {% for ablauf in pager %}
       <li>
         <h3><a href="{{ url_for('ablauf.view', wahlperiode=ablauf.wahlperiode,
             key=ablauf.key) }}">{{ ablauf.titel }}</a></h3>
-        <p>
+        <p class="metadata">
           <span class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
           {{ ablauf.stand }} 
           </span> ({{ablauf.latest.strftime("%d.%m.%Y")}}) &mdash; 
-          <strong>{{ ablauf.typ }}</strong> &mdash; {{ ablauf.initiative or
+          <span class="ablauf-typ">{{ ablauf.typ }}</span> &mdash; {{ ablauf.initiative or
         ablauf.sachgebiet or ablauf.stand }}</p>
       </li>
     {% endfor %}
@@ -30,6 +30,6 @@
 {% endmacro %}
 
 {% macro abo_link(query) %}
-  <a class="btn" href="{{url_for('abo.form', query=query)}}"><i
-      class="icon-exclamation-sign"></i>Aktivität abonnieren</a>
+  <a class="btn btn-inverse" href="{{url_for('abo.form', query=query)}}"><i
+      class="icon-exclamation-sign icon-white"></i>Aktivität abonnieren</a>
 {% endmacro %}
