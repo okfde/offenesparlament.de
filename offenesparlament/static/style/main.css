@@ -1,0 +1,39 @@
+
+html, body {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 400;
+
+  font-size: 1.0em;
+  line-height: 1.4em;
+
+  color: #333;
+}
+
+li {
+    margin: 0 0 0.4em;
+}
+
+footer {
+  margin: 1em 0 0 0;
+  padding: 1em 0 0 0;
+  background-color: #eee;
+}
+
+footer .logo img {
+  margin: 0.5em 0 0 0;
+}
+
+footer .links {
+  list-style-type: none;
+  margin: 0.5em 0 0 0;
+}
+
+footer .links li {
+  display: inline-block;
+  margin: 0 2em 1em 0;
+}
+
+footer .pull-right .links li {
+  margin: 0 0 1em 2em;
+}
+
