@@ -24,26 +24,13 @@
       {{ macros.pager(pager) }}
     </div>
     <div class="span3">
-      {% if searcher.has_facet('klasse') %}
-        <h3>Typ</h3>
-        {{ macros.facet_list(searcher, pager, 'klasse') }}
-      {% endif %}
-      {% if searcher.has_facet('sachgebiet') %}
-        <h3>Sachgebiet</h3>
-        {{ macros.facet_list(searcher, pager, 'sachgebiet') }}
-      {% endif %}
-      {% if searcher.has_facet('schlagworte') %}
-        <h3>Schlagworte</h3>
-        {{ macros.facet_list(searcher, pager, 'schlagworte') }}
-      {% endif %}
-      {% if searcher.has_facet('initiative') %}
-        <h3>Initiative</h3>
-        {{ macros.facet_list(searcher, pager, 'initiative') }}
-      {% endif %}
-      {% if searcher.has_facet('stand') %}
-        <h3>Stand</h3>
-        {{ macros.facet_list(searcher, pager, 'stand') }}
-      {% endif %}
+      {{ macros.facet_list(searcher, pager, 'klasse', title='Typ') }}
+      {{ macros.facet_list(searcher, pager, 'sachgebiet',
+          title='Sachgebiet') }}
+      {{ macros.facet_list(searcher, pager, 'schlagworte',
+        title='Schlagworte') }}
+      {{ macros.facet_list(searcher, pager, 'initiative',
+        title='Initiative') }}
     </div>
   </div>
 {% endblock %}

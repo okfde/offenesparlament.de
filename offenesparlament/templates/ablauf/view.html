@@ -9,56 +9,77 @@
 {% endblock %}
 
 {% block content %}
-  {{ snippets.abo_link(ablauf.wahlperiode + "/" + ablauf.key) }}  
-  <h1>{{ ablauf.titel }}</h1>
-  
+  <h2>{{ ablauf.titel }}</h2>
+
+  <div class="row">
+    <div class="span7">
+    {% if ablauf.abstrakt %}
+      <p>
+        {{ ablauf.abstrakt | breaklines | drslink }}
+      </p>
+    {% endif %}
+    </div>
+    <div class="span5">
+      <table id="factsheet">
+        <tr>
+          <th>Typ:</th>
+          <td>{{ ablauf.klasse }} ({{ablauf.typ}})</td>
+        </tr>
+        <tr>
+          <th>Stand:</th>
+          <td class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
+            {{ ablauf.stand }}
+          </td>
+        </tr>
+        {% if ablauf.initiative %}
+          <tr>
+            <th>Initiative:</th>
+            <td>
+              <a href="{{ url_for('ablauf.index',
+                initiative=ablauf.initiative)
+                }}">{{ablauf.initiative}}</a>
+            </td>
+          </tr>
+        {% endif %}
+        {% if ablauf.sachgebiet %}
+          <tr>
+            <th>Sachgebiet:</th>
+            <td>
+              <a href="{{ url_for('ablauf.index',
+                sachgebiet=ablauf.sachgebiet)
+                }}">{{ablauf.sachgebiet}}</a>
+            </td>
+          </tr>
+        {% endif %}
+        {% if ablauf.schlagworte %}
+          <tr>
+            <th>Schlagworte:</th>
+            <td>
+              {% for wort in ablauf.schlagworte %}
+              <a href="{{ url_for('ablauf.index', schlagworte=wort.name) }}">
+                  {{ wort.name }}</a>{% if not loop.last %},{% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+        {% endif %}
+        {% if ablauf.eu_dok_nr %}
+          <tr>
+            <th>EU:</th>
+            <td>
+              <a href="{{ ablauf.eur_lex_url }}">{{ ablauf.eu_dok_nr }}</a>
+              (EUR-Lex)
+              
+            </td>
+          </tr>
+        {% endif %}
+      </table>
+      <div class="pull-right">
+        {{ snippets.abo_link("+source_url:" + ablauf.source_url) }}
+      </div>
+    </div>
+  </div>
+  <hr>
   <div class="rightbar">
-    <h3>Details</h3>
-    <table id="factsheet">
-      <tr>
-        <th>Typ:</th>
-        <td>{{ ablauf.typ }}</td>
-      </tr>
-      <tr>
-        <th>Stand:</th>
-        <td class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
-          {{ ablauf.stand }}
-        </td>
-      </tr>
-      {% if ablauf.initiative %}
-        <tr>
-          <th>Initiative:</th>
-          <td>{{ ablauf.initiative }}</td>
-        </tr>
-      {% endif %}
-      {% if ablauf.sachgebiet %}
-        <tr>
-          <th>Sachgebiet:</th>
-          <td>{{ ablauf.sachgebiet }}</td>
-        </tr>
-      {% endif %}
-      {% if ablauf.schlagworte %}
-        <tr>
-          <th>Schlagworte:</th>
-          <td>
-            {% for wort in ablauf.schlagworte %}
-            <a href="{{ url_for('ablauf.index', schlagworte=wort.name) }}">
-                {{ wort.name }}</a>{% if not loop.last %},{% endif %}
-            {% endfor %}
-          </td>
-        </tr>
-      {% endif %}
-      {% if ablauf.eu_dok_nr %}
-        <tr>
-          <th>EU:</th>
-          <td>
-            <a href="{{ ablauf.eur_lex_url }}">{{ ablauf.eu_dok_nr }}</a>
-            (EUR-Lex)
-            
-          </td>
-        </tr>
-      {% endif %}
-    </table>
     <h3>Dokumente</h3>
     <ul>
       {% for dokument, seiten in referenzen %}
@@ -70,12 +91,6 @@
     </ul>
   </div>
   <div class="leftbar">
-    {% if ablauf.abstrakt %}
-      <h3>Beschreibung</h3>
-      <p>
-        {{ ablauf.abstrakt | safe }}
-        </p>
-    {% endif %}
     <h3>Verlauf</h3>
     <ul class="position-list">
       {% for position in ablauf.positionen %}

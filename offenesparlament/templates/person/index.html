@@ -34,18 +34,10 @@
       {{ macros.pager(pager) }}
     </div>
     <div class="span4">
-      {% if searcher.has_facet('rollen.funktion') %}
-        <h3>Funktion</h3>
-        {{ macros.facet_list(searcher, pager, 'rollen.funktion') }}
-      {% endif %}
-      {% if searcher.has_facet('rollen.fraktion') %}
-        <h3>Fraktion</h3>
-        {{ macros.facet_list(searcher, pager, 'rollen.fraktion') }}
-      {% endif %}
-      {% if searcher.has_facet('berufsfeld') %}
-        <h3>Berufe</h3>
-        {{ macros.facet_list(searcher, pager, 'berufsfeld') }}
-      {% endif %}
+      {{ macros.facet_list(searcher, pager, 'rollen.funktion',
+      title='Funktion') }}
+      {{ macros.facet_list(searcher, pager, 'rollen.fraktion',
+      title='Fraktion') }}
     </div>
   </div>
 {% endblock %}

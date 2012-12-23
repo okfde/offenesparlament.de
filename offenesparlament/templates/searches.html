@@ -7,14 +7,18 @@
       <input type="hidden" name="{{ t }}" value="{{ v }}" />
     {% endfor %}
     
-    {% if searcher.query_filters %}
-      <div>
-      Filter: 
+    <div class="result-filters">
+      {{pager.count()}} Suchergebnisse, 
+      {% if searcher.query_filters %}
+        gefiltert nach 
         {% for k, v in searcher.query_filters %}
-            <a class="label label-important" href="{{ pager.remove_url_state(k, v) }}">{{ v }}</a>
+          <a class="label label-important" href="{{ pager.remove_url_state(k, v) }}">{{ v }}</a>
         {% endfor %}
-      </div>
-    {% endif %}
+      {% else %}
+        ohne Filter.
+      {% endif %}
+
+    </div>
   </form>
 {% endmacro %}
 
@@ -44,16 +48,19 @@
   {% endif %}
 {% endmacro %}
 
-{% macro facet_list(searcher, pager, facet, limit=10) %}
-  <ul class="facets">
-    {% for value, count in searcher.facet_values(facet)[:limit] %}
-      {% if (facet, value) not in pager.query_args and value.strip() %}
-        <li>
-          <a href="{{ pager.add_url_state(facet, value) }}">{{value}}</a> 
-          <span class="count">{{count}}</span>
-        </li>
-      {% endif %}
-    {% endfor %}
-  </ul>
+{% macro facet_list(searcher, pager, facet, limit=10, title=None) %}
+  {% if searcher.has_facet(facet) %}
+    <h3 class="facets-title">{{title}}</h3>
+    <ul class="facets">
+      {% for value, count in searcher.facet_values(facet)[:limit] %}
+        {% if (facet, value) not in pager.query_args and value.strip() %}
+          <li>
+            <a href="{{ pager.add_url_state(facet, value) }}">{{value}}</a> 
+            <span class="count">{{count}}</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  {% endif %}
 {% endmacro %}
 

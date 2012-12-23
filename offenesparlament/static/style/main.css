@@ -39,15 +39,15 @@ li {
 }
 
 header .navbar-inner {
-  background-color: #111;
+  background-color: #eee;
   background-image: none;
-  min-height: 55px;
-  padding-top: 10px;
+  min-height: 40px;
+  padding-top: 7px;
 }
 
 header .navbar .brand,
 header .navbar .nav > li > a {
-  color: #fff;
+  color: #333;
   font-weight: 400;
   text-shadow: none;
 }
@@ -84,6 +84,12 @@ footer .pull-right .links li {
   margin-top: 2em;
 }
 
+h3.facets-title {
+  font-size: 1.2em;
+  line-height: 20px;
+  margin-top: 1em;
+}
+
 ul.facets {
   list-style-type: none;
   margin: 0;
@@ -92,6 +98,11 @@ ul.facets {
 ul.facets .count {
   color: #777;
   font-size: 0.8em;
+}
+
+.result-filters {
+  margin: 1em 0 0 0;
+  font-variant: italic;
 }
 
 ul.result-list {
@@ -146,4 +157,19 @@ ul.result-list h3 {
   height: 290px;
   background: url(/static/img/home.png);
 }
+
+
+
+/* Ablauf view */
+table#factsheet th,
+table#factsheet td {
+  padding-bottom: 1em;
+}
+
+table#factsheet th {
+  vertical-align: top;
+  text-align: left;
+  padding-right: 1em;
+}
+
 
