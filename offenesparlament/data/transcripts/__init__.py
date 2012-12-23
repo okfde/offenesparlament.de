@@ -38,6 +38,7 @@ def process_transcript(engine, indexer, url, force=False):
         except Unmodified:
             wp, session = url_metadata(url)
         if not scrape_agenda(engine, wp, session):
+            log.error("Failed to load webtv for %s/%s", wp, session)
             return
 
         speakers_webtv(engine, wp, session)

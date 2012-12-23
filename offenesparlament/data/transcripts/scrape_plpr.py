@@ -138,7 +138,7 @@ def scrape_transcript(engine, url, force=False):
                  'matched': False,
                  'loaded': False,
                  'source_etag': sample['source_etag']}
-    log.info("Loading transcript: %s/%s" % (wp, session))
+    log.info("Loading transcript: %s/%s, from %s" , wp, session, url)
     seq = 0
     parser = SpeechParser(sio)
     for contrib in parser:

@@ -37,7 +37,7 @@ def fetch(url, timeout=10.0, keep_alive=True):
 def fetch_stream(url, timeout=10.0):
     response = fetch(url, timeout=timeout)
     if response is None:
-        return None
+        return None, None
     return response, StringIO(response.content)
 
 

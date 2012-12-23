@@ -33,6 +33,8 @@ def scrape_speeches(engine, data):
 def scrape_agenda(engine, wp, session):
     url = WEBTV_BASE % (session, wp)
     response, doc = _html(url, timeout=4.0)
+    if doc is None:
+        return False
     table = doc.find('//div[@class="meetingTable"]/table')
     if table is None:
         return False

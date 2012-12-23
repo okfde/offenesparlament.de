@@ -5,6 +5,7 @@ from datetime import datetime
 import sqlaload as sl
 
 from offenesparlament.core import db
+from offenesparlament.data.persons.load import lazyload_person
 from offenesparlament.model.util import to_date
 from offenesparlament.model import Person, Sitzung, Debatte, Zitat
 
@@ -63,15 +64,12 @@ def load_debatten(engine, indexer, sitzung):
         db.session.commit()
 
 
-SPEAKERS = {}
 def load_zitate(engine, indexer, debatte, zitate, speeches):
     for data in zitate:
         f = lambda s: int(s['wahlperiode']) == int(data['wp']) and \
                       int(s['sitzung']) == int(data['session']) and \
                       int(s['sequence']) == int(data['sequence'])
         speech = filter(f, speeches).pop()
-        #print speech
-
         zitat = Zitat.query.filter_by(
                 debatte=debatte,
                 sequenz=speech['sequence']).first()
@@ -86,15 +84,8 @@ def load_zitate(engine, indexer, debatte, zitate, speeches):
         zitat.sprecher = speech['speaker']
         zitat.redner = data['speaker']
         zitat.source_url = speech['source_url']
-
-        if speech['fingerprint']:
-            if speech['fingerprint'] in SPEAKERS:
-                zitat.person = SPEAKERS[speech['fingerprint']]
-            else:
-                zitat.person = Person.query.filter_by(
-                    fingerprint=speech['fingerprint']
-                    ).first()
-                SPEAKERS[speech['fingerprint']] = zitat.person
+        zitat.person = lazyload_person(engine, indexer,
+                speech['fingerprint'])
 
         db.session.add(zitat)
         db.session.flush()
