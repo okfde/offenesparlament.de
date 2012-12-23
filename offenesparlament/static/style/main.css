@@ -10,12 +10,32 @@ html, body {
   color: #333;
 }
 
+label, input, button, select, textarea {
+  font-size: inherit;
+  font-weight: 300;
+}
+
+code {
+  color: #666;
+  padding: 0;
+  border: 0;
+}
+
 h1, h2, h3, h4, h5 {
   font-weight: 300;
 }
 
 li {
     margin: 0 0 0.4em;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  margin-top: 3px;
+  margin-right: 2px;
+}
+
+.help-block {
+  font-size: 0.9em;
 }
 
 header .navbar-inner {
