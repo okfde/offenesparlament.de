@@ -21,69 +21,61 @@
   <div class="banner home">
     <h1>Was passiert im Bundestag?</h1>
   </div>
-  <div class="sidebar">
-    <h3>Aktuelle Themen</h3>
-    <p class="hint">
-      Diese Themen wurden in der vergangenen Woche häufiger
-      behandelt als sonst.
-    </p>
-    <ul>
-      {% for c, sw in general %} 
-      <li>
-        <a href="{{url_for('ablauf.index', schlagworte=sw) }}">{{ sw }}</a>
-        <span class="facet-count">(+{{c|round(2)}}%)</span>
-      </li>
-      {% endfor %}
-    </ul>
-    {#
-    {% for fraktion, themen in fraktionen.items() %}
-    <h4>Themen: {{fraktion}}</h4>
-    <ul>
-      {% for c, sw in themen[:4] %}
-      <li>
-        <a href="{{url_for('ablaeufe', schlagworte=sw) }}">{{ sw }}</a>
-        <span class="facet-count">(+{{c|round(2)}}%)</span>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endfor %}
-    #}
+  <div class="row">
+    <div class="span8">
+      <p class="claim">
+        Das OffeneParlament sammelt Informationen über die Arbeit des
+        Bundestags und des Bundesrats. Wir wollen die Verbindungen 
+        zwischen Themen, Vorgängen und Akteuren verständlicher machen.
+      </p>
+      <h3>Abläufe: Gesetze, Anfragen und andere Arbeit.</h3>
+      <p>
+        Alle Arbeit des Parlaments &mdash; ob Gesetzgebung oder kleine Anfrage
+        &mdash; wird in Abläufen zusammengefasst. Texte, Reden und Abstimmungen
+        sind hier zusammengefasst und verlinkt.
+      </p>
+      <form class="form-search" method="GET" action="/ablauf">
+        <input class="input-medium span6" name="q" value="" 
+          placeholder="Abläufe durchsuchen" type="text">
+        <input class="btn" type="submit" value="Suchen" />
+      </form>
+      <h3>Debatten im Plenum</h3>
+      <p>Dies waren die Themen im letzten Plenum, der {{ sitzung.titel }}:</p>
+      <ul class="debates">
+        {% for deb in sitzung.debatten %}
+          <li><a href="{{ url_for('debatte.view', wahlperiode=sitzung.wahlperiode,
+              nummer=sitzung.nummer, debatte=deb.nummer) }}">{{deb.titel }}</a></li>
+        {% endfor %}
+      </ul>
+      <p>Die Protokolle der vorherigen Sitzungen finden Sie <a href="{{
+        url_for('sitzung.index') }}">in der Übersicht</a>.
+    </div>
+    <div class="span4">
+      <h3>Aktuelle Themen</h3>
+      <p class="hint">
+        Diese Themen wurden in der vergangenen Woche häufiger
+        behandelt als sonst.
+      </p>
+      <ul>
+        {% for c, sw in general %} 
+        <li>
+          <a href="{{url_for('ablauf.index', schlagworte=sw) }}">{{ sw }}</a>
+          <span class="facet-count">(+{{c|round(2)}}%)</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-  <div class="mainbar">
-    <p class="claim">
-    Das OffeneParlament sammelt Informationen über die Arbeit des
-    Bundestags und des Bundesrats. Wir wollen die Verbindungen 
-    zwischen Themen, Vorgängen und Akteuren verständlicher machen.
-    </p>
-    <h3>Abläufe: Gesetze, Anfragen und andere Arbeit.</h3>
-    <p>
-      Alle Arbeit des Parlaments &mdash; ob Gesetzgebung oder kleine Anfrage
-      &mdash; wird in Abläufen zusammengefasst. Texte, Reden und Abstimmungen
-      sind hier zusammengefasst und verlinkt.
-    </p>
-    <form id="search-form" method="GET" action="/ablauf" style="padding-top: 1em;">
-      <input id="search-box" name="q" value="" 
-        placeholder="Abläufe durchsuchen">
-      <input id="search-submit" type="submit" value="Suchen" />
-    </form>
-  </div>
-  <h3>Debatten im Plenum</h3>
-  <p>Dies waren die Themen im letzten Plenum, der {{ sitzung.titel }}:</p>
-  <ul class="debates">
-    {% for deb in sitzung.debatten %}
-      <li><a href="{{ url_for('debatte.view', wahlperiode=sitzung.wahlperiode,
-          nummer=sitzung.nummer, debatte=deb.nummer) }}">{{deb.titel }}</a></li>
-    {% endfor %}
-  </ul>
-  <p>Die Protokolle der vorherigen Sitzungen finden Sie <a href="{{
-    url_for('sitzung.index') }}">in der Übersicht</a>.
-  <div class="clearfix"></div>
-  <h3>Politikfelder pro Kalenderwoche</h3>
-  <p>
-  Atomausstieg, Haushalt oder Sommerpause - zu 
-  unterschiedlichen Zeiten sind verschiedene Themen im Zentrum 
-  der parlamentarischen Arbeit.   </p>
-  <div id="sachgebiete" style="height: 200px;">
+  <div class="row">
+    <div class="span12">
+      <h3>Politikfelder pro Kalenderwoche</h3>
+      <p>
+        Atomausstieg, Haushalt oder Sommerpause - zu 
+        unterschiedlichen Zeiten sind verschiedene Themen im Zentrum 
+        der parlamentarischen Arbeit.
+      </p>
+      <div id="sachgebiete" style="height: 200px;"></div>
+    </div>
   </div>
 
 {% endblock %}

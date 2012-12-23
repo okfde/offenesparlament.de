@@ -4,13 +4,25 @@ html, body {
   font-weight: 400;
 
   font-size: 1.0em;
+  font-weight: 300;
   line-height: 1.4em;
 
   color: #333;
 }
 
+h1, h2, h3, h4, h5 {
+  font-weight: 300;
+}
+
 li {
     margin: 0 0 0.4em;
+}
+
+header .navbar-inner {
+  background-color: #fff;
+  background-image: none;
+  min-height: 55px;
+  padding-top: 10px;
 }
 
 footer {
@@ -25,7 +37,7 @@ footer .logo img {
 
 footer .links {
   list-style-type: none;
-  margin: 0.5em 0 0 0;
+  margin: 0.5em 0 2em 0;
 }
 
 footer .links li {
@@ -35,5 +47,50 @@ footer .links li {
 
 footer .pull-right .links li {
   margin: 0 0 1em 2em;
+}
+
+#content {
+  margin-top: 1em;
+}
+
+.banner {
+  position: relative;
+  margin-bottom: 1em;
+  margin-top: -1em;
+  width: 940px;
+  height: 180px;
+}
+
+.banner h1 {
+  position: absolute;
+  bottom: 1em;
+  right: 2em;
+  background-color: #fff;
+  padding: 1em;
+}
+
+.banner.gremien {
+  background: url(/static/img/gremien.png);
+}
+
+.banner.sitzungen {
+  background: url(/static/img/plenum.png);
+}
+
+.banner.faq {
+  background: url(/static/img/faq.png);
+}
+
+.banner.intro {
+  background: url(/static/img/intro.png);
+}
+
+.banner.ablaeufe {
+  background: url(/static/img/ablaeufe.png);
+}
+
+.banner.home {
+  height: 290px;
+  background: url(/static/img/home.png);
 }
 
