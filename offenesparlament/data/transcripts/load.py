@@ -7,7 +7,7 @@ import sqlaload as sl
 from offenesparlament.core import db
 from offenesparlament.data.persons.load import lazyload_person
 from offenesparlament.model.util import to_date
-from offenesparlament.model import Person, Sitzung, Debatte, Zitat
+from offenesparlament.model import Person, Sitzung, Debatte, Zitat, Rede
 
 log = logging.getLogger(__name__)
 
@@ -58,13 +58,32 @@ def load_debatten(engine, indexer, sitzung):
         db.session.add(debatte)
         db.session.flush()
         indexer.add(debatte)
-
+        
         dzitate = filter(lambda z: z['item_id'] == data['item_id'], zitate)
-        load_zitate(engine, indexer, debatte, dzitate, speeches)
+        reden = load_reden(engine, indexer, debatte, dzitate)
+        load_zitate(engine, indexer, debatte, dzitate, speeches, reden)
         db.session.commit()
+        indexer.add_many(reden.values())
 
+def load_reden(engine, indexer, debatte, zitate):
+    reden = {}
+    for zitat in zitate:
+        if zitat['speech_id'] in reden:
+            continue
+        rede = Rede.query.filter_by(webtv_id=zitat['speech_id']).first()
+        if rede is None:
+            rede = Rede()
+            rede.webtv_id = zitat['speech_id']
+        rede.redner = lazyload_person(engine, indexer,
+                                zitat['speaker'])
+        rede.debatte = debatte
+        rede.sitzung = debatte.sitzung
+        db.session.add(rede)
+        db.session.flush()
+        reden[zitat['speech_id']] = rede
+    return reden
 
-def load_zitate(engine, indexer, debatte, zitate, speeches):
+def load_zitate(engine, indexer, debatte, zitate, speeches, reden):
     for data in zitate:
         f = lambda s: int(s['wahlperiode']) == int(data['wp']) and \
                       int(s['sitzung']) == int(data['session']) and \
@@ -78,15 +97,14 @@ def load_zitate(engine, indexer, debatte, zitate, speeches):
         zitat.sitzung = debatte.sitzung
         zitat.debatte = debatte
         zitat.sequenz = speech['sequence']
+        zitat.rede = reden[data['speech_id']]
         zitat.text = speech['text']
         zitat.typ = speech['type']
-        zitat.speech_id = data['speech_id']
         zitat.sprecher = speech['speaker']
-        zitat.redner = data['speaker']
         zitat.source_url = speech['source_url']
         zitat.person = lazyload_person(engine, indexer,
                 speech['fingerprint'])
 
         db.session.add(zitat)
         db.session.flush()
-        indexer.add(zitat)
+

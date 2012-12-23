@@ -16,6 +16,7 @@ from offenesparlament.model.stimme import Stimme
 from offenesparlament.model.sitzung import Sitzung
 from offenesparlament.model.debatte import Debatte
 from offenesparlament.model.zitat import Zitat
+from offenesparlament.model.rede import Rede
 from offenesparlament.model.aggregates import *
 from offenesparlament.model.abo import Abo
 

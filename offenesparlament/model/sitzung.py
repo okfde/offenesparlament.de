@@ -13,6 +13,9 @@ class Sitzung(db.Model, ModelCore):
 
     debatten = db.relationship('Debatte', backref='sitzung',
                            lazy='dynamic', order_by='Debatte.nummer.asc()')
+    
+    reden = db.relationship('Rede', backref='sitzung',
+                            lazy='dynamic', order_by='Rede.webtv_id.asc()')
 
     zitate = db.relationship('Zitat', backref='sitzung',
                            lazy='dynamic', order_by='Zitat.sequenz.asc()')
