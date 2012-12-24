@@ -25,14 +25,14 @@ def ensure_rolle(beitrag, fp, engine):
             unique=['fingerprint', 'funktion'])
 
 
-def match_beitrag(engine, beitrag):
+def match_beitrag(engine, beitrag, url):
     beitrag_print = make_long_name(beitrag)
     log.info("Matching: %s", beitrag_print)
     try:
         value = resolve_person(beitrag_print)
         if sl.find_one(engine, sl.get_table(engine, 'person'),
                 fingerprint=value) is None:
-            make_person(beitrag, value, engine)
+            make_person(engine, beitrag, value, url)
         return value
     except BadReference:
         log.info("Beitrag person is unknown: %s", beitrag_print)
