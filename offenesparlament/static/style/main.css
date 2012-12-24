@@ -174,3 +174,30 @@ table#factsheet th {
 }
 
 
+/* Zitate */
+.result-list.zitate {
+  
+}
+
+.result-list.zitate tr td {
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+  padding: 1em 0 1em 0;
+}
+
+.result-list.zitate tr td.speaker {
+  padding-left: 0.5em;
+}
+
+.result-list.zitate tr.chair td {
+  background-color: #eee;
+}
+
+.result-list.zitate tr.poi td.text {
+  font-style: italic;
+}
+
+.result-list.zitate tr td hr {
+  border: 0px;
+}
+
