@@ -20,8 +20,6 @@ def fetch(url, timeout=10.0, keep_alive=True):
             body = requests.get(url, 
                 headers={'User-Agent': UA},
                 timeout=timeout,
-                config={'max_retries': 2,
-                        'keep_alive': keep_alive},
                 proxies=proxies,
                 verify=False)
             return body
