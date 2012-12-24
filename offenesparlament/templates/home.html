@@ -60,7 +60,7 @@
         {% for c, sw in general %} 
         <li>
           <a href="{{url_for('ablauf.index', schlagworte=sw) }}">{{ sw }}</a>
-          <span class="count">(+{{c|round(2)}}%)</span>
+          <span class="count">+{{c|round(2)}}%</span>
         </li>
         {% endfor %}
       </ul>
