@@ -8,8 +8,8 @@ from solr import SolrConnection
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-from flaskext.flatpages import FlatPages
-from flaskext.mail import Mail
+from flask.ext.flatpages import FlatPages
+from flask.ext.mail import Mail
 
 from offenesparlament import default_settings
 

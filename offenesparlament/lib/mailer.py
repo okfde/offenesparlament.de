@@ -1,4 +1,4 @@
-from flaskext.mail import Message
+from flask.ext.mail import Message
 from offenesparlament.core import mail
 
 def send_message(to, subject, body):
