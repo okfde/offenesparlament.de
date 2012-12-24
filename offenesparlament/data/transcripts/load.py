@@ -75,7 +75,7 @@ def load_reden(engine, indexer, debatte, zitate):
             rede = Rede()
             rede.webtv_id = zitat['speech_id']
         rede.redner = lazyload_person(engine, indexer,
-                                zitat['speaker'])
+                                zitat['fingerprint'])
         rede.debatte = debatte
         rede.sitzung = debatte.sitzung
         db.session.add(rede)

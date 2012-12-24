@@ -78,6 +78,9 @@ class Person(db.Model, ModelCore):
     beitraege = db.relationship('Beitrag', backref='person',
                            lazy='dynamic')
 
+    reden = db.relationship('Rede', backref='redner',
+                            lazy='dynamic', order_by='Rede.webtv_id.asc()')
+
     zitate = db.relationship('Zitat', backref='person',
                            lazy='dynamic')
 
