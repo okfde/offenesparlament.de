@@ -21,15 +21,16 @@ class InvalidReference(BadReference):
 def dataset(name):
     if not name in DATASETS:
         DATASETS[name] = NKDataset(name, api_key=app.config['NOMENKLATURA_API_KEY'])
-        for value in DATASETS[name].values():
-            VALUES[(name, value.value.lower())] = value
-        for link in DATASETS[name].links():
-            if link.is_invalid:
-                VALUES[(name, link.key.lower())] = \
-                    NKInvalid({'dataset': link.dataset, 'key': link.key})
-            elif link.is_matched:
-                VALUES[(name, link.key.lower())] = \
-                    NKValue(DATASETS[name], link.value)
+        if app.config['NOMENKLATURA_PRELOAD']:
+            for value in DATASETS[name].values():
+                VALUES[(name, value.value.lower())] = value
+            for link in DATASETS[name].links():
+                if link.is_invalid:
+                    VALUES[(name, link.key.lower())] = \
+                        NKInvalid({'dataset': link.dataset, 'key': link.key})
+                elif link.is_matched:
+                    VALUES[(name, link.key.lower())] = \
+                        NKValue(DATASETS[name], link.value)
     return DATASETS[name]
 
 def resolve(dataset_name, key):

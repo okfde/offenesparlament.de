@@ -8,4 +8,4 @@ FLATPAGES_ROOT = 'pages'
 
 NOMENKLATURA_PERSONS_DATASET = 'offenesparlament'
 NOMENKLATURA_TYPES_DATASET = 'offenesparlament-typen'
-
+NOMENKLATURA_PRELOAD = True

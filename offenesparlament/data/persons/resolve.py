@@ -25,6 +25,7 @@ def make_fingerprint(engine, person):
             'mdb_id': person['mdb_id'],
             'fingerprint': long_name
             }, unique=['mdb_id'])
+        person['fingerprint'] = long_name
     except BadReference:
         pass
 

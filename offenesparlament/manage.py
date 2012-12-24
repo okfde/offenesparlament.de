@@ -14,7 +14,8 @@ from offenesparlament.data.ablaeufe import ABLAUF
 manager = Manager(app)
 
 
-def _stage(proc, url=None, force=False, threaded=False):
+def _stage(proc, url=None, force=False, threaded=False, preload=True):
+    app.config['NOMENKLATURA_PRELOAD'] = preload
     indexer = get_indexer()
     try:
         if url is None:
@@ -37,38 +38,44 @@ def download_docs():
 
 
 @manager.command
-def persons(url=None, force=False, threaded=False):
+def persons(url=None, force=False, threaded=False, preload=False):
     """ Load all or a specific person. """
-    _stage(PERSON, url=url, force=force, threaded=threaded)
+    _stage(PERSON, url=url, force=force, threaded=threaded,
+            preload=not preload)
 
 
 @manager.command
-def gremien(url=None, force=False, threaded=False):
+def gremien(url=None, force=False, threaded=False, preload=False):
     """ Load all or a specific committee. """
-    _stage(GREMIUM, url=url, force=force, threaded=threaded)
+    _stage(GREMIUM, url=url, force=force, threaded=threaded,
+            preload=not preload)
 
 
 @manager.command
-def abstimmungen(url=None, force=False, threaded=False):
+def abstimmungen(url=None, force=False, threaded=False, preload=False):
     """ Load all or a specific vote. """
-    _stage(ABSTIMMUNG, url=url, force=force, threaded=threaded)
+    _stage(ABSTIMMUNG, url=url, force=force, threaded=threaded,
+            preload=not preload)
 
 
 @manager.command
-def transcripts(url=None, force=False, threaded=False):
+def transcripts(url=None, force=False, threaded=False, preload=False):
     """ Load all or a specific transcript. """
-    _stage(TRANSCRIPT, url=url, force=force, threaded=threaded)
+    _stage(TRANSCRIPT, url=url, force=force, threaded=threaded,
+            preload=not preload)
 
 
 @manager.command
-def ablaeufe(url=None, force=False, threaded=False):
+def ablaeufe(url=None, force=False, threaded=False, preload=False):
     """ Load all or a specific proceeding. """
-    _stage(ABLAUF, url=url, force=force, threaded=threaded)
+    _stage(ABLAUF, url=url, force=force, threaded=threaded,
+            preload=not preload)
 
 
 @manager.command
-def update(force=False, threaded=False):
+def update(force=False, threaded=False, preload=False):
     """ Update the entire database. """
+    app.config['NOMENKLATURA_PRELOAD'] = not preload
     engine = etl_engine()
     indexer = get_indexer()
     try:
