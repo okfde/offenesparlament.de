@@ -41,7 +41,7 @@ def match_beitrag(engine, beitrag, url):
 def match_beitraege(engine, url):
     table = sl.get_table(engine, 'beitrag')
     for beitrag in sl.distinct(engine, table, *KEYS, source_url=url):
-        match = match_beitrag(engine, beitrag)
+        match = match_beitrag(engine, beitrag, url)
         beitrag['fingerprint'] = match
         beitrag['matched'] = match is not None
         if match:
