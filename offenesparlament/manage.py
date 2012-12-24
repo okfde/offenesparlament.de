@@ -1,4 +1,4 @@
-from flaskext.script import Manager
+from flask.ext.script import Manager
 
 from offenesparlament.core import app, etl_engine, solr
 from offenesparlament.web import app
