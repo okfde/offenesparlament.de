@@ -14,42 +14,90 @@
 {% endblock %}
 
 {% block content %}
-  <h2 class="page-header">{{ person.name }}</h2>
-  {% if person.foto_url %}
-    <div class="person-foto">
-      <img src="{{ person.foto_url }}">
-      <p>{{ person.foto_copyright }}</p>
-    </div>
-  {% endif %}
-  <div class="sidebar">
+  <br/>
+  <div class="pull-right">
     {{ snippets.abo_link(person.fingerprint.strip()) }}
-    <div class="clearfix"></div>
-    <h3>Details</h3>
-    <ul> 
-      {% if person.awatch_url %}
-        <li class='awatch-link'><a href="{{ person.awatch_url }}">
-          <img  src="/static/img/awatch_small.png"> Abgeordnetenwatch</a></li>
+  </div>
+  <h2 class="page-header">
+    {{ person.name }}
+    {% if person.partei %}
+      ({{ person.partei }})
+    {% endif %}
+  </h2>
+  <div class="row">
+    <div class="span2">
+      {% if person.foto_url %}
+        <div class="person-foto">
+          <img src="{{ person.foto_url }}">
+          <p>{{ person.foto_copyright }}</p>
+        </div>
       {% endif %}
-      {% if person.beruf %}
-        <li>Beruf: {{ person.beruf }}</li>
+    </div>
+
+    <div class="span10">
+      <ul class="rollen">
+        {% for rolle in person.rollen %}
+          <li><strong>{{ rolle.funktion }}</strong>
+            {% if rolle.wahlkreis %}
+            &mdash; {{rolle.wahlkreis.name}} (Wahlkreis {{rolle.wahlkreis.nummer}})
+            {% endif %}  
+            {% if rolle.ressort %}
+              &mdash; {{rolle.ressort}}
+            {% endif %}  
+            {% if rolle.land %}
+              &mdash; {{rolle.land}}
+              {% endif %}  
+            <sup><a href="{{ url_for('page', path='rollen')
+                }}">falsch?</a></sup>
+          </li>
+        {% endfor %}
+      </ul>
+      {% if person.bio %}
+      <hr>
+      <span class="bio-teaser">{{person.bio | striptags |
+        truncate(200) }} <a>Mehr...</a></span>
+      <span class="bio-fulltext">
+        {{person.bio | safe}}
+      </span>
       {% endif %}
-      {% if person.homepage_url %}
-        <li><a href="{{ person.homepage_url }}">Homepage</a></li>
-      {% endif %}
-      {% if person.twitter_url %}
-        <li><a href="{{ person.twitter_url }}">Twitter</a></li>
-      {% endif %}
-      {% if person.facebook_url %}
-        <li><a href="{{ person.facebook_url }}">Facebook</a></li>
-      {% endif %}
-      {% if person.bio_url %}
-        <li><a href="{{ person.bio_url }}">Bundestag</a></li>
-      {% endif %}
-      {% if person.stimmen[0] %}
-        <li><strong><a href="{{ url_for('person.votes', slug=person.slug)
-            }}">Abstimmungsverhalten</a></strong></li>
-      {% endif %}
-    </ul>
+      <hr>
+      <div>  
+      {% for sw in schlagworte %}
+        <a href="{{ url_for('ablauf.index', schlagworte=sw['schlagwort']) }}">
+        {{sw['schlagwort']}}</a> 
+        <span class="facet-count">({{sw['num']}})</span>{% if not loop.last %},{% endif %}
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+  <hr>
+
+       <ul> 
+        {% if person.awatch_url %}
+          <li class='awatch-link'><a href="{{ person.awatch_url }}">
+            <img  src="/static/img/awatch_small.png"> Abgeordnetenwatch</a></li>
+        {% endif %}
+        {% if person.beruf %}
+          <li>Beruf: {{ person.beruf }}</li>
+        {% endif %}
+        {% if person.homepage_url %}
+          <li><a href="{{ person.homepage_url }}">Homepage</a></li>
+        {% endif %}
+        {% if person.twitter_url %}
+          <li><a href="{{ person.twitter_url }}">Twitter</a></li>
+        {% endif %}
+        {% if person.facebook_url %}
+          <li><a href="{{ person.facebook_url }}">Facebook</a></li>
+        {% endif %}
+        {% if person.bio_url %}
+          <li><a href="{{ person.bio_url }}">Bundestag</a></li>
+        {% endif %}
+        {% if person.stimmen[0] %}
+          <li><strong><a href="{{ url_for('person.votes', slug=person.slug)
+              }}">Abstimmungsverhalten</a></strong></li>
+        {% endif %}
+      </ul>
+
     {% if person.vorsitze[0] or person.stellv_vorsitze[0] or person.obleute[0] or person.mitglied[0] or person.stellvertreter[0] %}
       <h3>Gremien</h3>
       <ul>
@@ -112,46 +160,6 @@
     {% endif %}
   </div>
   <div class="mainbar">
-    <h1>{{ person.name }} 
-      {% if person.partei %}
-        ({{ person.partei }})
-      {% endif %}
-    </h1>
-    <ul class="rollen">
-      {% for rolle in person.rollen %}
-        <li><strong>{{ rolle.funktion }}</strong>
-          {% if rolle.wahlkreis %}
-          &mdash; {{rolle.wahlkreis.name}} (Wahlkreis {{rolle.wahlkreis.nummer}})
-          {% endif %}  
-          {% if rolle.ressort %}
-            &mdash; {{rolle.ressort}}
-          {% endif %}  
-          {% if rolle.land %}
-            &mdash; {{rolle.land}}
-            {% endif %}  
-          <sup><a href="{{ url_for('page', path='rollen')
-              }}">falsch?</a></sup>
-        </li>
-      {% endfor %}
-    </ul>
-    {% if person.bio %}
-    <span class="bio-teaser"><br/>{{person.bio_teaser | striptags }} <a>Mehr...</a></span>
-    <span class="bio-fulltext">
-      <h3>Biografie</h3>
-      {{person.bio | safe}}
-    </span>
-    {% endif %}
-    <h3>Themen</h3>
-    <div>  
-    {% for sw in schlagworte %}
-      <a href="{{ url_for('ablauf.index', schlagworte=sw['schlagwort']) }}">
-      {{sw['schlagwort']}}</a> 
-      <span class="facet-count">({{sw['num']}})</span>{% if not loop.last %},{% endif %}
-    {% endfor %}
-    </div>
-    <!--div class="clearfix"></div-->
-    <h3 style="clear: left;">Beiträge zu einzelnen
-      Vorgängen</h3>
     {% if not pager.count() %}
       <p class="hint">
         Zu diesem Akteur liegen keine parlamentarischen Abläufe vor.

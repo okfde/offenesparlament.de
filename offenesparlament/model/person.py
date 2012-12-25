@@ -95,12 +95,6 @@ class Person(db.Model, ModelCore):
             name += " (%s)" % self.ort
         return name.strip()
 
-    @property
-    def bio_teaser(self):
-        if not self.bio:
-            return ""
-        return re.split("(\n|<br)", self.bio)[0]
-
     def to_dict(self):
         data = {
                 'id': self.id,

@@ -13,9 +13,12 @@
     <div class="span2">
       <h3>Suche</h3>
     </div>
-    <div class="span10">
-      <br/>
+    <div class="span10 padded-suche">
       {{ macros.search(searcher, pager, show_filters=searcher.has_query) }}
+      <p class="hint">
+        Durchsuche die Redetexte von Abgeordneten und Regierungsmitgliedern
+        nach bestimmten Begriffen.
+      </p>
     </div>
   </div>
   <hr>

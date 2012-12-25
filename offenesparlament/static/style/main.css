@@ -166,7 +166,8 @@ ul.facets {
   margin: 0 0 2em 0;
 }
 
-ul.facets .count {
+ul.facets .count,
+.facet-count {
   color: #777;
   font-size: 0.8em;
 }
@@ -196,6 +197,12 @@ ul.result-list p {
   color: #777;
   font-size: 0.9em;
   margin: 0 0 5px 0;
+}
+
+.claim {
+  font-size: 1.4em;
+  line-height: 1.5em;
+  color: #BA4B37;
 }
 
 .banner {
@@ -252,6 +259,10 @@ ul.result-list p {
 .sitzung-list .top,
 .sitzung-list .top a {
   color: #777;
+}
+
+.padded-suche {
+  padding-top: 1em;
 }
 
 
@@ -335,6 +346,10 @@ table#factsheet ul {
   padding-left: 0.5em;
 }
 
+.result-list.zitate tr td.speaker .meta {
+  font-size: 0.9em;
+}
+
 .result-list.zitate tr td.details {
   padding-right: 0.5em;
 }
@@ -365,3 +380,23 @@ table#factsheet ul {
   margin: 0;
   font-size: 0.9em;
 }
+
+/* Person */
+.person-foto img {
+  max-height: 13em;
+}
+
+.person-foto p {
+  font-size: 0.8em;
+  color: #777;
+}
+
+.bio-fulltext {
+  display: none;
+}
+
+ul.rollen {
+  list-style-type: none;
+  margin: 0
+}
+
