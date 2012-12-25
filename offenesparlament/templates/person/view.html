@@ -9,7 +9,12 @@
   {{ person.name }}
 {% endblock %}
 
+{% block description %}
+  {{ person.bio | truncate(150) }}
+{% endblock %}
+
 {% block content %}
+  <h2 class="page-header">{{ person.name }}</h2>
   {% if person.foto_url %}
     <div class="person-foto">
       <img src="{{ person.foto_url }}">

@@ -1,7 +1,12 @@
+html {
+  background-color: #dee0e2;
+}
+
 
 body {
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;
+  background-color: #fcfcfc;
 
   font-size: 1.0em;
   font-weight: 400;
@@ -46,6 +51,10 @@ a, a:hover {
   color: #265475;
 }
 
+hr {
+  border-bottom: 0;
+}
+
 [class^="icon-"], [class*=" icon-"] {
   margin-top: 3px;
   margin-right: 2px;
@@ -58,6 +67,14 @@ a, a:hover {
   text-transform: uppercase;
   padding: 0.1em 0.3em 0.1em 0.3em;
   background-color: #AD3129;
+}
+
+.abgeschlossen {
+    color: #468847;
+}
+
+.laufend {
+    color: #c09853;
 }
 
 .help-block {
@@ -76,8 +93,13 @@ header .navbar-static-top .navbar-inner {
   min-height: 40px;
   padding-top: 7px;
   border: 0;
+  border-bottom: 1px solid #eee;
   box-shadow: none;
   -webkit-box-shadow: none;
+}
+
+header .navbar-static-top .navbar-inner
+  .container {
 }
 
 header .navbar .brand,
@@ -88,14 +110,26 @@ header .navbar .nav > li > a {
 }
 
 header .navbar .brand {
+  text-transform: uppercase;
+  margin-right: 2em;
+}
+
+header .navbar .nav > li > a {
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #777;
+}
+
+header .navbar .brand {
   font-weight: 600;
 }
 
 footer {
-  margin: 1em 0 0 0;
-  border-top: 1px solid #e0e0e0;
+  margin: 2em 0 0 0;
+  /*border-top: 1px solid #e0e0e0;*/
+  border-top: 1px solid #ccc;
   padding: 2em 0 0 0;
-  background-color: #eee;
+  background-color: #dee0e2;
   font-size: 0.9em;
 }
 
@@ -166,7 +200,7 @@ ul.result-list p {
 .banner {
   position: relative;
   margin-bottom: 1em;
-  margin-top: -1em;
+  margin-top: 1em;
   width: 940px;
   height: 180px;
 }
@@ -248,6 +282,10 @@ table#factsheet th {
   padding-left: 0.5em;
 }
 
+.result-list.zitate tr td.details {
+  padding-right: 0.5em;
+}
+
 .result-list.zitate tr td.speaker a {
   font-weight: 400;
 }
@@ -268,3 +306,9 @@ table#factsheet th {
   border: 0px;
 }
 
+.debatte-sidebar {
+  padding: 1em 0 1em 0;
+  list-style-type: none;
+  margin: 0;
+  font-size: 0.9em;
+}

@@ -25,8 +25,7 @@ def index(format=None):
         return jsonify({'results': pager})
     if searcher.has_query:
         return render_template('sitzung/reden.html',
-                searcher=searcher, pager=pager,
-                sitzungen=sitzungen)
+                searcher=searcher, pager=pager)
     else:
         sitzungen = Sitzung.query.order_by(Sitzung.date.desc())
         return render_template('sitzung/index.html',
@@ -66,7 +65,8 @@ def sitemap(year):
     for debatte in query:
         item = {'lastmod': debatte.updated_at,
                 'loc': url_for('debatte.view', wahlperiode=debatte.sitzung.wahlperiode,
-                               nummer=debatte.sitzung.nummer, debatte=debatte.id,
+                               nummer=debatte.sitzung.nummer,
+                               debatte=debatte.nummer,
                                _external=True)}
         items.append(item)
     return render_sitemap(items, prio=0.9)

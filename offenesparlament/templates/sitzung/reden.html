@@ -3,11 +3,11 @@
 {% extends "layout.html" %}
 
 {% block title %}
-  {{ searcher.q or 'Alle Sitzungen' }} - Sitzungen
+  {{ searcher.q }} - Sitzungen
 {% endblock %}
 
 {% block content %}
-  <h2 class="page-header">Sitzungen des Bundestags</h2>
+  <h2 class="page-header">Plenarreden-Suche: {{searcher.q}}</h2>
 
   <div class="row">
     <div class="span9">

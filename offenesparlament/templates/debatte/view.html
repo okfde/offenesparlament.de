@@ -18,8 +18,13 @@
         {{ zitate.render(rede.sitzung, rede, rede.zitate) }}
       </div>
       <div class="span3">
-        <ul>
-          <li>Siehe auch: WebTV</li>
+        <ul class="debatte-sidebar">
+          <li><i class="icon-facetime-video"></i><a
+            href="http://webtv.bundestag.de/player/macros/_v_f_514_de/od_player.html?singleton=true&content={{rede.webtv_id}}">Videostream</a></li>
+          <li><i class="icon-circle-arrow-left"></i> <a
+            href="{{url_for('sitzung.view',
+            wahlperiode=rede.sitzung.wahlperiode,
+            nummer=rede.sitzung.nummer)}}">{{rede.sitzung.titel}}</a></li>
         </ul>
       </div>
     </div>
@@ -27,7 +32,13 @@
   {% endfor %}
 {% endblock %}
 
-
+{% block script %}
+  <script src="http://assets.pudo.org/libs/hyphenator-4.1.0/hyphenator.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+            Hyphenator.run();
+  </script>
+{% endblock %}
 
 
 

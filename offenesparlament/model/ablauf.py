@@ -40,6 +40,11 @@ class Ablauf(db.Model, ModelCore):
             return datetime.utcnow()
         return max(dates)
 
+    @property
+    def schlagworte_list(self):
+        schlagworte = [s.name for s in self.schlagworte]
+        return ', '.join(schlagworte)
+
     def to_ref(self):
         return {
                 'id': self.id,

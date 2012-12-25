@@ -4,9 +4,9 @@
 {% block head %}
 {% endblock %}
 
-{% block title %}
-  {{ ablauf.titel }}
-{% endblock %}
+{% block title %}{{ ablauf.titel }}{% endblock %}
+
+{% block description %}{{ ablauf.abstrakt or ablauf.schlagworte_list }}{% endblock %}
 
 {% block content %}
   <h2 class="page-header">{{ ablauf.titel }}</h2>
@@ -101,7 +101,7 @@
             <span class="zuordnung">{{position.zuordnung}} 
               <a name={{position.key}} href="{{ url_for('ablauf.view',
                                     wahlperiode=position.ablauf.wahlperiode,
-                                    key=position.ablauf.key) }}#{{position.key}}">&para;</a>
+                                    key=position.ablauf.key) }}#{{position.key}}"><i class="icon-bookmark"></i></a>
             </span>
             <span class="typ">{{position.typ}}</span>
           </span>
