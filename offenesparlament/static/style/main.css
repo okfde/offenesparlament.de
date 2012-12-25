@@ -112,6 +112,7 @@ header .navbar .nav > li > a {
 header .navbar .brand {
   text-transform: uppercase;
   margin-right: 2em;
+  color: #BA4B37;
 }
 
 header .navbar .nav > li > a {
@@ -264,6 +265,58 @@ table#factsheet th {
   vertical-align: top;
   text-align: left;
   padding-right: 1em;
+}
+
+table#factsheet ul {
+  list-style-type: none;
+  margin: 0 0 0.5em 0;
+}
+
+.position-list {
+  list-style-type: none;
+  margin: 0;
+}
+
+.position-list li.position {
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 2em;
+}
+
+.position-list li.position h3 {
+  margin: 0 0 0 0;
+  font-weight: 600;
+}
+
+.position-list li.position .beitraege {
+  padding-bottom: 0.2em;
+}
+
+.position-list li.position .details {
+  color: #777;
+}
+
+.position-list li.position h3 .date {
+  float: right;
+  color: #777;
+}
+
+.position-list li.position .row.listing {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+}
+
+.position-list li.position .row.listing li {
+  list-style-type: none;
+  margin: 0 0 0.5 0;
+}
+
+.position-list li.position .row.listing .title {
+  font-weight: 600;
+}
+
+.position-list li.position .source {
+
 }
 
 

@@ -9,16 +9,14 @@
 {% block description %}{{ ablauf.abstrakt or ablauf.schlagworte_list }}{% endblock %}
 
 {% block content %}
+  <br>
+  <div class="pull-right">
+    {{ snippets.abo_link("+source_url:" + ablauf.source_url) }}
+  </div>
+  <div class="clearfix"></div>
   <h2 class="page-header">{{ ablauf.titel }}</h2>
 
   <div class="row">
-    <div class="span7">
-    {% if ablauf.abstrakt %}
-      <p>
-        {{ ablauf.abstrakt | breaklines | drslink }}
-      </p>
-    {% endif %}
-    </div>
     <div class="span5">
       <table id="factsheet">
         <tr>
@@ -38,6 +36,16 @@
               <a href="{{ url_for('ablauf.index',
                 initiative=ablauf.initiative)
                 }}">{{ablauf.initiative}}</a>
+            </td>
+          </tr>
+        {% endif %}
+        {% if ablauf.eu_dok_nr %}
+          <tr>
+            <th>EU:</th>
+            <td>
+              <a href="{{ ablauf.eur_lex_url }}">{{ ablauf.eu_dok_nr }}</a>
+              (EUR-Lex)
+              
             </td>
           </tr>
         {% endif %}
@@ -62,103 +70,96 @@
             </td>
           </tr>
         {% endif %}
-        {% if ablauf.eu_dok_nr %}
-          <tr>
-            <th>EU:</th>
-            <td>
-              <a href="{{ ablauf.eur_lex_url }}">{{ ablauf.eu_dok_nr }}</a>
-              (EUR-Lex)
-              
-            </td>
-          </tr>
-        {% endif %}
+        <tr>
+          <th>Dokumente:</th>
+          <td>
+            <ul class="ablauf-dokumente">
+              {% for dokument, seiten in referenzen %}
+              <li>
+                <a href="{{dokument.link}}">{{ dokument.name }}</a></strong> 
+                {{ ", ".join(seiten) }}
+              </li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
       </table>
-      <div class="pull-right">
-        {{ snippets.abo_link("+source_url:" + ablauf.source_url) }}
-      </div>
+      <p class="hint">Die Daten entstammen dem Dokumentensystem des Bundestags. 
+        <a href="{{ ablauf.source_url }}">Quelle</a></p>
     </div>
-  </div>
-  <hr>
-  <div class="rightbar">
-    <h3>Dokumente</h3>
-    <ul>
-      {% for dokument, seiten in referenzen %}
-        <li>
-          <strong><a href="{{dokument.link}}">{{ dokument.name }}</a></strong> 
-          {{ ", ".join(seiten) }}
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
-  <div class="leftbar">
-    <h3>Verlauf</h3>
-    <ul class="position-list">
-      {% for position in ablauf.positionen %}
-        <li class="position">
-          <span class="header">
-            <span class="date">
-              {{position.date.strftime("%d.%m.%Y")}}</span>
-            <span class="zuordnung">{{position.zuordnung}} 
-              <a name={{position.key}} href="{{ url_for('ablauf.view',
-                                    wahlperiode=position.ablauf.wahlperiode,
-                                    key=position.ablauf.key) }}#{{position.key}}"><i class="icon-bookmark"></i></a>
-            </span>
-            <span class="typ">{{position.typ}}</span>
-          </span>
-          <span class="body">
+    <div class="span7">
+      {% if ablauf.abstrakt %}
+        <p>
+          {{ ablauf.abstrakt | breaklines | drslink }}
+        </p>
+        <hr>
+      {% endif %}
+
+      <ul class="position-list">
+        {% for position in ablauf.positionen %}
+          <li class="position">
+            <h3>
+              <span class="date">
+                {{position.date.strftime("%d.%m.%Y")}}
+              </span>
+              <a name={{position.key}}></a>
+              {{position.typ}}
+              <span class="hint">({{position.zuordnung}})</span>
+            </h3>
+            <div class="beitraege">
               {% for beitrag in position.beitraege %}
                 <a href="{{ url_for('person.view', slug=beitrag.person.slug) }}">
                   <img title="{{beitrag.person.name}}: {{beitrag.art}}" class="minipic"
                     src="{{beitrag.person.foto_url or ''}}" height="45px" width="30px"></a>
               {% endfor %}
+            </div>
+            <div class="details">
               {% if position.zuweisungen.count() %}
-                <h4>Zuweisung</h4>
-                <ul>
-                {% for zuweisung in position.zuweisungen %}
-                  <li>
-                    {{ zuweisung.gremium.name }}
-                    {% if zuweisung.federfuehrung %}
-                      (federführend)
-                      {% endif %}
-                  </li>
-                {% endfor %}
-                </ul>
+                <div class="row listing">
+                  <div class="span1 title">Zuweisung:</div>
+                  <div class="span6">
+                    <ul>
+                    {% for zuweisung in position.zuweisungen %}
+                      <li>
+                        {{ zuweisung.gremium.name }}
+                        {% if zuweisung.federfuehrung %}
+                          (federführend)
+                          {% endif %}
+                      </li>
+                    {% endfor %}
+                    </ul>
+                  </div>
+                </div>
               {% endif %}
               {% if position.beschluesse.count() %}
-                <h4>Beschluss</h4>
-                <ul>
-                {% for beschluss in position.beschluesse %}
-                  <li>{{beschluss.dokument_text | drslink}}: <strong>{{beschluss.tenor}}</strong></li>
-                {% endfor %}
-                </ul>
+                <div class="row listing">
+                  <div class="span1 title">Beschluss:</div>
+                  <div class="span6">
+                    <ul>
+                      {% for beschluss in position.beschluesse %}
+                        <li>{{beschluss.tenor}}: {{beschluss.dokument_text | drslink}}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
               {% endif %}
 
-          </span>
-          <span class="bottom">
-            {% if position.debatte %}
-              Plenarprotokoll {{position.debatte.sitzung.titel}}, TOP
-              <a href="{{ url_for('debatte.view', wahlperiode=ablauf.wahlperiode,
-                nummer=position.debatte.sitzung.nummer,
-                debatte=position.debatte.nummer) }}">{{ position.debatte.titel }}</a>
-            {% else %}
-              {% if position.quelle %}
-                {{position.quelle}} &middot;
-              {% endif %}
-              {% if position.dokument %}
-                <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
-              {% else %}
-                {{position.fundstelle}}
-              {% endif %}
-            {% endif %}
-          </span>
-        </li>
-      {% endfor %}
-    </ul>
+              <p class="source">
+                {% if position.quelle %}
+                  {{position.quelle}} &middot;
+                {% endif %}
+                {% if position.dokument %}
+                  <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
+                {% else %}
+                  {{position.fundstelle}}
+                {% endif %}
+              </p>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-  <div class="clearfix"></div>
-  <hr/>
-  <p class="hint">Die dargestellten Daten entstammen dem Dokumentensystem des Bundestags. 
-    <a href="{{ ablauf.source_url }}">Quelle</a></p>
   {% endblock %}
 
 
