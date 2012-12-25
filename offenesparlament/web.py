@@ -22,7 +22,7 @@ app.register_blueprint(ablauf)
 app.register_blueprint(abstimmung)
 app.register_blueprint(sitzung)
 app.register_blueprint(rede)
-#app.register_blueprint(debatte)
+app.register_blueprint(debatte)
 
 
 @app.route("/pages/<path:path>")

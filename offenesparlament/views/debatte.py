@@ -2,7 +2,7 @@
 from urllib import quote
 from collections import defaultdict
 from flask import Blueprint, request, url_for, flash
-from flask import render_template, redirect
+from flask import render_template, redirect, abort
 
 from offenesparlament.core import db
 from offenesparlament.lib.searcher import SolrSearcher
@@ -14,8 +14,8 @@ from offenesparlament.model import Sitzung, Debatte
 debatte = Blueprint('debatte', __name__)
 
 
-@debatte.route("/plenum/<wahlperiode>/<nummer>/<debatte>")
-@debatte.route("/plenum/<wahlperiode>/<nummer>/<debatte>.<format>")
+@debatte.route("/plenum/<wahlperiode>/<nummer>/debatte/<debatte>")
+@debatte.route("/plenum/<wahlperiode>/<nummer>/debatte/<debatte>.<format>")
 def view(wahlperiode, nummer, debatte, format=None):
     debatte = Debatte.query.filter_by(nummer=debatte)\
             .join(Sitzung)\
@@ -25,8 +25,6 @@ def view(wahlperiode, nummer, debatte, format=None):
         abort(404)
     if format == 'json':
         return jsonify(debatte)
-    sitzung_url = url_for('sitzung.view', wahlperiode=wahlperiode, nummer=nummer)
-    url = sitzung_url + '?debatte.titel=' + quote(debatte.titel.encode('utf-8'))
-    url = url + '&paging=false'
-    return redirect(url)
+    return render_template('debatte/view.html',
+            debatte=debatte)
 

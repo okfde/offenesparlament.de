@@ -7,34 +7,65 @@
 {% endblock %}
 
 {% block content %}
-  <div class="banner sitzungen">
-    <h1>Sitzungen des Bundestags</h1>
-  </div>
+  <h2 class="page-header">Sitzungen des Bundestags</h2>
 
   <div class="row">
     <div class="span9">
-      {{ macros.search(searcher, pager) }}
+      {{ macros.search(searcher, pager, show_filters=searcher.has_query) }}
     </div>
     <div class="span3">
       {{ snippets.abo_link(searcher.full_query) }}
     </div>
   </div>
-    
-    <div class="">
-    
-      <ul class="result-list sitzung">
-      {% for sitzung in pager %}
-      <div class="{{ loop.cycle('lleftbar', 'lrightbar') }}">
-        {{ snippets.sitzung_list_inner(sitzung) }}
-      </div>
-      {% if loop.index % 2 == 0 %}
-        <div class="clearfix"></div>
-      {% endif %}
+
+  {% if not searcher.has_query %}
+    <div class="row">
+      {% for sitzung in sitzungen %}
+        <div class="span6">
+          <h4 class="list-heading"><a href="{{ url_for('sitzung.view',
+              wahlperiode=sitzung.wahlperiode,
+              nummer=sitzung.nummer) }}">{{sitzung.titel}}</a></h4>
+          {% for debatte in sitzung.debatten %}
+            <a href="{{url_for('debatte.view',
+              wahlperiode=sitzung.wahlperiode,
+              nummer=sitzung.nummer,
+              debatte=debatte.nummer)}}">{{debatte.titel}}</a>{% if not loop.last %},{% endif %}
+          {% endfor %}
+        </div>
+        {% if loop.index % 2 == 0 %}
+          </div><div class="row">
+        {% endif %}
       {% endfor %}
-      </ul>
-      {{ macros.pager(pager) }}
     </div>
-  </div>
+  {% else %}
+    <div class="row">
+      <div class="span8">
+        <ul class="result-list person">
+        {% for rede in pager %}
+        <li>
+          <h3>
+            <a href="{{ url_for('rede.view', 
+              wahlperiode=rede.sitzung.wahlperiode,
+              nummer=rede.sitzung.nummer,
+              webtv_id=rede.webtv_id) }}">{{
+              rede.titel }}</a>
+          </h3>
+          <p>
+            {{ rede.text | truncate(200) }} 
+          </p>
+        </li>
+        {% endfor %}
+        </ul>
+        {{ macros.pager(pager) }}
+      </div>
+      <div class="span4">
+        {{ macros.facet_list(searcher, pager, 'zitate.person.name',
+        title='Redner') }}
+        {{ macros.facet_list(searcher, pager, 'debatte.siztung.titel',
+        title='Sitzung') }}
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}
 
 

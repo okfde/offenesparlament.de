@@ -8,6 +8,10 @@ from offenesparlament.model import Dokument
 DOK_PATTERN = re.compile(r"(\d{2,3}/\d{1,6}(\s*\(.{1,10}\))?)")
 
 @app.template_filter()
+def teaser(text):
+    pass
+
+@app.template_filter()
 def breaklines(text):
     return Markup(text.replace('\n', '<br>'))
 

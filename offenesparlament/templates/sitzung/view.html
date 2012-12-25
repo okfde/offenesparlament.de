@@ -1,5 +1,4 @@
 {% import "searches.html" as macros %}
-{% import "sitzung/zitate.html" as zitate %}
 {% extends "layout.html" %}
 
 {% block title %}
@@ -7,10 +6,30 @@
 {% endblock %}
 
 {% block content %}
-  <h1>{{ sitzung.titel }}</h1>
-  {{ zitate.viewer(sitzung, searcher, pager) }}
+  <h2 class="page-header">{{ sitzung.titel }}</h2>
+  {% for debatte in sitzung.debatten %}
+    <div class="row">
+      <div class="span4">
+        <strong><a href="{{ url_for('debatte.view',
+            wahlperiode=sitzung.wahlperiode,
+            nummer=sitzung.nummer,
+            debatte=debatte.nummer) }}">{{ debatte.titel }}</a></strong>
+      </div>
+      <div class="span4">
+        {{ debatte.text }}
+      </div>
+      <div class="span4">
+        <ul>
+          {% for rede in debatte.reden %}
+            <li>          
+            <a href="{{url_for('rede.view', wahlperiode=sitzung.wahlperiode,
+                           nummer=sitzung.nummer,
+                           webtv_id=rede.webtv_id)}}">{{rede.redner.name}}</a>        
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endfor %}
 {% endblock %}
 
-{% block script %}
-  {{ zitate.annotate() }}
-{% endblock %}

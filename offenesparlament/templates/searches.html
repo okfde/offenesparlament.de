@@ -1,12 +1,13 @@
 
-{% macro search(searcher, pager) %}
+{% macro search(searcher, pager, show_filters=True) %}
   <form class="form-inline" method="GET" action="{{ pager.url({}) }}">
     <input type="text" class="input-xxlarge" name="q" value="{{ searcher.q }}" autofocus >
     <input class="btn" type="submit" value="Suchen" />
     {% for t, v in searcher.query_filters %}
       <input type="hidden" name="{{ t }}" value="{{ v }}" />
     {% endfor %}
-    
+
+    {% if show_filters %}
     <div class="result-filters">
       {{pager.count()}} Suchergebnisse, 
       {% if searcher.query_filters %}
@@ -17,8 +18,8 @@
       {% else %}
         ohne Filter.
       {% endif %}
-
     </div>
+    {% endif %}
   </form>
 {% endmacro %}
 

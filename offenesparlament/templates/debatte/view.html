@@ -1,0 +1,34 @@
+{% import "debatte/zitate.html" as zitate %}
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ debatte.titel }}
+{% endblock %}
+
+{% block description %}
+  {{ debatte.text | striptags | truncate(150) }}
+{% endblock %}
+
+{% block content %}
+    <h2 class="page-header">{{debatte.titel}}</h2>
+    {% for rede in debatte.reden %}
+    <a name="rede/{{rede.webtv_id}}"></a>
+    <div class="row">
+      <div class="span9">
+        {{ zitate.render(rede.sitzung, rede, rede.zitate) }}
+      </div>
+      <div class="span3">
+        <ul>
+          <li>Siehe auch: WebTV</li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+  {% endfor %}
+{% endblock %}
+
+
+
+
+
+

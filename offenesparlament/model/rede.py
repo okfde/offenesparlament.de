@@ -15,6 +15,17 @@ class Rede(db.Model, ModelCore):
     zitate = db.relationship('Zitat', backref='rede',
                              lazy='dynamic', order_by='Zitat.sequenz.asc()')
 
+    @property
+    def titel(self):
+        return "%s: %s" % (
+            self.debatte.titel,
+            self.redner.name)
+
+    @property
+    def text(self):
+        zitat = self.zitate.first()
+        return zitat.text
+
     def to_ref(self):
         return {
             'id': self.id,

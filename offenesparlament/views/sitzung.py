@@ -8,7 +8,7 @@ from offenesparlament.lib.searcher import SolrSearcher
 from offenesparlament.lib.pager import Pager
 from offenesparlament.lib.seo import render_sitemap
 from offenesparlament.util import jsonify
-from offenesparlament.model import Sitzung, Debatte, Zitat
+from offenesparlament.model import Sitzung, Debatte, Rede, Zitat
 
 sitzung = Blueprint('sitzung', __name__)
 
@@ -16,14 +16,17 @@ sitzung = Blueprint('sitzung', __name__)
 @sitzung.route("/plenum")
 @sitzung.route("/plenum.<format>")
 def index(format=None):
-    searcher = SolrSearcher(Sitzung, request.args)
-    searcher.add_facet('wahlperiode')
+    searcher = SolrSearcher(Rede, request.args)
+    searcher.add_facet('debatte.sitzung.titel')
+    searcher.add_facet('zitate.person.name')
     searcher.sort('date', 'desc')
     pager = Pager(searcher, 'sitzung.index', request.args)
     if format == 'json':
         return jsonify({'results': pager})
+    sitzungen = Sitzung.query.order_by(Sitzung.date.desc())
     return render_template('sitzung/index.html',
-            searcher=searcher, pager=pager)
+            searcher=searcher, pager=pager,
+            sitzungen=sitzungen)
 
 
 @sitzung.route("/plenum/<wahlperiode>/<nummer>")

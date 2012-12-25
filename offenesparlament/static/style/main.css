@@ -25,13 +25,30 @@ h1, h2, h3, h4, h5 {
   font-weight: 300;
 }
 
+h4.list-heading {
+  font-weight: bold;
+}
+
 li {
     margin: 0 0 0.4em;
+}
+
+a, a:hover {
+  color: #AD3129;
 }
 
 [class^="icon-"], [class*=" icon-"] {
   margin-top: 3px;
   margin-right: 2px;
+}
+
+.flag {
+  display: inline-block;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  padding: 0.1em 0.3em 0.1em 0.3em;
+  background-color: #AD3129;
 }
 
 .help-block {
@@ -187,6 +204,14 @@ table#factsheet th {
 
 .result-list.zitate tr td.speaker {
   padding-left: 0.5em;
+}
+
+.result-list.zitate tr td.speaker a {
+  font-weight: 400;
+}
+
+.result-list.zitate tr td.speaker .meta {
+  color: #777;
 }
 
 .result-list.zitate tr.chair td {
