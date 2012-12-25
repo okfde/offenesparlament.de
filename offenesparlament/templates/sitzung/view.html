@@ -7,29 +7,24 @@
 
 {% block content %}
   <h2 class="page-header">{{ sitzung.titel }}</h2>
+  <ul class="result-list">
   {% for debatte in sitzung.debatten %}
-    <div class="row">
-      <div class="span4">
-        <strong><a href="{{ url_for('debatte.view',
+    <li>
+        <h3><a href="{{ url_for('debatte.view',
             wahlperiode=sitzung.wahlperiode,
             nummer=sitzung.nummer,
-            debatte=debatte.nummer) }}">{{ debatte.titel }}</a></strong>
-      </div>
-      <div class="span4">
-        {{ debatte.text }}
-      </div>
-      <div class="span4">
-        <ul>
+            debatte=debatte.nummer) }}">{{ debatte.titel }}</a></h3>
+        <p>{{ debatte.text }}</p>
+        <p>
+          Redner: 
           {% for rede in debatte.reden %}
-            <li>          
             <a href="{{url_for('rede.view', wahlperiode=sitzung.wahlperiode,
                            nummer=sitzung.nummer,
-                           webtv_id=rede.webtv_id)}}">{{rede.redner.name}}</a>        
-            </li>
+                           webtv_id=rede.webtv_id)}}">{{rede.redner.name}}</a>{% if not loop.last %},{% endif %}    
           {% endfor %}
-        </ul>
-      </div>
-    </div>
+        </p>
+    </li>
   {% endfor %}
+  </ul>
 {% endblock %}
 

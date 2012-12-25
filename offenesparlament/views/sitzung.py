@@ -23,10 +23,15 @@ def index(format=None):
     pager = Pager(searcher, 'sitzung.index', request.args)
     if format == 'json':
         return jsonify({'results': pager})
-    sitzungen = Sitzung.query.order_by(Sitzung.date.desc())
-    return render_template('sitzung/index.html',
-            searcher=searcher, pager=pager,
-            sitzungen=sitzungen)
+    if searcher.has_query:
+        return render_template('sitzung/reden.html',
+                searcher=searcher, pager=pager,
+                sitzungen=sitzungen)
+    else:
+        sitzungen = Sitzung.query.order_by(Sitzung.date.desc())
+        return render_template('sitzung/index.html',
+                searcher=searcher, pager=pager,
+                sitzungen=sitzungen)
 
 
 @sitzung.route("/plenum/<wahlperiode>/<nummer>")
