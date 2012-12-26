@@ -61,6 +61,8 @@ def resolve_type(key):
 def resolve_person(key):
     return resolve(app.config['NOMENKLATURA_PERSONS_DATASET'], key)
 
+def resolve_votes(key):
+    return resolve(app.config['NOMENKLATURA_VOTES_DATASET'], key)
 
 
 
