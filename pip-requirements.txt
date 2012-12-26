@@ -7,7 +7,6 @@ flask-flatpages
 flask-mail
 colander
 lxml
-webstore-client
 python-Levenshtein
 solrpy
 python-dateutil
