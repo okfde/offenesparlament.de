@@ -9,4 +9,5 @@ FLATPAGES_ROOT = 'pages'
 NOMENKLATURA_PERSONS_DATASET = 'offenesparlament'
 NOMENKLATURA_TYPES_DATASET = 'offenesparlament-typen'
 NOMENKLATURA_VOTES_DATASET = 'offenesparlament-votes'
+NOMENKLATURA_STAGE_DATASET = 'offenesparlament-stand'
 NOMENKLATURA_PRELOAD = True

@@ -64,5 +64,7 @@ def resolve_person(key):
 def resolve_votes(key):
     return resolve(app.config['NOMENKLATURA_VOTES_DATASET'], key)
 
+def resolve_stage(key):
+    return resolve(app.config['NOMENKLATURA_STAGE_DATASET'], key)
 
 
