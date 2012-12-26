@@ -28,7 +28,7 @@ def drslink(text, verbose=False):
             pos = dok.positionen.first()
             url = url_for('ablauf.view',
                     wahlperiode=pos.ablauf.wahlperiode,
-                    key=pos.ablauf.key) + '#' + position.key
+                    key=pos.ablauf.key) + '#' + pos.key
             link += " <span class='ablauf-ref'>(<a href='"+url+\
                     "'>"+pos.ablauf.titel+"</a>)</span>"
         return link
