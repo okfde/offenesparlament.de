@@ -247,6 +247,12 @@ ul.result-list p {
   background: url(/static/img/home.png);
 }
 
+#_tooltip {
+  color: #fff;
+  background-color: #222;
+  padding: 0.3em;
+}
+
 /* Sitzungen list */
 .sitzung-list {
   margin-bottom: 1em;
