@@ -50,7 +50,7 @@ def view(slug, format=None):
     searcher = SolrSearcher(Position, request.args)
     searcher.sort('date')
     searcher.filter('beitraege.person.id', str(person.id))
-    pager = Pager(searcher, 'person', request.args, slug=person.slug)
+    pager = Pager(searcher, 'person.view', request.args, slug=person.slug)
     schlagworte = person_schlagworte(person)
     if format == 'json':
         data = person.to_dict()

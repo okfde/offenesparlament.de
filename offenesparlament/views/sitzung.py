@@ -1,7 +1,7 @@
 #coding: utf-8
 from collections import defaultdict
 from flask import Blueprint, request, url_for, flash
-from flask import render_template, redirect
+from flask import render_template, redirect, abort
 
 from offenesparlament.core import db
 from offenesparlament.lib.searcher import SolrSearcher
