@@ -120,7 +120,7 @@ class SolrSearcher(object):
         objs = self.type_.query.filter(
                 self.type_.id.in_(ids)).all()
         objs = dict([(o.id, o) for o in objs])
-        return [objs[id] for id in ids]
+        return [objs.get(id) for id in ids if id in objs]
 
     def count(self):
         if self.results is None:
