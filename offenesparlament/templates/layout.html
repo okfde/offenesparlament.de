@@ -35,10 +35,12 @@
         <a class="brand" href="{{ url_for('index') }}">OffenesParlament</a>
         <ul class="nav">
           <li><a href="{{ url_for("page", path='intro') }}">Einleitung</a></li>
-          <li><a href="{{ url_for("sitzung.index") }}">Plenum</a></li>
+          <li><a href="{{ url_for("sitzung.index") }}">Reden</a></li>
           <li><a href="{{ url_for("ablauf.index") }}">Abläufe</a></li>
           <li><a href="{{ url_for("person.index") }}">Personen</a></li>
           <li><a href="{{ url_for("page", path='faq') }}">FAQ</a></li>
+          <li><a href="{{ url_for("abo.form")
+            }}">Themen-Abo</a></li>
         </ul>
       </div>
     </div>

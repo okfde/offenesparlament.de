@@ -206,6 +206,10 @@ ul.result-list p {
   color: #BA4B37;
 }
 
+.error-message {
+  color: #BA4B37;
+}
+
 .banner {
   position: relative;
   margin-bottom: 1em;
@@ -231,7 +235,7 @@ ul.result-list p {
 }
 
 .banner.faq {
-  background: url(/static/img/faq.png);
+  background: url(/static/img/gremien.png);
 }
 
 .banner.intro {

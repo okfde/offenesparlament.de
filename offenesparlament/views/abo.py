@@ -38,7 +38,7 @@ def create():
               u"eine Bestätigungs-EMail.", 'success')
         return redirect(url_for('index'))
     except Invalid, i:
-        return render_template('abo_form.html', fields=request.form,
+        return render_template('abo/form.html', fields=request.form,
                 errors=i.asdict())
 
 
