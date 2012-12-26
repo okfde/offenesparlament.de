@@ -52,8 +52,6 @@ def view(slug, format=None):
     searcher.filter('beitraege.person.id', str(person.id))
     pager = Pager(searcher, 'person', request.args, slug=person.slug)
     schlagworte = person_schlagworte(person)
-    debatten = Debatte.query.join(Zitat).\
-            filter(Zitat.person == person).distinct().all()
     if format == 'json':
         data = person.to_dict()
         data['positionen'] = pager
@@ -64,8 +62,7 @@ def view(slug, format=None):
             positionen=pager, debatten=debatten)
     return render_template('person/view.html',
             person=person, searcher=searcher,
-            pager=pager, schlagworte=schlagworte,
-            debatten=debatten[::-1])
+            pager=pager, schlagworte=schlagworte)
 
 
 @person.route("/person/<slug>/votes")

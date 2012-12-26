@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from collections import OrderedDict
 
 from offenesparlament.core import db
 from offenesparlament.model.util import ModelCore
@@ -94,6 +95,33 @@ class Person(db.Model, ModelCore):
         if self.ort and len(self.ort):
             name += " (%s)" % self.ort
         return name.strip()
+
+    @property
+    def has_gremien(self):
+        if self.vorsitze.count() or \
+           self.stellv_vorsitze.count() or \
+           len(self.obleute) or \
+           len(self.mitglied) or \
+           len(self.stellvertreter):
+            return True
+        return False
+
+    @property
+    def gremien(self):
+        gremien = OrderedDict()
+        for vorsitz in self.vorsitze:
+            gremien[vorsitz] = 'Vorsitz'
+        for stellv in self.stellv_vorsitze:
+            gremien[stellv] = 'stellv. Vorsitz'
+        for obself in self.obleute:
+            gremien[obself] = 'Obperson'
+        for mitglied in self.mitglied:
+            if mitglied not in gremien.keys():
+                gremien[mitglied] = 'Mitglied'
+        for stellv in self.stellvertreter:
+            if stellv not in gremien.keys():
+                gremien[stellv] = 'stellv. Mitglied'
+        return gremien.items()
 
     def to_dict(self):
         data = {

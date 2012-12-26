@@ -54,6 +54,7 @@
       </ul>
       {% if person.bio %}
       <hr>
+      <strong>Lebenslauf:</strong>
       <span class="bio-teaser">{{person.bio | striptags |
         truncate(200) }} <a>Mehr...</a></span>
       <span class="bio-fulltext">
@@ -62,16 +63,79 @@
       {% endif %}
       <hr>
       <div>  
+      <strong>Themen:</strong>
       {% for sw in schlagworte %}
         <a href="{{ url_for('ablauf.index', schlagworte=sw['schlagwort']) }}">
         {{sw['schlagwort']}}</a> 
         <span class="facet-count">({{sw['num']}})</span>{% if not loop.last %},{% endif %}
       {% endfor %}
       </div>
+      {% if person.has_gremien %}
+        <hr/>
+        <strong>Ausschüsse und Gremien:</strong>
+        {% for gremium, rolle in person.gremien %}
+          {{gremium.name}} ({{rolle}}){% if not loop.last %},{% endif %}
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
   <hr>
 
+  {% if person.reden.count() %}
+  <div class="row">
+    <div class="span2 sitzung-list">
+      <h3>Reden</h3>
+    </div>
+    <div class="span10 sitzung-list">
+      <div class="row">
+        {% for rede in person.reden %}
+          <div class="span5">
+            <h3><a href="{{ url_for('rede.view',
+                wahlperiode=rede.sitzung.wahlperiode,
+                nummer=rede.sitzung.nummer,
+                webtv_id=rede.webtv_id) }}">{{ rede.debatte.titel }}</a></h3>
+            <p class="top">{{ rede.debatte.text | truncate(200) }}</p>
+          </div>
+          {% if loop.index % 2 == 0 %}
+            </div><div class="row">
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <hr>
+  {% endif %}
+
+  <div class="row">
+    <div class="span2 sitzung-list">
+      <h3>Arbeit</h3>
+    </div>
+    <div class="span10 sitzung-list">
+      {% if not pager.count() %}
+        <p class="hint">
+          Zu diesem Akteur liegen keine parlamentarischen Abläufe vor.
+        </p>
+      {% endif %}
+      <ul>
+        {% for position in pager %}
+          <li>
+            <h3 class="title"><a href="{{ url_for('ablauf.view',
+                                    wahlperiode=position.ablauf.wahlperiode,
+                                    key=position.ablauf.key) }}#{{position.key}}">
+                {{position.ablauf.titel}}</a></h3>
+            <p class="top">
+              <span class="typ">{{position.typ}}</span>
+              (<span class="zuordnung">{{position.zuordnung}}</span>)
+              am
+              <span class="date">{{position.date.strftime("%d.%m.%Y")}}</span>
+            </p>
+          </li>
+        {% endfor %}
+      </ul>
+      {{ macros.pager(pager) }}
+    </div>
+  </div>
+  <!--
        <ul> 
         {% if person.awatch_url %}
           <li class='awatch-link'><a href="{{ person.awatch_url }}">
@@ -97,105 +161,7 @@
               }}">Abstimmungsverhalten</a></strong></li>
         {% endif %}
       </ul>
-
-    {% if person.vorsitze[0] or person.stellv_vorsitze[0] or person.obleute[0] or person.mitglied[0] or person.stellvertreter[0] %}
-      <h3>Gremien</h3>
-      <ul>
-        {% if person.vorsitze[0] %}
-        <li>Vorsitz
-        <ul>
-          {% for g in person.vorsitze %}
-            <li>{{ g.name }}</li>
-          {% endfor %}
-        </ul>
-        </li>
-        {% endif %}
-        {% if person.stellv_vorsitze[0] %}
-        <li>Stellvertretung
-        <ul>
-          {% for g in person.stellv_vorsitze %}
-            <li>{{ g.name }}</li>
-          {% endfor %}
-        </ul>
-        </li>
-        {% endif %}
-        {% if person.obleute[0] %}
-        <li>ObmannIn
-        <ul>
-          {% for g in person.obleute %}
-            <li>{{ g.name }}</li>
-          {% endfor %}
-        </ul>
-        </li>
-        {% endif %}
-        {% if person.mitglied[0] %}
-        <li>Mitgliedschaften
-        <ul>
-          {% for g in person.mitglied %}
-            <li>{{ g.name }}</li>
-          {% endfor %}
-        </ul>
-        </li>
-        {% endif %}
-        {% if person.stellvertreter[0] %}
-        <li>Stellvertretung
-        <ul>
-          {% for g in person.stellvertreter %}
-            <li>{{ g.name }}</li>
-          {% endfor %}
-        </ul>
-        </li>
-        {% endif %}
-      </ul>
-    {% endif %}
-    {% if debatten[0] %}
-      <h3>Beiträge im Plenum</h3>
-      <ul>
-        {% for debatte in debatten %}
-          <li><a href="{{ url_for('debatte.view', wahlperiode=debatte.sitzung.wahlperiode, nummer=debatte.sitzung.nummer, debatte=debatte.nummer) }}">
-            {{ debatte.sitzung.date.strftime('%d.%m.%Y') }}: 
-            {{ debatte.titel }}</a></li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-  <div class="mainbar">
-    {% if not pager.count() %}
-      <p class="hint">
-        Zu diesem Akteur liegen keine parlamentarischen Abläufe vor.
-      </p>
-    {% endif %}
-    <ul class="position-list">
-      {% for position in pager %}
-        <li class="position">
-          <span class="header">
-            <span class="date">
-              {{position.date.strftime("%d.%m.%Y")}}</span>
-            <span class="zuordnung">{{position.zuordnung}}</span>
-            <span class="typ">{{position.typ}}</span>
-          </span>
-          <span class="ablauf">
-            <h4><a href="{{ url_for('ablauf.view',
-                                    wahlperiode=position.ablauf.wahlperiode,
-                                    key=position.ablauf.key) }}#{{position.key}}">
-                {{position.ablauf.titel}}</a></h4>
-          </span>
-          <span class="bottom">
-            {% if position.ablauf.initiative %}
-              {{position.ablauf.initiative }} &mdash; 
-            {% endif %}
-            {{position.ablauf.typ}}
-            {% if position.dokument %}
-              &mdash;
-              <a href="{{position.dokument.link}}">{{ position.dokument.name }}</a>
-            {% endif %}
-          </span>
-        </li>
-      {% endfor %}
-    </ul>
-    {{ macros.pager(pager) }}
-  </div>
-  <div class="clearfix"></div>
+  -->
   <hr/>
   <p class="hint"><strong>Hinweis:</strong> Die vom Bundestag bereit gestellten Informationen zu
   den Nebeneinkünften Abgeordneter geben <a

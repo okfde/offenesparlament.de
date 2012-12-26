@@ -30,7 +30,7 @@
       <div class="row">
         {% for sitzung in sitzungen %}
           <div class="span5 sitzung-list">
-            <h3><a href="{{ url_for('sitzung.view',
+            <h3 class="title"><a href="{{ url_for('sitzung.view',
                 wahlperiode=sitzung.wahlperiode,
                 nummer=sitzung.nummer) }}">{{sitzung.titel}}</a></h3>
             <p class="top">

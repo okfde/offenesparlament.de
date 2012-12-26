@@ -28,6 +28,7 @@ code {
 
 h1, h2, h3, h4, h5 {
   font-weight: 400;
+  line-height: 1.4em;
 }
 
 h1 {
@@ -251,9 +252,13 @@ ul.result-list p {
   margin-bottom: 1em;
 }
 
-.sitzung-list h4 {
-  font-weight: 900;
-  margin-bottom: 0;
+.sitzung-list ul {
+  list-style-type: none;
+  margin: 0;
+}
+
+.sitzung-list h3.title {
+  font-weight: 600;
 }
 
 .sitzung-list .top,
