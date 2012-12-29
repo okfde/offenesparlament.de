@@ -17,76 +17,6 @@
   <h2 class="page-header">{{ ablauf.titel }}</h2>
 
   <div class="row">
-    <div class="span5">
-      <table id="factsheet">
-        <tr>
-          <th>Typ:</th>
-          <td>{{ ablauf.klasse }} ({{ablauf.typ}})</td>
-        </tr>
-        <tr>
-          <th>Stand:</th>
-          <td class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
-            {{ ablauf.stand }}
-          </td>
-        </tr>
-        {% if ablauf.initiative %}
-          <tr>
-            <th>Initiative:</th>
-            <td>
-              <a href="{{ url_for('ablauf.index',
-                initiative=ablauf.initiative)
-                }}">{{ablauf.initiative}}</a>
-            </td>
-          </tr>
-        {% endif %}
-        {% if ablauf.eu_dok_nr %}
-          <tr>
-            <th>EU:</th>
-            <td>
-              <a href="{{ ablauf.eur_lex_url }}">{{ ablauf.eu_dok_nr }}</a>
-              (EUR-Lex)
-              
-            </td>
-          </tr>
-        {% endif %}
-        {% if ablauf.sachgebiet %}
-          <tr>
-            <th>Sachgebiet:</th>
-            <td>
-              <a href="{{ url_for('ablauf.index',
-                sachgebiet=ablauf.sachgebiet)
-                }}">{{ablauf.sachgebiet}}</a>
-            </td>
-          </tr>
-        {% endif %}
-        {% if ablauf.schlagworte %}
-          <tr>
-            <th>Schlagworte:</th>
-            <td>
-              {% for wort in ablauf.schlagworte %}
-              <a href="{{ url_for('ablauf.index', schlagworte=wort.name) }}">
-                  {{ wort.name }}</a>{% if not loop.last %},{% endif %}
-              {% endfor %}
-            </td>
-          </tr>
-        {% endif %}
-        <tr>
-          <th>Dokumente:</th>
-          <td>
-            <ul class="ablauf-dokumente">
-              {% for dokument, seiten in referenzen %}
-              <li>
-                <a href="{{dokument.link}}">{{ dokument.name }}</a></strong> 
-                {{ ", ".join(seiten) }}
-              </li>
-              {% endfor %}
-            </ul>
-          </td>
-        </tr>
-      </table>
-      <p class="hint">Die Daten entstammen dem Dokumentensystem des Bundestags. 
-        <a href="{{ ablauf.source_url }}">Quelle</a></p>
-    </div>
     <div class="span7">
       {% if ablauf.abstrakt %}
         <p>
@@ -158,6 +88,76 @@
           </li>
         {% endfor %}
       </ul>
+    </div>
+    <div class="span5">
+      <table id="factsheet">
+        <tr>
+          <th>Typ:</th>
+          <td>{{ ablauf.klasse }} ({{ablauf.typ}})</td>
+        </tr>
+        <tr>
+          <th>Stand:</th>
+          <td class="{{ 'abgeschlossen' if ablauf.abgeschlossen else 'laufend' }}">
+            {{ ablauf.stand }}
+          </td>
+        </tr>
+        {% if ablauf.initiative %}
+          <tr>
+            <th>Initiative:</th>
+            <td>
+              <a href="{{ url_for('ablauf.index',
+                initiative=ablauf.initiative)
+                }}">{{ablauf.initiative}}</a>
+            </td>
+          </tr>
+        {% endif %}
+        {% if ablauf.eu_dok_nr %}
+          <tr>
+            <th>EU:</th>
+            <td>
+              <a href="{{ ablauf.eur_lex_url }}">{{ ablauf.eu_dok_nr }}</a>
+              (EUR-Lex)
+              
+            </td>
+          </tr>
+        {% endif %}
+        {% if ablauf.sachgebiet %}
+          <tr>
+            <th>Sachgebiet:</th>
+            <td>
+              <a href="{{ url_for('ablauf.index',
+                sachgebiet=ablauf.sachgebiet)
+                }}">{{ablauf.sachgebiet}}</a>
+            </td>
+          </tr>
+        {% endif %}
+        {% if ablauf.schlagworte %}
+          <tr>
+            <th>Schlagworte:</th>
+            <td>
+              {% for wort in ablauf.schlagworte %}
+              <a href="{{ url_for('ablauf.index', schlagworte=wort.name) }}">
+                  {{ wort.name }}</a>{% if not loop.last %},{% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+        {% endif %}
+        <tr>
+          <th>Dokumente:</th>
+          <td>
+            <ul class="ablauf-dokumente">
+              {% for dokument, seiten in referenzen %}
+              <li>
+                <a href="{{dokument.link}}">{{ dokument.name }}</a></strong> 
+                {{ ", ".join(seiten) }}
+              </li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+      </table>
+      <p class="hint">Die Daten entstammen dem Dokumentensystem des Bundestags. 
+        <a href="{{ ablauf.source_url }}">Quelle</a></p>
     </div>
   </div>
   {% endblock %}

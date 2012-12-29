@@ -40,7 +40,19 @@ def index(format=None):
     pager = Pager(searcher, 'ablauf.index', request.args)
     if format == 'json':
         return jsonify({'results': pager})
-    return render_template('ablauf/index.html',
+    if not searcher.has_query:
+        query = Ablauf.query
+        query = query.filter(Ablauf.zustimmungsbeduerftig != None)
+        query = query.filter(Ablauf.abgeschlossen == False)
+
+        ablaeufe = defaultdict(list)
+        for ablauf in query:
+            sg = ablauf.sachgebiet or "Sonstige"
+            ablaeufe[sg].append(ablauf)
+        return render_template('ablauf/index.html',
+                searcher=searcher, pager=pager,
+                ablaeufe=sorted(ablaeufe.items()))
+    return render_template('ablauf/search.html',
             searcher=searcher, pager=pager)
 
 

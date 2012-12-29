@@ -1,0 +1,39 @@
+{% import "searches.html" as macros %}
+{% import "snippets.html" as snippets %}
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ searcher.q or 'Alle Abläufe' }} - Abläufe
+{% endblock %}
+
+{% block content %}
+  <!--div class="banner ablaeufe">
+    <h1>Abläufe</h1>
+    </div-->
+  <h2 class="page-header">Gesetze, Anfragen und andere Drucksachen</h2>
+  <div class="row">
+    <div class="span9">
+      {{ macros.search(searcher, pager) }}
+    </div>
+    <div class="span3">
+      {{ snippets.abo_link(searcher.full_query) }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="span9">
+      {{ snippets.ablaeufe(pager) }}
+      {{ macros.pager(pager) }}
+    </div>
+    <div class="span3">
+      {{ macros.facet_list(searcher, pager, 'klasse', title='Typ') }}
+      {{ macros.facet_list(searcher, pager, 'sachgebiet',
+          title='Sachgebiet') }}
+      {{ macros.facet_list(searcher, pager, 'schlagworte',
+        title='Schlagworte') }}
+      {{ macros.facet_list(searcher, pager, 'initiative',
+        title='Initiative') }}
+    </div>
+  </div>
+{% endblock %}
+
+

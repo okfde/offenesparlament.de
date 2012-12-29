@@ -3,7 +3,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-  {{ searcher.q or 'Alle Abläufe' }} - Abläufe
+  Gesetze, Anfragen und andere Drucksachen
 {% endblock %}
 
 {% block content %}
@@ -12,29 +12,27 @@
     </div-->
   <h2 class="page-header">Gesetze, Anfragen und andere Drucksachen</h2>
   <div class="row">
-    <div class="span9">
-      {{ macros.search(searcher, pager) }}
-    </div>
     <div class="span3">
-      {{ snippets.abo_link(searcher.full_query) }}
+      <h3>Suche</h3>
+    </div>
+    <div class="span9 padded-suche">
+      {{ macros.search(searcher, pager, show_filters=False) }}
+      <p class="hint">
+        Finde Ablaufbeschreibungen zu Gesetzgebungsverfahren, Anfragen
+        und anderen Vorgängen.
+      </p>
     </div>
   </div>
+  {% for sachgebiet, sg_ablaeufe in ablaeufe %}
+  <hr/>
   <div class="row">
-    <div class="span9">
-      {{ snippets.ablaeufe(pager) }}
-      {{ macros.pager(pager) }}
+    <div class="span3 sitzung-list">
+      <h3>{{sachgebiet}}</h3>
     </div>
-    <div class="span3">
-      {{ macros.facet_list(searcher, pager, 'klasse', title='Typ') }}
-      {{ macros.facet_list(searcher, pager, 'sachgebiet',
-          title='Sachgebiet') }}
-      {{ macros.facet_list(searcher, pager, 'schlagworte',
-        title='Schlagworte') }}
-      {{ macros.facet_list(searcher, pager, 'initiative',
-        title='Initiative') }}
+    <div class="span9">
+      {{ snippets.ablaeufe(sg_ablaeufe) }}
     </div>
   </div>
+  {% endfor %}
 {% endblock %}
-
-
 

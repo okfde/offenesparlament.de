@@ -88,6 +88,11 @@ hr {
   font-size: 0.9em;
 }
 
+.textual h3, .textual h4 {
+  margin-top: 0.8em;
+  font-weight: 600;
+}
+
 header .navbar-static-top .navbar-inner {
   background-color: #fff;
   background-image: none;
