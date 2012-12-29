@@ -8,7 +8,7 @@ import sqlaload as sl
 
 from offenesparlament.core import db, etl_engine
 from offenesparlament.util import jsonify
-from offenesparlament.data.transcripts.numerge import get_alignment
+from offenesparlament.data.transcripts.merge import get_alignment
 
 backend = Blueprint('backend', __name__)
 

@@ -4,67 +4,124 @@ import logging
 
 import sqlaload as sl
 
-TOPS = re.compile("(TOP|Tagesordnungspunkte?)\s*(\d{1,3})")
-ZPS = re.compile("(ZP|Zusatzpunkte?)\s*(\d{1,3})")
-
 log = logging.getLogger(__name__)
 
 
-def top_calls(text):
-    calls = []
-    for name, number in TOPS.findall(text):
-        calls.append(('TOP', number))
-    for name, number in ZPS.findall(text):
-        calls.append(('ZP', number))
-    return set(calls)
+def get_agenda(engine, wp, session):
+    return list(sl.find(engine, sl.get_table(engine, 'webtv'),
+            wp=wp, session=session, order_by='speech_id'))
 
 
-def match_chair(speech, recd):
-    tops = top_calls(speech['text'])
-    title = recd['item_label']
-    calls = top_calls(title) - set(recd['item_key'].split())
-    if len(tops.intersection(calls)) > 0:
-        log.debug("TOP --- %s" % title)
+def get_transcript(engine, wp, session):
+    speeches = []
+    for speech in sl.find(engine, sl.get_table(engine, 'speech'),
+        order_by='sequence', wahlperiode=wp, sitzung=session,
+        matched=True):
+        if speech['type'] == 'poi':
+            continue
+        seg = (speech['sequence'], speech['fingerprint'])
+        speeches.append(seg)
+    return speeches
 
+
+def score_alignment(aligned):
+    if not len(aligned):
+        return 0
+    score = len([a for a in aligned if \
+        a.get('transcript_fp')==a.get('agenda_fp')])
+    return float(score) / len(aligned)
+
+
+def align_section(transcript, agenda):
+    aligned = []
+    index = 0
+    for sequence, tr_fp in transcript:
+        if len(agenda) > index+1 and \
+            tr_fp == agenda[index+1].get('fingerprint'):
+            index += 1
+        speech = agenda[index]
+        aligned.append({
+            'item_id': speech.get('item_id'),
+            'speech_id': speech.get('speech_id'),
+            'agenda_fp': speech.get('fingerprint'),
+            'sequence': sequence,
+            'transcript_fp': tr_fp
+            })
+    return aligned
+
+
+def agenda_seek(agenda, cut, offset):
+    end = offset
+    while True:
+        if end >= len(agenda):
+            break
+        speech = agenda[end]
+        if speech.get('speech_id') == cut.get('speech_id'):
+            break
+        end += 1
+    return agenda[offset:end+1]
+
+def transcript_seek(transcript, cut, offset):
+    end = offset
+    while True:
+        if transcript[end][0] >= cut.get('sequence'):
+            break
+        end += 1
+    return transcript[offset:end-1]
+
+def get_alignment(engine, wp, session):
+    agenda_speeches = get_agenda(engine, wp, session)
+    transcript_speeches = get_transcript(engine, wp, session)
+    
+    cuts = list(sl.find(engine, sl.get_table(engine, 'alignments'),
+            wp=str(wp), session=str(session), order_by='sequence'))
+    
+    alignment = []
+    tr_offset = 0
+    ag_offset = 0
+    for cut in cuts:
+        tr_speeches = transcript_seek(transcript_speeches, 
+                cut, tr_offset)
+        tr_current = len(tr_speeches) + 1
+        tr_offset = tr_offset + tr_current
+
+        ag_speeches = agenda_seek(agenda_speeches, cut, ag_offset)
+        ag_offset = ag_offset + len(ag_speeches) - 1
+        
+        section = align_section(tr_speeches, ag_speeches)
+        alignment.extend(section)
+
+        data = {
+                'item_id': cut.get('item_id'),
+                'speech_id': cut.get('speech_id'),
+                'sequence': cut.get('sequence'),
+                'agenda_fp': ag_speeches[-1].get('fingerprint'),
+                'transcript_fp': transcript_speeches[tr_current][1]
+                }
+        alignment.append(data)
+
+    section = align_section(transcript_speeches[tr_offset:],
+                            agenda_speeches[ag_offset:])
+    alignment.extend(section)
+    return score_alignment(alignment), alignment
 
 def merge_speech(engine, wp, session):
     log.info("Merging media + transcript: %s/%s" % (wp, session))
-    WebTV = sl.get_table(engine, 'webtv')
-    WebTV_Speeches = sl.get_table(engine, 'webtv_speech')
-    changes, recordings = [], []
-    for recd in sl.find(engine, WebTV, wp=wp, session=session, 
-            order_by='speech_id'):
-        recordings.append(recd)
-        if not len(changes) or changes[-1] != recd['fingerprint']:
-            changes.append(recd)
-    #speakers = []
-    changes_index = 0
-
-    def emit(speech):
-        data = changes[changes_index].copy()
+    score, alignment = get_alignment(engine, wp, session)
+    log.info("Matching score: %s", score)
+    agenda = get_agenda(engine, wp, session)
+    agenda = dict([(a['item_id'], a) for a in agenda])
+    alignment = dict([(a['sequence'], a) for a in alignment])
+    item = None
+    table = sl.get_table(engine, 'webtv_speech')
+    for speech in sl.find(engine, sl.get_table(engine, 'speech'),
+        order_by='sequence', wahlperiode=wp, sitzung=session,
+        matched=True):
+        sequence = speech['sequence']
+        item = alignment.get(sequence, item)
+        data = agenda.get(item['item_id']).copy()
         del data['id']
-        data['sequence'] = speech['sequence']
-        sl.upsert(engine, WebTV_Speeches, data,
-                unique=['wp', 'session', 'sequence'])
-
-    Speech = sl.get_table(engine, 'speech')
-    for speech in sl.find(engine, Speech, order_by='sequence', 
-        wahlperiode=wp, sitzung=session, matched=True):
-        if speech['type'] == 'poi':
-            emit(speech)
-            continue
-
-        if speech['type'] == 'chair':
-            match_chair(speech, changes[changes_index])
-
-        transition = changes[changes_index]
-        if len(changes) > changes_index + 1:
-            transition = changes[changes_index + 1]
-
-            if speech['fingerprint'] == transition['fingerprint']:
-                changes_index += 1
-        recd = changes[changes_index]
-        #print [speech['fingerprint'], recd['fingerprint'], recd['item_label']]
-        emit(speech)
-
+        data['sequence'] = sequence
+        sl.upsert(engine, table, data,
+                  unique=['wp', 'session', 'sequence'])
 
