@@ -359,6 +359,7 @@ table#factsheet ul {
 
 .result-list.zitate tr td.speaker {
   padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 .result-list.zitate tr td.speaker .meta {
@@ -366,7 +367,16 @@ table#factsheet ul {
 }
 
 .result-list.zitate tr td.details {
-  padding-right: 0.5em;
+  padding-right: 0.25em;
+  padding-left: 0.25em;
+}
+
+.result-list.zitate tr td.details .quote {
+  visibility: hidden;
+}
+
+.result-list.zitate tr:hover td.details .quote {
+  visibility: visible;
 }
 
 .result-list.zitate tr td.speaker a {
@@ -381,7 +391,9 @@ table#factsheet ul {
   background-color: #eee;
 }
 
+.result-list.zitate tr.poi td.speaker,
 .result-list.zitate tr.poi td.text {
+  font-size: 0.9em;
   font-style: italic;
 }
 

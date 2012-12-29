@@ -24,10 +24,9 @@
         {{ zitat.text | replace('\n\n', '<hr/>') | drslink(True) }}
       </td>
       <td class="details">
-        <a name="z{{zitat.sequenz}}" href="{{url_for('rede.view',
+        <a class="quote" name="z{{zitat.sequenz}}" href="{{url_for('rede.view',
           wahlperiode=sitzung.wahlperiode, nummer=sitzung.nummer,
-          webtv_id=rede.webtv_id)}}#z{{zitat.sequenz}}" title="Link zum
-          zitieren"><i class="icon-bookmark"></i></a>
+          webtv_id=rede.webtv_id)}}#z{{zitat.sequenz}}" title="Link zum zitieren"><i class="icon-bookmark"></i></a>
       </td>
     </tr>
   {% endfor %}
