@@ -15,6 +15,7 @@ from offenesparlament.views.abstimmung import abstimmung
 from offenesparlament.views.sitzung import sitzung
 from offenesparlament.views.debatte import debatte
 from offenesparlament.views.rede import rede
+from offenesparlament.views.backend import backend
 
 app.register_blueprint(abo)
 app.register_blueprint(person)
@@ -23,6 +24,7 @@ app.register_blueprint(abstimmung)
 app.register_blueprint(sitzung)
 app.register_blueprint(rede)
 app.register_blueprint(debatte)
+app.register_blueprint(backend)
 
 
 @app.route("/pages/<path:path>")
