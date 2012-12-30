@@ -76,7 +76,7 @@ def get_alignment(engine, wp, session):
     try:
         cuts = list(sl.find(engine, sl.get_table(engine, 'alignments'),
                 wp=str(wp), session=str(session), order_by='sequence'))
-    except ValueError:
+    except KeyError:
         cuts = []
     
     alignment = []
