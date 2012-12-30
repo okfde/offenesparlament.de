@@ -73,8 +73,11 @@ def get_alignment(engine, wp, session):
     agenda_speeches = get_agenda(engine, wp, session)
     transcript_speeches = get_transcript(engine, wp, session)
     
-    cuts = list(sl.find(engine, sl.get_table(engine, 'alignments'),
-            wp=str(wp), session=str(session), order_by='sequence'))
+    try:
+        cuts = list(sl.find(engine, sl.get_table(engine, 'alignments'),
+                wp=str(wp), session=str(session), order_by='sequence'))
+    except ValueError:
+        cuts = []
     
     alignment = []
     tr_offset = 0
