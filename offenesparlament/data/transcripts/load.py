@@ -90,7 +90,7 @@ def load_zitate(engine, indexer, debatte, zitate, speeches, reden):
                       int(s['sequence']) == int(data['sequence'])
         speech = filter(f, speeches).pop()
         zitat = Zitat.query.filter_by(
-                debatte=debatte,
+                sitzung=debatte.sitzung,
                 sequenz=speech['sequence']).first()
         if zitat is None:
             zitat = Zitat()
