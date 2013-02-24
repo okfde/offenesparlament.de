@@ -19,7 +19,7 @@ def breaklines(text):
 @app.template_filter()
 def drslink(text, verbose=False):
     def r(m):
-        num = m.group(1).replace(' ', '')
+        num = unicode(m.group(1).replace(' ', ''))
         dok = Dokument.query.filter_by(nummer=num).first()
         if dok is None:
             return m.group(1)
