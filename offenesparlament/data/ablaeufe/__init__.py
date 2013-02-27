@@ -17,7 +17,6 @@ from offenesparlament.data.ablaeufe.load import load_ablauf
 
 log = logging.getLogger(__name__)
 
-
 def process_ablauf(engine, indexer, url, force=False):
     try:
         data = scrape_ablauf(engine, url, force=force)
@@ -29,6 +28,16 @@ def process_ablauf(engine, indexer, url, force=False):
         load_ablauf(engine, indexer, data)
     except Unmodified: pass
     except NoContentException: pass
+
+    #import objgraph
+    #import random
+    #import inspect
+    #objgraph.show_growth()
+    #objgraph.show_chain(
+    #    objgraph.find_backref_chain(
+    #        random.choice(objgraph.by_type('dict')),
+    #        inspect.ismodule),
+    #    filename='chain.png')
 
 ABLAUF = {
     'generator': scrape_index,
