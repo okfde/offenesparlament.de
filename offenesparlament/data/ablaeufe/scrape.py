@@ -19,14 +19,18 @@ INLINE_COMMENTS_RE = re.compile(r"<-.*->", re.M + re.S)
 log = logging.getLogger(__name__)
 
 
-def inline_xml_from_page(page):
+def inline_xml_from_page(page, url):
     try:
         for comment in INLINE_RE.findall(page):
             comment = comment.strip()
             if comment.startswith("<?xml"):
                 comment = INLINE_COMMENTS_RE.sub('', comment).split('>', 1)[-1]
-                comment = comment.decode('latin-1')
-                return etree.fromstring(comment)
+                comment = comment.decode('latin-1').replace('\x0b', ' ')
+                try:
+                    return etree.fromstring(comment)
+                except Exception, e:
+                    print [comment], url
+                    log.exception(e)
     except Exception, e:
         log.exception(e)
 
@@ -199,7 +203,7 @@ def scrape_ablauf(engine, url, force=False):
     a = check_tags(a or {}, response, force)
     a.update({'key': key, 
               'source_url': url})
-    doc = inline_xml_from_page(response.content)
+    doc = inline_xml_from_page(response.content, url)
     if doc is None: 
         raise NoContentException()
     
@@ -229,7 +233,7 @@ def scrape_ablauf(engine, url, force=False):
     for sw in doc.findall("SCHLAGWORT"):
         wort = {'wort': sw.text, 'source_url': url}
         sl.upsert(engine, Schlagwort, wort, unique=wort.keys())
-    log.info("Ablauf %s: %s", url, a['titel'])
+    log.info("Ablauf %s: %s", url, a['titel'].encode('ascii', 'replace'))
     a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
     a['abgeschlossen'] = DIP_ABLAUF_STATES_FINISHED.get(a['stand'], False)
