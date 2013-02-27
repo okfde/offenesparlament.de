@@ -27,7 +27,7 @@ def ensure_rolle(beitrag, fp, engine):
 
 def match_beitrag(engine, beitrag, url):
     beitrag_print = make_long_name(beitrag)
-    log.info("Matching: %s", beitrag_print)
+    log.info("Matching: %s", beitrag_print.encode('ascii', 'replace'))
     try:
         value = resolve_person(beitrag_print)
         if sl.find_one(engine, sl.get_table(engine, 'person'),
@@ -35,7 +35,8 @@ def match_beitrag(engine, beitrag, url):
             make_person(engine, beitrag, value, url)
         return value
     except BadReference:
-        log.info("Beitrag person is unknown: %s", beitrag_print)
+        log.info("Beitrag person is unknown: %s",
+                beitrag_print.encode('ascii', 'replace'))
 
 
 def match_beitraege(engine, url):
