@@ -52,7 +52,7 @@ def make_current_schlagwort():
         GROUP BY period, schlagwort
         ORDER BY num DESC;""" % func)
 
-def current_schlagworte(limit=15):
+def current_schlagworte(limit=7):
     res = _run_raw("""SELECT schlagwort AS name, num, period 
         FROM current_schlagwort 
         WHERE num > 1; """)
@@ -99,7 +99,7 @@ def sachgebiete():
         data['values'].append({
             #'label': period.split("-")[-1],
             'label': period,
-            'values': [sg[s]/sum_ for s in sachgebiete],
+            'values': [sg[s]/max(1, sum_) for s in sachgebiete],
             'count': [sg[s] for s in sachgebiete]
             })
         #print data['values'][-1]
