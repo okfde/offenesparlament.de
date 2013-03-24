@@ -14,6 +14,7 @@ def view(id, format=None):
     abstimmung = Abstimmung.query.filter_by(id=id).first()
     if abstimmung is None:
         abort(404)
+    request.cache_key['modified'] = abstimmung.updated_at
     ja = abstimmung.stimmen.filter(Stimme.entscheidung.like('%Ja%'))
     nein = abstimmung.stimmen.filter_by(entscheidung='Nein')
     enth = abstimmung.stimmen.filter_by(entscheidung='Enthaltung')

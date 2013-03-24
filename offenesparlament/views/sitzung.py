@@ -40,6 +40,9 @@ def view(wahlperiode, nummer, format=None):
                                       nummer=nummer).first()
     if sitzung is None:
         abort(404)
+
+    request.cache_key['modified'] = sitzung.updated_at
+
     searcher = SolrSearcher(Zitat, request.args)
     searcher.filter('sitzung.wahlperiode', sitzung.wahlperiode)
     searcher.filter('sitzung.nummer', sitzung.nummer)

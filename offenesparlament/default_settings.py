@@ -1,5 +1,7 @@
 DEBUG = True
 SECRET_KEY = 'no'
+CACHE = True
+CACHE_AGE = 84600/2
 
 SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/parlament2'
 SOLR_URL = 'http://127.0.0.1:8983/solr/parlament'

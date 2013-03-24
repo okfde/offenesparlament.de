@@ -12,6 +12,7 @@ abo = Blueprint('abo', __name__)
 
 @abo.route("/abo", methods=['GET'])
 def form():
+    request.no_cache = True
     fields = {
         'query': request.args.get('query', ''),
         'email': request.args.get('email', ''),
@@ -22,6 +23,7 @@ def form():
 
 @abo.route("/abo", methods=['POST'])
 def create():
+    request.no_cache = True
     schema = AboSchema()
     try:
         data = dict(request.form.items())
@@ -44,6 +46,7 @@ def create():
 
 @abo.route("/abo/activate/<key>")
 def activate(key):
+    request.no_cache = True
     abo = db.session.query(Abo).filter_by(activation_code=key).first()
     if abo is None:
         flash(u"Der Bestätigungscode ist ungültig oder das Abo bereits bestätigt.", 'warning')
@@ -56,6 +59,7 @@ def activate(key):
 
 @abo.route("/abo/end/<id>")
 def terminate(id):
+    request.no_cache = True
     abo = db.session.query(Abo).filter_by(id=id)\
             .filter_by(email=request.args.get('email'))
     if abo is None:

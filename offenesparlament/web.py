@@ -1,12 +1,14 @@
 #coding: utf-8
 from datetime import datetime
+from hashlib import sha1
 
-from flask import Flask, g, render_template, abort
+from flask import Flask, g, render_template, abort, request
 from flask import url_for, make_response, redirect
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Sitzung, Ablauf
 from offenesparlament.data import aggregates
+from offenesparlament.util import validate_cache, NotModified
 from offenesparlament.views.filters import drslink
 from offenesparlament.views.abo import abo
 from offenesparlament.views.person import person
@@ -26,6 +28,32 @@ app.register_blueprint(rede)
 app.register_blueprint(debatte)
 app.register_blueprint(backend)
 
+
+@app.before_request
+def setup_cache():
+    args = request.args.items()
+    args = filter(lambda (k,v): k != '_', args) # haha jquery where is your god now?!?
+    query = sha1(repr(sorted(args))).hexdigest()
+    request.cache_key = {'query': query}
+
+@app.after_request
+def configure_caching(response_class):
+    if not app.config.get('CACHE'):
+        return response_class
+    if hasattr(request, 'no_cache') and request.no_cache:
+        return response_class
+    if request.method in ['GET', 'HEAD', 'OPTIONS'] \
+        and response_class.status_code < 400:
+        try:
+            etag, mod_time = validate_cache(request)
+            response_class.add_etag(etag)
+            response_class.cache_control.max_age = app.config.get('CACHE_AGE') * 1
+            response_class.cache_control.public = True
+            if mod_time:
+                response_class.last_modified = mod_time
+        except NotModified:
+            return Response(status=304)
+    return response_class
 
 @app.route("/pages/<path:path>")
 def page(path):
@@ -57,10 +85,12 @@ def favicon_ico():
 def index():
     general = aggregates.current_schlagworte()
     sachgebiete = aggregates.sachgebiete()
-    sitzung = Sitzung.query.order_by(Sitzung.nummer.desc()).first()
+    request.cache_key['general'] = general
+    request.cache_key['sachgebiete'] = sachgebiete
     return render_template('home.html', general=general,
-            sachgebiete=sachgebiete, sitzung=sitzung)
+            sachgebiete=sachgebiete)
 
 if __name__ == '__main__':
     app.debug = True
     app.run(port=5006)
+

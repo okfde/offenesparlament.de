@@ -47,6 +47,7 @@ def view(slug, format=None):
         abort(404)
     if format == 'json':
         return jsonify(person)
+    request.cache_key['modified'] = person.updated_at
     searcher = SolrSearcher(Position, request.args)
     searcher.sort('date')
     searcher.filter('beitraege.person.id', str(person.id))
@@ -71,6 +72,7 @@ def votes(slug, format=None):
     person = Person.query.filter_by(slug=slug).first()
     if person is None:
         abort(404)
+    request.cache_key['modified'] = person.updated_at
     return render_template('person/votes.html',
             person=person)
 

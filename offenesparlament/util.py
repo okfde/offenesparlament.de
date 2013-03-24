@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
+from hashlib import sha1
 
+from werkzeug.http import is_resource_modified
 from flask import Response, request
 
 from offenesparlament.lib.pager import Pager
@@ -33,4 +35,21 @@ def jsonify(obj, status=200, headers=None):
         jsondata = '%s(%s)' % (request.args.get('callback'), jsondata)
     return Response(jsondata, headers=headers,
                     status=status, mimetype='application/json')
+
+
+class NotModified(Exception):
+    pass
+
+
+def validate_cache(request):
+    etag = sha1(repr(sorted(request.cache_key.items()))).hexdigest()
+    mod_time = request.cache_key.get('modified')
+    if request.method != 'GET':
+        return etag, mod_time
+    if not is_resource_modified(request.environ, etag=etag, last_modified=mod_time):
+        raise NotModified()
+    if request.if_none_match == etag:
+        raise NotModified()
+    return etag, mod_time
+
 

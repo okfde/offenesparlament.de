@@ -65,6 +65,7 @@ def view(wahlperiode, key, format=None):
         abort(404)
     if format == 'json':
         return jsonify(ablauf)
+    request.cache_key['modified'] = ablauf.updated_at
     referenzen = defaultdict(set)
     for ref in ablauf.referenzen:
         if ref.dokument.typ == 'plpr' and ref.dokument.hrsg == 'BT':
