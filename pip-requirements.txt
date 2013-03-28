@@ -13,3 +13,4 @@ python-dateutil
 sqlaload
 requests
 webhelpers
+psycopg2
