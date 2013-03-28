@@ -23,7 +23,7 @@ Die Installation sollte immer innerhalb eines ``virtualenv`` erfolgen::
   virtualenv pyenv
   source pyenv/bin/activate
   git clone git@github.com:pudo/offenesparlament.git
-  pip install -r offenesparlament/requirements.txt
+  pip install -r offenesparlament/pip-requirements.txt
   
 Alle Einstellungen werden in einer Python-Datei abgelegt. Die Datei 
 kann aus den Standard-Einstellungen abgeleitet werden und wird per 
