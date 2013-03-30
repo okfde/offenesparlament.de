@@ -8,6 +8,8 @@
 
 {% block description %}{{ ablauf.abstrakt or ablauf.schlagworte_list }}{% endblock %}
 
+{% block keywords %}{% for s in ablauf.schlagworte %}{{s.name}}, {% endfor %}{% endblock %}
+
 {% block content %}
   <br>
   <div class="pull-right">

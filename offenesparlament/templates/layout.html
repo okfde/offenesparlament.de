@@ -10,6 +10,17 @@
   <title>{% block title %}Willkommen{% endblock %} - OffenesParlament</title>
   <meta name="description" content="{% block description %}Das OffeneParlament sammelt Informationen über die Arbeit des
     Bundestags und des Bundesrats. Wir wollen die Verbindungen zwischen Themen, Vorgängen und Akteuren verständlicher machen.{% endblock %}">
+  <meta name="keywords" content="{% block keywords %}{% endblock %}">
+  <meta name="author" content="OffenesParlament, Open Knowledge Foundation Deutschland" />
+  <meta name="email" content="info@okfn.de" />
+  
+  <meta name="og:image" content="http://offenesparlament.de/static/img/thumb.png">
+  <meta name="og:type" content="article">
+  <meta name="og:locale" content="de_DE">
+  <meta name="og:site_name" content="OffenesParlament">
+  <meta name="og:description" content="{{ self.description() }}">
+  <meta name="og:url" content="{{ request.url }}">
+  <meta name="og:title" content="{{ self.title() }}">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="shortcut icon" href="/static/favicon.ico">
