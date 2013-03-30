@@ -24,6 +24,10 @@ class SolrSearcher(object):
         return len(self.q.strip()) > 0
 
     @property
+    def has_query_or_filter(self):
+        return self.has_query or len(self.query_filters)
+
+    @property
     def q(self):
         return self.args.get('q', '')
 

@@ -40,7 +40,7 @@ def index(format=None):
     pager = Pager(searcher, 'ablauf.index', request.args)
     if format == 'json':
         return jsonify({'results': pager})
-    if not searcher.has_query:
+    if not searcher.has_query_or_filter:
         query = Ablauf.query
         query = query.filter(Ablauf.zustimmungsbeduerftig != None)
         query = query.filter(Ablauf.abgeschlossen == False)
