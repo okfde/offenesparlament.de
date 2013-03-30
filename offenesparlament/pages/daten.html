@@ -1,0 +1,113 @@
+title: Datenzugriff
+
+
+Ein wesentlicher Teil von OffenesParlament ist die Beschaffung von aktuellen und historischen 
+Datenbeständen zur Arbeit des Parlaments. Diese Bestände werden jede Nacht aktualisiert und 
+die Daten werden auf verschiedene Weise gereinigt und vereinheitlicht. Für weitergehende 
+Auswertungen bieten sich diese Daten daher als Ressource an. 
+
+Statische Datenexporte
+----------------------
+
+Aus dem ETL-System von OffenesParlament (siehe unten) werden regelmäßig statische CSV- und
+JSON-Dateien exportiert. Diese Formate sind besonders für eine Nutzung der
+Informationen in weitergehenden Analysen oder Visualisierungen geeignet. Bereitgestellt werden: 
+
+* [CSV-Exports des Bundestags-DIP](http://daten.offenesparlament.de/dip/) mit denen z.B. der Forschritt einzelner Gesetzgebungsverfahren und anderer Abläufe verfolgt werden kann. 
+* [CSV-Exports der Plenarprotokolle](http://daten.offenesparlament.de/plenum/) in denen Redner, Redetyp und Inhalt in strukturierter Form aufgeführt sind. 
+* Vollständige [SQL-Dumps](http://daten.offenesparlament.de/sql/) der genutzten Postgres-Datenbank.
+* [Andere Exporte](http://daten.offenesparlament.de/), wie z.B. Übersichten über Personen, kleine Anfragen und andere Arbeitsaspekte des Parlaments.
+
+Die bereitgestellten Exporte sind erweiterbar. Zusätzliche Formate und Zusammenfassungen
+können wir gern [auf Anfrage](kontakt) einrichten.
+
+Webschnittstelle
+----------------
+
+Für Webanwendungen wie JavaScript-Widgets oder interaktive Grafiken steht neben den statischen 
+Exporten auch eine Webschnittstelle bereit, die strukturierte Daten aus dem Live-System generiert. Alle 
+Datenansichten auf OffenesParlament können durch das Hinzufügen des Suffix .json in der URL auch 
+als JSON-Daten abgerufen werden. Einige Beispiele: 
+
+* Das [Profil eines MdB](http://offenesparlament.de/person/lucia-puttrich-cducsu.json) sowie eine
+  [Liste von Abgeordneten](http://offenesparlament.de/person.json).
+* [Metadaten zu Plenarsitzungen](http://offenesparlament.de/plenum.json) sowie einer [einzelnen Debatte](http://offenesparlament.de/plenum/17/214/debatte/97048.json). 
+* Ein [parlamentarischer Vorgang](http://offenesparlament.de/ablauf/17/47510.json) und die [Liste der Abläufe](http://offenesparlament.de/ablauf.json).
+
+Bei Listenansichten können zudem die folgenden Parameter verwendet werden: 
+
+* *page* wählt bei einer paginierten Ansicht die anzuzeigende Seitenlänge aus.
+* *limit* ändert die Anzahl der angezeigten Ergebnisse pro Seite.
+* *paging=false* deaktiviert die Paginierung der Ergebnisse vollständig. 
+
+Herkunft der Daten
+------------------
+
+Wir stellen Rohdaten in verschiedenen Formaten bereit. Für das Verständnis der Daten ist ein kurzer Überblick der genutzten Quellen hilfreich: 
+
+* Die Webseite des Bundestags bietet verschiedene Datenbestände im XML-Format an. Diese API 
+  ist nicht öffentlich dokumentiert, dient jedoch als Schnittstelle z.B. für die mobilen 
+  Apps des Parlaments. Als Eintrittspunkte der XML-API seien hier nur der Index der [Personen](http://www.bundestag.de/xml/mdb/index.xml) und [Gremien](http://www.bundestag.de/xml/ausschuesse/index.xml) genannt.
+* Um eine Verlinkung des Portals AbgeordnetenWatch zu ermöglichen, wird auch hier ein 
+  [XML-Datendump](http://www.abgeordnetenwatch.de/koop/feeds/index.php?account=60e4a1f4fac1801c6486e85f8ed78a06&feed=3f39181c64fa435556f3ce86c24cd118) der 
+  Parlamentarier-Basisdaten genutzt. 
+* Ebenfalls der Webseite des Bundestags entstammen die Daten zum Abstimmungsverhalten der 
+  Abgeordneten in namentlichen Abstimmungen.
+* Aus dem [Dokumentensystem des Bundestags (DIP)](http://dipbt.bundestag.de/dip21.web/bt)
+  extrahieren wir alle Metadaten zu aktuellen Abläufen wie Gesetzgebungsvorhaben und 
+  anderer Arbeit des Parlaments. 
+* Die Plenarprotokolle des Bundestags werden auf der Webseite des Bundestags als [txt-Dateien](http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/index.html) bereitgestellt. Diese werden durch OffenesParlament mit den 
+  Videofragementen aus dem [WebTV-System](http://webtv.bundestag.de/iptv/player/macros/bttv/list.html?pageOffset=0&pageLength=20000&sort=2&lastName=&firstName=&fraction=&meetingNumber=100&period=17&startDay=&endDay=&topic=&submit=Suchen) verknüpft. 
+
+Verarbeitung der Daten
+----------------------
+
+Die Daten der verschiedenen Systeme werden zunächst in einer temporären Datenbank gesammelt. 
+Diese <abbr title="Extract, Transform, Load">ETL</abbr>-Datenbank dient als Grundlage für die Bereinigung und 
+Integration der Daten. Vom Webinterface wird sie jedoch nicht angesprochen, dieses nutzt 
+eine zweite Datenbank, die nur gereinigte Informationen erfasst. Es bestehen daher
+unterschiede Zwischen dem Schema der statischen Daten-Exporte (die der ETL-Datenbank
+entstammen) und den maschinenlesbaren Ausgaben der Webseite (also z.B. JSON-Formate für
+Personen, Vorgänge und Suchen). 
+
+Um die Schritte des Datenaufbereitungsprozesses (ETL) genauer nachzuvollziehen, sei auch
+der Blick in den Quellcode empfohlen: [pudo/offenesparlament](https://github.com/pudo/offenesparlament/tree/master/offenesparlament/data).
+
+Personenbezeichnungen und Datenintegration
+------------------------------------------
+
+Ein besonderes Hindernis bei der Aufbereitung der Daten ist der Mangel an einheitlichen 
+Identifikationsmerkmalen für Personen, Parteien und andere Entitäten innerhalb des 
+Parlaments. So müssen die verschiedenen Schreibweisen für den Namen einer Politikerin
+zu einem gemeinsamen Datensatz verknüpft werden, um Inhalte aus Dokumentensystem, 
+Plenarprotokollen und Webseite zu verlinken. 
+
+OffenesParlament nutzt daher [nomenklatura](http://nomenklatura.pudo.org/), einen 
+Webservice in dem verschiedene Textformen manuell zu einer kanonischen Schriftweise 
+zusammengeführt werden. Unabhängig von der Nutzung der OffenesParlament-Daten können 
+die Alias-Listen aus Nomenklatura eine wertvolle Ressource für eine Auswertung der 
+Bundestagsdaten darstellen. 
+
+Lizenz und Quellenangaben
+-------------------------
+
+Der Datenbestand von OffenesParlament wird unter den Bedingungen der [Open Database License (ODbL)](http://opendatacommons.org/licenses/odbl/) angeboten. 
+Alle Informationen können ohne Rückfrage auch für kommerzielle Zwecke genutzt werden. Abgeleitete Datenbanken sind jedoch im Sinne der
+der [Share-Alike](http://de.wikipedia.org/wiki/Share_alike)-Klausel ebenfalls unter einer offenen Lizenz zu veröffentlichen. 
+ 
+OffenesParlament speist sich, soweit nicht anders angegeben, aus den
+Informationsangeboten des Deutschen Bundestages. Dazu gehören insbesondere die
+Profilseiten von Abgeordneten und Ausschüssen sowie das Dokumentations- und
+Informationssystem für Parlamentarische Vorgänge (DIP). Während die Daten des
+DIP weitgehend amtliche Werke sind, beansprucht der Bundestag auf Abgeordneten-
+und Ausschussprofile einen urheberrechtlichen Anspruch. Unsere Nutzung passiert
+unter der Annahme, dass dieser Anspruch ein Relikt vergangener Zeiten ist und
+im Sinne moderner Transparenzstandards durch eine offene Lizenzierungersetzt
+werden muss.
+
+Um das OffeneParlament zu zitieren, können sie auf jede angebotene URL verlinken - das
+Format der Adressen ist stabil und wird auch in Zukunft zur Verfügung stehen. 
+
+Als Autor kann die [Open Knowledge Foundation Deutschland](http://okfn.de) genannt
+werden. Wir freuen uns über eine Verlinkung, insbesondere mit den Schlagwörtern
+"Bundestag" und "Parlament". 

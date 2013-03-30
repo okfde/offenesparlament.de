@@ -35,19 +35,20 @@ def setup_cache():
     args = filter(lambda (k,v): k != '_', args) # haha jquery where is your god now?!?
     query = sha1(repr(sorted(args))).hexdigest()
     request.cache_key = {'query': query}
+    request.no_cache = False
 
 @app.after_request
 def configure_caching(response_class):
     if not app.config.get('CACHE'):
         return response_class
-    if hasattr(request, 'no_cache') and request.no_cache:
+    if request.no_cache:
         return response_class
     if request.method in ['GET', 'HEAD', 'OPTIONS'] \
         and response_class.status_code < 400:
         try:
             etag, mod_time = validate_cache(request)
             response_class.add_etag(etag)
-            response_class.cache_control.max_age = app.config.get('CACHE_AGE') * 1
+            response_class.cache_control.max_age = app.config.get('CACHE_AGE')
             response_class.cache_control.public = True
             if mod_time:
                 response_class.last_modified = mod_time

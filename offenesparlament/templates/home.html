@@ -28,7 +28,6 @@
         Bundestag und Bundesrat. Wir machen die Verbindungen 
         zwischen Themen und Akteuren verständlicher.
       </p>
-      <h3>Abläufe: Gesetze, Anfragen und andere Arbeit.</h3>
       <p>
         Alle Arbeit des Parlaments &mdash; ob Gesetzgebung oder kleine Anfrage
         &mdash; wird in Abläufen zusammengefasst. Sie beschreiben den
@@ -38,13 +37,15 @@
           placeholder="Abläufe durchsuchen" type="text">
         <input class="btn" type="submit" value="Suchen" />
       </form>
+      <p>Durchsuchen Sie auch die <a href="{{url_for('sitzung.index')}}">Plenardebatten</a> 
+      oder die <a href="{{url_for('person.index')}}">Personenliste</a>.</p>
     </div>
     <div class="span4">
       <p class="hint">
         Diese Themen wurden in der vergangenen Woche häufiger
         behandelt als sonst.
       </p>
-      <ul class="facets">
+      <ul class="facets home">
         {% for c, sw in general %} 
         <li>
           <a href="{{url_for('ablauf.index', schlagworte=sw) }}">{{ sw }}</a>
