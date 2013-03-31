@@ -3,7 +3,7 @@ from datetime import datetime
 from hashlib import sha1
 
 from flask import Flask, g, render_template, abort, request
-from flask import url_for, make_response, redirect
+from flask import url_for, make_response, redirect, Response
 
 from offenesparlament.core import app, pages, db
 from offenesparlament.model import Sitzung, Ablauf
