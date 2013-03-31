@@ -5,3 +5,5 @@ offenesparlament/extract/xmlapi.py
 *.db
 *.db-journal
 settings.py
+deploy/settings.py
+deploy/htpasswd

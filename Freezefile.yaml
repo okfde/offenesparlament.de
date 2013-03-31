@@ -1,0 +1,157 @@
+common:
+  database: postgresql://fl@localhost/opa_etl 
+  prefix: /var/www/opendatalabs.org/de/bundestag
+
+exports:
+  #- query: >
+  #    SELECT b.fraktion, a.sachgebiet, b.fingerprint, p.date, a.titel, a.source_url
+  #    FROM ablauf a LEFT JOIN position p ON p.source_url = a.source_url
+  #    LEFT JOIN beitrag b ON b.source_url = p.source_url
+  #    WHERE b.art = 'Kleine Anfrage'
+  #  filename: zus_kleine_anfragen.csv
+  #  format: csv
+
+  #- query: >
+  #    SELECT DISTINCT a.source_url, b.fraktion, a.sachgebiet, b.fingerprint, p.date, a.titel,
+  #      SUBSTR(p.date, 0, 8) AS ts
+  #    FROM ablauf a LEFT JOIN position p ON p.source_url = a.source_url
+  #    LEFT JOIN beitrag b ON b.source_url = p.source_url
+  #    WHERE b.art = 'Kleine Anfrage'
+  #  filename: anfragen/fraktion/{{slug:fraktion}}_{{ts}}.json
+  #  format: json
+
+  #- query: >
+  #    SELECT b.fraktion, a.sachgebiet, b.fingerprint, p.date, a.titel, a.source_url
+  #    FROM ablauf a LEFT JOIN position p ON p.source_url = a.source_url
+  #    LEFT JOIN beitrag b ON b.source_url = p.source_url
+  #    WHERE b.art = 'Kleine Anfrage'
+  #  filename: anfragen/{{fraktion}}index_.json
+  #  format: json
+
+  #- query: >
+  #    SELECT DISTINCT a.source_url, a.initiative, a.sachgebiet, b.fingerprint, p.date, a.titel
+  #    FROM ablauf a LEFT JOIN position p ON p.source_url = a.source_url
+  #    LEFT JOIN beitrag b ON b.source_url = p.source_url
+  #    WHERE b.art = 'Kleine Anfrage'
+  #  filename: zus_kleine_anfragen_initiative.csv
+  #  format: csv
+
+  #- query: >
+  #    SELECT COUNT(DISTINCT a.id), b.fraktion, a.sachgebiet,
+  #      SUBSTR(p.date, 0, 8) AS ts
+  #    FROM ablauf a LEFT JOIN position p ON p.source_url = a.source_url
+  #    LEFT JOIN beitrag b ON b.source_url = p.source_url
+  #    WHERE b.art = 'Kleine Anfrage'
+  #    GROUP BY b.fraktion, a.sachgebiet, ts
+  #    ORDER BY ts DESC
+  #  filename: timeseries_kleine_anfragen.csv
+  #  format: csv
+ 
+  - query: > 
+      SELECT COUNT(DISTINCT a.id), b.fraktion, c.category,
+              SUBSTR(p.date, 0, 8) AS ts
+        FROM ablauf a
+        LEFT JOIN category c ON c.sachgebiet = a.sachgebiet
+        LEFT JOIN position p ON p.source_url = a.source_url
+        LEFT JOIN beitrag b ON b.source_url = p.source_url
+        WHERE a.sachgebiet IS NOT NULL
+          AND LENGTH(a.sachgebiet) > 0
+          AND b.art = 'Kleine Anfrage'
+        GROUP BY b.fraktion, c.category, ts
+        ORDER BY ts DESC;
+    filename: anfragen/months.csv
+    format: csv
+  
+  - query: >
+      SELECT DISTINCT ON (a.source_url)
+          a.source_url, b.fraktion, c.category, p.date, a.titel,
+          SUBSTR(p.date, 0, 8) AS ts
+        FROM ablauf a
+        LEFT JOIN category c ON c.sachgebiet = a.sachgebiet  
+        LEFT JOIN position p ON p.source_url = a.source_url
+        LEFT JOIN beitrag b ON b.source_url = p.source_url
+        WHERE a.sachgebiet IS NOT NULL
+          AND LENGTH(a.sachgebiet) > 0
+          AND b.art = 'Kleine Anfrage'
+        GROUP BY a.source_url, b.fraktion, c.category, p.date, a.titel;
+    filename: anfragen/all.json
+    format: tabson
+
+  - query: >
+      SELECT COUNT(DISTINCT a.id) AS num, TRIM(b.fingerprint) AS name
+        FROM ablauf a
+        LEFT JOIN position p ON p.source_url = a.source_url
+        LEFT JOIN beitrag b ON b.source_url = p.source_url
+        WHERE b.art = 'Kleine Anfrage'
+        GROUP BY b.fingerprint
+        ORDER BY num DESC
+        LIMIT 15;
+    filename: anfragen/by_mdb.csv
+    format: csv
+
+  - query: >
+      SELECT COUNT(DISTINCT a.id) AS num, b.fraktion AS name
+        FROM ablauf a
+        LEFT JOIN position p ON p.source_url = a.source_url
+        LEFT JOIN beitrag b ON b.source_url = p.source_url
+        WHERE b.art = 'Kleine Anfrage'
+        GROUP BY b.fraktion
+        ORDER BY num DESC
+        LIMIT 15;
+    filename: anfragen/by_fraktion.csv
+    format: csv
+
+  - query: >
+      SELECT COUNT(DISTINCT a.id) AS num, s.wort AS name
+        FROM ablauf a
+        LEFT JOIN position p ON p.source_url = a.source_url
+        LEFT JOIN beitrag b ON b.source_url = p.source_url
+        LEFT JOIN schlagwort s ON a.source_url = s.source_url
+        WHERE b.art = 'Kleine Anfrage'
+        GROUP BY s.wort
+        ORDER BY num DESC
+        LIMIT 15;
+    filename: anfragen/by_schlagwort.csv
+    format: csv
+
+  - name: Redeprotokolle
+    skip: true
+    query: >
+      SELECT *
+      FROM speech s
+      ORDER BY sequence ASC
+    filename: 'plenum/rohtranskript-{{wahlperiode}}-{{sitzung}}.csv'
+    format: csv
+
+  - name: Personen
+    query: >
+      SELECT *
+      FROM person
+      ORDER BY fingerprint DESC
+    filename: 'person.csv'
+    format: csv
+
+  - query: >
+      SELECT *
+      FROM ablauf
+      ORDER BY key DESC
+    filename: 'dip/ablaeufe.csv'
+    format: csv
+
+  - query: >
+      SELECT *
+      FROM ablauf a
+        LEFT JOIN position p ON p.source_url = a.source_url
+      ORDER BY key DESC
+    filename: 'dip/positionen.csv'
+    format: csv
+
+  - query: >
+      SELECT *
+      FROM ablauf a
+        LEFT JOIN position p ON p.source_url = a.source_url
+        LEFT JOIN beitrag b ON b.source_url = a.source_url
+      ORDER BY key DESC
+    filename: 'dip/beitraege.csv'
+    format: csv
+
