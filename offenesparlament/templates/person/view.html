@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block description %}
-  {{ person.bio | truncate(150) }}
+  {{ (person.bio or "") | striptags | truncate(150) }}
 {% endblock %}
 
 {% block content %}
