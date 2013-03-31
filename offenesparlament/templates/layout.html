@@ -13,7 +13,7 @@
   <meta name="keywords" content="{% block keywords %}{% endblock %}">
   <meta name="author" content="OffenesParlament, Open Knowledge Foundation Deutschland" />
   <meta name="email" content="info@okfn.de" />
-  
+
   <meta name="og:image" content="http://offenesparlament.de/static/img/thumb.png">
   <meta name="og:type" content="article">
   <meta name="og:locale" content="de_DE">
@@ -51,13 +51,13 @@
             <li><a href="{{ url_for("person.index") }}">Personen</a></li>
             <li><a href="{{ url_for("abo.form")
               }}">Themen-Abo</a></li>
-            <li><a href="{{ url_for("page", path='intro') }}">Über uns</a></li>
+            <li><a href="{{ url_for("page", path='einleitung') }}">Über uns</a></li>
           </ul>
         </div>
       </div>
     </div>
   </header>
-  
+
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <ul class="flashes site">
@@ -83,10 +83,10 @@
         </div>
         <div class="span10">
           <p>
-            OffenesParlament.de ist ein ehrenamtliches Projekt der 
+            OffenesParlament.de ist ein ehrenamtliches Projekt der
             <a href="http://okfn.de">Open Knowledge Foundation Deutschland e.V.</a>
             Das Projekt basiert auf Daten des Deutschen Bundestags,
-            ist jedoch vom Parlament unabhängig. 
+            ist jedoch vom Parlament unabhängig.
           </p>
         </div>
       </div>
@@ -100,9 +100,9 @@
         </div>
         <div class="span5 pull-right">
           <ul class="links pull-right">
-            <li><a href="/pages/mitmachen">Mitmachen</a></li>
-            <li><a href="/pages/daten">Rohdaten</a></li>
-            <li><a href="/pages/kontakt">Impressum</a></li>
+            <li><a href="/info/mitmachen">Mitmachen</a></li>
+            <li><a href="/info/daten">Rohdaten</a></li>
+            <li><a href="/info/kontakt">Impressum</a></li>
           </ul>
         </div>
       </div>
