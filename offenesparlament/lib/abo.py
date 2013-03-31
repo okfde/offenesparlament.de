@@ -149,10 +149,11 @@ def notify():
 ACTIVATION_MESSAGE = u"""
 Guten Tag, 
 
-auf der Seite offenesparlament.de haben Sie Benachrichtigungen zum Thema
-'%s' abonniert. Um diesen Dienst zu aktivieren ist eine Bestätigung Ihrer
-E-Mail-Adresse durch den untenstehenden Link notwendig. Wenn Sie keine 
-Nachrichten erhalten wollen ist keine weitere Reaktion notwendig.
+auf OffenesParlament haben Sie Benachrichtigungen zum Thema '%s'
+abonniert. Um diesen Dienst zu aktivieren, ist eine Bestätigung Ihrer
+E-Mail-Adresse durch den notwendig. Bitte besuchen Sie dazu den unten
+genannten Link. Wenn Sie keine Nachrichten erhalten wollen, dann ist
+keine weitere Reaktion notwendig.
 
 %s
 
