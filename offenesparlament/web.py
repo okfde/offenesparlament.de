@@ -56,7 +56,7 @@ def configure_caching(response_class):
             return Response(status=304)
     return response_class
 
-@app.route("/pages/<path:path>")
+@app.route("/info/<path:path>")
 def page(path):
     page = pages.get_or_404(path)
     template = page.meta.get('template', 'page.html')
