@@ -1,15 +1,14 @@
 import logging
 from threading import Lock
 
-from nkclient import NKDataset, NKValue
-from nkclient import NKNoMatch, NKInvalid
+from nomenklatura import Dataset, Entity
 
 from offenesparlament.core import app
 
 log = logging.getLogger(__name__)
 
 DATASETS = {}
-VALUES = {}
+ENTITIES = {}
 LOCK = Lock()
 
 class BadReference(Exception):
@@ -20,38 +19,38 @@ class InvalidReference(BadReference):
 
 def dataset(name):
     if not name in DATASETS:
-        DATASETS[name] = NKDataset(name, api_key=app.config['NOMENKLATURA_API_KEY'])
+        DATASETS[name] = Dataset(name, api_key=app.config['NOMENKLATURA_API_KEY'])
         if app.config['NOMENKLATURA_PRELOAD']:
-            for value in DATASETS[name].values():
-                VALUES[(name, value.value.lower())] = value
-            for link in DATASETS[name].links():
-                if link.is_invalid:
-                    VALUES[(name, link.key.lower())] = \
-                        NKInvalid({'dataset': link.dataset, 'key': link.key})
-                elif link.is_matched:
-                    VALUES[(name, link.key.lower())] = \
-                        NKValue(DATASETS[name], link.value)
+            for entity in DATASETS[name].entities():
+                ENTITIES[(name, entity.name.lower())] = entity
+            for alias in DATASETS[name].aliases():
+                if alias.is_invalid:
+                    ENTITIES[(name, alias.name.lower())] = \
+                        Dataset.Invalid({'dataset': alias.dataset, 'name': alias.name})
+                elif alias.is_matched:
+                    ENTITIES[(name, alias.name.lower())] = \
+                        Entity(DATASETS[name], alias.entity)
     return DATASETS[name]
 
 def resolve(dataset_name, key):
     LOCK.acquire()
     try:
         cache_tpl = (dataset_name, key.lower())
-        if cache_tpl not in VALUES:
+        if cache_tpl not in ENTITIES:
             resolver = dataset(dataset_name)
             try:
                 obj = resolver.lookup(key)
-            except NKInvalid, inv:
+            except Dataset.Invalid, inv:
                 obj = inv
-            except NKNoMatch, nm:
+            except Dataset.NoMatch, nm:
                 obj = nm
-            VALUES[cache_tpl] = obj
-        obj = VALUES[cache_tpl]
-        if isinstance(obj, NKInvalid):
+            ENTITIES[cache_tpl] = obj
+        obj = ENTITIES[cache_tpl]
+        if isinstance(obj, Dataset.Invalid):
             raise InvalidReference()
-        if isinstance(obj, NKNoMatch):
+        if isinstance(obj, Dataset.NoMatch):
             raise BadReference()
-        return obj.value
+        return obj.name
     finally:
         LOCK.release()
 

@@ -14,5 +14,5 @@ sqlaload
 requests
 webhelpers
 psycopg2
+pynomenklatura
 
--e git+https://github.com/pudo/nomenklatura-client#egg=nkclient
