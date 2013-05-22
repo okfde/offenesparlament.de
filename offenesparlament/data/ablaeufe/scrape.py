@@ -125,12 +125,6 @@ def scrape_activity(engine, url, elem):
     urheber = elem.findtext("URHEBER")
     fundstelle = elem.findtext("FUNDSTELLE")
     Position = sl.get_table(engine, 'position')
-    p = sl.find_one(engine, Position, 
-                    urheber=urheber, 
-                    fundstelle=fundstelle, 
-                    source_url=url)
-    if p is not None:
-        return 
     p = {'source_url': url, 
          'urheber': urheber,
          'fundstelle': fundstelle}
@@ -145,8 +139,8 @@ def scrape_activity(engine, url, elem):
         z['text'] = zelem.findtext("AUSSCHUSS_KLARTEXT")
         z['federfuehrung'] = zelem.find("FEDERFUEHRUNG") is not None
         z['gremium_key'] = DIP_GREMIUM_TO_KEY.get(z['text'])
-        sl.upsert(engine, Zuweisung, z, unique=[])
-        
+        sl.add_row(engine, Zuweisung, z)
+
     Beschluss = sl.get_table(engine, 'beschluss')
     for belem in elem.findall("BESCHLUSS"):
         b = pos_keys.copy()
@@ -154,20 +148,18 @@ def scrape_activity(engine, url, elem):
         b['dokument_text'] = belem.findtext("BEZUGSDOKUMENT")
         b['tenor'] = belem.findtext("BESCHLUSSTENOR")
         b['grundlage'] = belem.findtext("GRUNDLAGE")
-        sl.upsert(engine, Beschluss, b, unique=[])
+        sl.add_row(engine, Beschluss, b)
 
     Referenz = sl.get_table(engine, 'referenz')
     try:
         dokument = dokument_by_url(p['fundstelle_url']) or \
             dokument_by_name(p['fundstelle'])
         dokument.update(pos_keys)
-        sl.upsert(engine, Referenz, dokument, unique=[
-                'link', 'source_url', 'seiten'
-                ])
+        sl.add_row(engine, Referenz, dokument)
     except Exception, e:
         log.exception(e)
 
-    sl.upsert(engine, Position, p, unique=[])
+    sl.add_row(engine, Position, p)
     Person = sl.get_table(engine, 'person')
     Beitrag = sl.get_table(engine, 'beitrag')
     for belem in elem.findall("PERSOENLICHER_URHEBER"):
@@ -188,7 +180,7 @@ def scrape_activity(engine, url, elem):
             belem.findtext("FRAKTION"))
         b['seite'] = belem.findtext("SEITE")
         b['art'] = belem.findtext("AKTIVITAETSART")
-        sl.upsert(engine, Beitrag, b, unique=[])
+        sl.add_row(engine, Beitrag, b)
 
 class NoContentException(Exception): pass
 
@@ -240,6 +232,16 @@ def scrape_ablauf(engine, url, force=False):
     if 'Originaltext der Frage(n):' in a['abstrakt']:
         _, a['abstrakt'] = a['abstrakt'].split('Originaltext der Frage(n):', 1)
 
+
+    sl.delete(engine, sl.get_table(engine, 'position'), source_url=url)
+    sl.delete(engine, sl.get_table(engine, 'beitrag'), source_url=url)
+    sl.delete(engine, sl.get_table(engine, 'zuweisung'), source_url=url)
+    sl.delete(engine, sl.get_table(engine, 'beschluss'), source_url=url)
+    sl.delete(engine, sl.get_table(engine, 'referenz'), source_url=url)
+
+    for elem in doc.findall(".//VORGANGSPOSITION"):
+        scrape_activity(engine, url, elem)
+
     Referenz = sl.get_table(engine, 'referenz')
     for elem in doc.findall("WICHTIGE_DRUCKSACHE"):
         link = elem.findtext("DRS_LINK")
@@ -269,8 +271,6 @@ def scrape_ablauf(engine, url, force=False):
             ])
 
     sl.upsert(engine, Ablauf, a, unique=['source_url'])
-    for elem in doc.findall(".//VORGANGSPOSITION"):
-        scrape_activity(engine, url, elem)
     return a
 
 

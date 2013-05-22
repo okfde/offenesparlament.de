@@ -2,7 +2,7 @@
 import warnings; warnings.filterwarnings('ignore', 'Unicode type received non-unicode bind param value.')
 import logging
 
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.DEBUG)
 
 from solr import SolrConnection
 
