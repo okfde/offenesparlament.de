@@ -155,3 +155,10 @@ exports:
     filename: 'dip/beitraege.csv'
     format: csv
 
+  - query: >
+      SELECT r.link, r.nummer, r.text, r.seiten, r.typ, r.fundstelle, 
+        r.urheber, a.source_url, a.titel
+      FROM referenz r LEFT JOIN ablauf a ON a.source_url = r.source_url
+      WHERE r.link IS NOT NULL;
+    filename: 'dip/referenzen.csv'
+    format: csv
