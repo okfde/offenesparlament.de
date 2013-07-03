@@ -46,7 +46,20 @@ exports:
   #    ORDER BY ts DESC
   #  filename: timeseries_kleine_anfragen.csv
   #  format: csv
- 
+
+  - query: >
+      SELECT a.service, a.level, a.section, a.client, a.client_name,
+        a.client_city, p.source_url, p.vorname, p.nachname, p.bio_url,
+        p.fraktion, p.wk_name, gm.role, g.name
+        FROM angaben a
+          LEFT JOIN person p ON P.source_url = a.source_url
+          LEFT JOIN gremium_mitglieder gm ON gm.person_source_url = p.source_url
+          LEFT JOIN gremium g ON g.key = gm.gremium_key
+        WHERE g.key = 'a14'
+        ORDER BY p.nachname ASC;
+    filename: 'misc/angaben_a14.csv'
+    format: csv
+
   - query: > 
       SELECT COUNT(DISTINCT a.id), b.fraktion, c.category,
               SUBSTR(p.date, 0, 8) AS ts
