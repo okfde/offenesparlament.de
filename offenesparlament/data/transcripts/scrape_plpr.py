@@ -16,11 +16,12 @@ log = logging.getLogger(__name__)
 
 URL = "http://www.bundestag.de/dokumente/protokolle/plenarprotokolle/plenarprotokolle/%s%03.d.txt"
 BEGIN_MARK = re.compile('Beginn: [X\d]{1,2}.\d{1,2} Uhr')
-END_MARK = re.compile('\(Schluss: \d{1,2}.\d{1,2} Uhr\).*')
+END_MARK = re.compile('\(Schluss:.\d{1,2}.\d{1,2}.Uhr\).*')
 SPEAKER_MARK = re.compile('  (.{5,140}):\s*$')
 TOP_MARK = re.compile('.*(rufe.*die Frage|zur Frage|Tagesordnungspunkt|Zusatzpunkt).*')
 POI_MARK = re.compile('\((.*)\)\s*$', re.M)
-
+WRITING_BEGIN = re.compile('.*werden die Reden zu Protokoll genommen.*')
+WRITING_END = re.compile(u'(^Tagesordnungspunkt .*:\s*$|– Drucksache d{2}/\d{2,6} –.*|^Ich schließe die Aussprache.$)')
 
 class SpeechParser(object):
 
@@ -50,12 +51,14 @@ class SpeechParser(object):
         self.in_session = False
         speaker = None
         fingerprint = None
+        in_writing = False
         chair_ = [False]
         text = []
 
         def emit(reset_chair=True):
             data = {
                 'speaker': speaker,
+                'in_writing': in_writing,
                 'type': 'chair' if chair_[0] else 'speech',
                 'fingerprint': fingerprint,
                 'text': "\n\n".join(text).strip()
@@ -69,20 +72,28 @@ class SpeechParser(object):
             line = line.decode('latin-1')
             line = line.replace(u'\u2014', '-')
             line = line.replace(u'\x96', '-')
+            rline = line.replace(u'\xa0', ' ').strip()
+
             if not self.in_session and BEGIN_MARK.match(line):
                 self.in_session = True
                 continue
             elif not self.in_session:
                 continue
 
-            if END_MARK.match(line):
+            if END_MARK.match(rline):
                 return
+
+            if WRITING_BEGIN.match(rline):
+                in_writing = True
+
+            if WRITING_END.match(rline):
+                in_writing = False
 
             if not len(line.strip()):
                 continue
 
             is_top = False
-            if TOP_MARK.match(line):
+            if TOP_MARK.match(rline):
                 is_top = True
 
             has_stopword = False
@@ -110,9 +121,11 @@ class SpeechParser(object):
             if m is not None:
                 if not m.group(1).lower().strip().startswith('siehe'):
                     yield emit(reset_chair=False)
+                    in_writing = False
                     for _speaker, _fingerprint, _text in self.parse_pois(m.group(1)):
                         yield {
                             'speaker': _speaker,
+                            'in_writing': False,
                             'type': 'poi',
                             'fingerprint': _fingerprint,
                             'text': _text
@@ -132,7 +145,7 @@ def scrape_transcript(engine, url, force=False):
     sample = sl.find_one(engine, table, source_url=url, matched=True)
     response, sio = fetch_stream(url)
     sample = check_tags(sample or {}, response, force)
-    base_data = {'source_url': url, 
+    base_data = {'source_url': url,
                  'sitzung': session,
                  'wahlperiode': wp,
                  'matched': False,

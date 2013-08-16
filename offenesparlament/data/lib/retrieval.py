@@ -5,6 +5,10 @@ import requests
 import time
 
 log = logging.getLogger(__name__)
+
+req_log = logging.getLogger('requests')
+req_log.setLevel(logging.WARN)
+
 UA = 'OffenesParlament.de // <friedrich@pudo.org>'
 
 def fetch(url, timeout=10.0, keep_alive=True):
