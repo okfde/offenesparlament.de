@@ -1,8 +1,10 @@
 # coding: utf-8
+from StringIO import StringIO
 import logging
 from itertools import count
 from pprint import pprint
 import re
+import os
 
 import sqlaload as sl
 
@@ -68,8 +70,10 @@ class SpeechParser(object):
             [text.pop() for i in xrange(len(text))]
             return data
 
-        for line in self.fh:
-            line = line.decode('latin-1')
+        for line in self.fh.readlines():
+            try:
+                line = line.decode('latin-1')
+            except: pass
             line = line.replace(u'\u2014', '-')
             line = line.replace(u'\x96', '-')
             rline = line.replace(u'\xa0', ' ').strip()
@@ -139,12 +143,26 @@ def url_metadata(url):
     fname = url.rsplit('/')[-1]
     return int(fname[:2]), int(fname[2:5])
 
+def find_local(url):
+    fname = url.rsplit('/')[-1]
+    data_dir = os.path.join(os.path.dirname(__file__),
+                            '../../../contrib/data')
+    speech_file = os.path.join(data_dir, fname)
+    if not os.path.exists(speech_file):
+        return None
+    text = open(speech_file, 'rb').read().decode('utf-8')
+    text = text.replace('\r', '\n')
+    return StringIO(text)
+
 def scrape_transcript(engine, url, force=False):
     wp, session = url_metadata(url)
     table = sl.get_table(engine, 'speech')
-    sample = sl.find_one(engine, table, source_url=url, matched=True)
-    response, sio = fetch_stream(url)
-    sample = check_tags(sample or {}, response, force)
+    sio = find_local(url)
+    sample = {'source_etag': 'local'}
+    if sio is None:
+        sample = sl.find_one(engine, table, source_url=url, matched=True)
+        response, sio = fetch_stream(url)
+        sample = check_tags(sample or {}, response, force)
     base_data = {'source_url': url,
                  'sitzung': session,
                  'wahlperiode': wp,
@@ -173,11 +191,12 @@ def scrape_transcript(engine, url, force=False):
 
 
 def scrape_index(wp=17):
-    for i in count(33):
+    for i in count(1):
         url = URL % (wp, i)
-        response = fetch(url)
-        if response.status_code != 200: 
-            if i > 180:
-                return
-            continue
+        if find_local(url) is None:
+            response = fetch(url)
+            if response.status_code != 200: 
+                if i > 180:
+                    return
+                continue
         yield url
