@@ -3,6 +3,8 @@
 offenesparlament/extract/xmlapi.py
 *.DS_Store
 *.db
+*.env
+dumps/*
 *.db-journal
 settings.py
 deploy/settings.py
