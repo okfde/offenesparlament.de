@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 from unicodedata import normalize as ucnorm, category
 
-egos = re.compile('(ich|mir|mein|meiner|meines|mich)')
+egos = re.compile(r'\b(ich|mir|mein|meiner|meines|mich)\b')
 words = re.compile('\w{2,}')
 
 engine = dataset.connect('postgresql://localhost/parlament_etl')
@@ -32,7 +32,7 @@ num_egos = defaultdict(int)
 num_words = defaultdict(int)
 
 for s in speech.find(type='speech'):
-    if s['sitzung'] < 191 or s['in_writing']:
+    if s['sitzung'] < 190 or s['in_writing']:
         continue
     text = normalize(s['text'])
     num_egos[s['fingerprint']] += len(egos.findall(text))
