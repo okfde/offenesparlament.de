@@ -4,6 +4,9 @@ from StringIO import StringIO
 import requests
 import time
 
+from offenesparlament.core import app
+from offenesparlament.data.lib.refresh import Unmodified
+
 log = logging.getLogger(__name__)
 
 req_log = logging.getLogger('requests')
@@ -22,7 +25,8 @@ def fetch(url, timeout=10.0, keep_alive=True):
                 'https': app.config.get('HTTP_PROXY')
                 }
             body = requests.get(url, 
-                headers={'User-Agent': UA},
+                headers={'User-Agent': app.config.get('SCRAPE_USER_AGENT', '')},
+                auth=app.config.get('SCRAPE_AUTH'),
                 timeout=timeout,
                 proxies=proxies,
                 verify=False)
@@ -45,6 +49,8 @@ def fetch_stream(url, timeout=10.0):
 
 def _xml(url, timeout=2.0):
     response, d = fetch_stream(url, timeout=timeout)
+    if response.status_code == 404:
+        raise Unmodified()
     doc = etree.parse(d) if d is not None else d
     return response, doc
 

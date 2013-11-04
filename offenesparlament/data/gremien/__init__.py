@@ -12,7 +12,6 @@ log = logging.getLogger(__name__)
 def process_gremium(engine, indexer, url, force=False):
     try:
         data = scrape_gremium(engine, url, force=force)
-
         data = fetch_row(engine, 'gremium', key=data['key'])
         gremium = load_gremium(engine, data)
         indexer.add(gremium)

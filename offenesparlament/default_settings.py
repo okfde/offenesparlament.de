@@ -13,3 +13,6 @@ NOMENKLATURA_TYPES_DATASET = 'offenesparlament-typen'
 NOMENKLATURA_VOTES_DATASET = 'offenesparlament-votes'
 NOMENKLATURA_STAGE_DATASET = 'offenesparlament-stand'
 NOMENKLATURA_PRELOAD = True
+
+SCRAPE_USER_AGENT = 'OffenesParlament.de // <friedrich@pudo.org>'
+SCRAPE_AUTH = ('IOS_APP_v4.2.1', 'RjKtvXnR6EhX8/xqJGRvQcFGDFWoGGTD')

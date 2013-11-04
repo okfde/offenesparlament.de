@@ -5,7 +5,6 @@ import sqlaload as sl
 from offenesparlament.data.lib.constants import GREMIUM_RSS_FEEDS
 from offenesparlament.data.lib.retrieval import _xml
 from offenesparlament.data.lib.refresh import check_tags
-from offenesparlament.core import etl_engine
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ URL_PATTERN = "http://www.bundestag.de/bundestag/ausschuesse17/%s/index.jsp"
 def scrape_index():
     response, doc = _xml(AUSSCHUSS_INDEX_URL)
     for info_url in doc.findall("//ausschussDetailXML"):
-        yield info_url.text
+        yield info_url.text.strip()
 
 
 def scrape_gremium(engine, url, force=False):
