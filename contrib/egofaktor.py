@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 from unicodedata import normalize as ucnorm, category
 
-egos = re.compile(r'\b(ich|mir|mein|meiner|meines|mich)\b')
+egos = re.compile(r'\b(ich|mir|mein|meiner|meines|mich|meines)\b', re.U)
 words = re.compile('\w{2,}')
 
 engine = dataset.connect('postgresql://localhost/parlament_etl')
@@ -43,8 +43,13 @@ print "Done, saving..."
 egofaktor = engine['egos']
 egofaktor.delete()
 for fp in num_egos.keys():
+    pers = engine['person'].find_one(fingerprint=fp) or {}
+    partei = None
+    if 'partei' in pers:
+        partei = pers['partei']
     egofaktor.upsert({
         'fingerprint': fp,
+        'partei': partei,
         'egos': num_egos[fp],
         'words': num_words[fp]
         }, ['fingerprint'])
