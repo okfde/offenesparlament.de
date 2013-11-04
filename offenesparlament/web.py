@@ -44,7 +44,8 @@ def configure_caching(response_class):
     if request.no_cache:
         return response_class
     if request.method in ['GET', 'HEAD', 'OPTIONS'] \
-        and response_class.status_code < 400:
+        and response_class.status_code < 400 \
+        and not response_class.is_streamed:
         try:
             etag, mod_time = validate_cache(request)
             response_class.add_etag(etag)
