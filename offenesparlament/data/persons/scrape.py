@@ -8,7 +8,7 @@ import sqlaload as sl
 from offenesparlament.data.lib.retrieval import _xml
 from offenesparlament.data.lib.refresh import check_tags
 
-MDB_INDEX_URL = "http://www.bundestag.de/xml/mdb/index.xml"
+MDB_INDEX_URL = "https://www.bundestag.de/xml/mdb/index.xml"
 
 log = logging.getLogger(__name__)
 
