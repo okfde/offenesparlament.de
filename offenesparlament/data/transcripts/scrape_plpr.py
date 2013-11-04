@@ -8,6 +8,7 @@ import os
 
 import sqlaload as sl
 
+from offenesparlament.core import app
 from offenesparlament.data.lib.constants import SPEAKER_STOPWORDS, CHAIRS
 from offenesparlament.data.lib.retrieval import fetch, fetch_stream
 from offenesparlament.data.lib.refresh import check_tags
@@ -190,13 +191,14 @@ def scrape_transcript(engine, url, force=False):
     return base_data
 
 
-def scrape_index(wp=17):
-    for i in count(1):
-        url = URL % (wp, i)
-        if find_local(url) is None:
-            response = fetch(url)
-            if response.status_code != 200: 
-                if i > 180:
-                    return
-                continue
-        yield url
+def scrape_index():
+    for wp in app.config.get('WAHLPERIODEN'):
+        for i in count(1):
+            url = URL % (wp, i)
+            if find_local(url) is None:
+                response = fetch(url)
+                if response.status_code != 200: 
+                    if i > 180:
+                        return
+                    continue
+            yield url

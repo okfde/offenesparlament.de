@@ -7,12 +7,13 @@ from urlparse import urljoin
 
 import sqlaload as sl
 
+from offenesparlament.core import app
 from offenesparlament.data.lib.constants import FACTION_MAPS, \
     DIP_GREMIUM_TO_KEY, DIP_ABLAUF_STATES_FINISHED
 from offenesparlament.data.lib.refresh import check_tags, Unmodified    
 from offenesparlament.data.lib.retrieval import fetch, _html
 
-EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP17/'
+EXTRAKT_INDEX = 'http://dipbt.bundestag.de/extrakt/ba/WP%s/'
 INLINE_RE = re.compile(r"<!--(.*?)-->", re.M + re.S)
 INLINE_COMMENTS_RE = re.compile(r"<-.*->", re.M + re.S)
 
@@ -229,6 +230,10 @@ def scrape_ablauf(engine, url, force=False):
     a['titel'] = a['titel'].strip().lstrip('.').strip()
     a = expand_dok_nr(a)
     a['abgeschlossen'] = DIP_ABLAUF_STATES_FINISHED.get(a['stand'], False)
+
+    if a['wahlperiode'] != max(app.config.get('WAHLPERIODEN')):
+        a['abgeschlossen'] = True
+
     if 'Originaltext der Frage(n):' in a['abstrakt']:
         _, a['abstrakt'] = a['abstrakt'].split('Originaltext der Frage(n):', 1)
 
@@ -275,7 +280,9 @@ def scrape_ablauf(engine, url, force=False):
 
 
 def scrape_index():
-    response, doc = _html(EXTRAKT_INDEX, timeout=120.0)
-    for result in doc.findall("//a[@class='linkIntern']"):
-        yield urljoin(EXTRAKT_INDEX, result.get('href'))
+    for wp in app.config.get('WAHLPERIODEN'):
+        index_url = EXTRAKT_INDEX % wp
+        response, doc = _html(index_url, timeout=120.0)
+        for result in doc.findall("//a[@class='linkIntern']"):
+            yield urljoin(index_url, result.get('href'))
 
