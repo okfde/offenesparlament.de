@@ -16,7 +16,7 @@ body {
 
 body, p, li {
   line-height: 1.4em;
-}  
+}
 
 label, input, button, select, textarea {
   font-size: inherit;
@@ -375,7 +375,7 @@ table#factsheet ul {
 
 /* Zitate */
 .result-list.zitate {
-  
+
 }
 
 .result-list.zitate tr td {
@@ -434,6 +434,14 @@ table#factsheet ul {
   margin: 0;
   font-size: 0.9em;
 }
+
+.hyphenate {
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+}
+
 
 /* Person */
 .person-foto img {
