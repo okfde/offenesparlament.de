@@ -11,7 +11,7 @@ setup(name='offenesparlament',
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='politics parliament laws tracking flask',
       author='Friedrich Lindenberg',
-      author_email='friedrich.lindenberg@okfn.org',
+      author_email='friedrich@pudo.org',
       url='http://okfn.de',
       license='AGPLv3',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),

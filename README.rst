@@ -9,6 +9,7 @@ Abstimmungsverhalten einzelner Abgeordneter oder dem Inhalt der Dokumente.
 Dieses README befasst sich nur mit den technischen Aspekten der Seite, für 
 weitere inhaltliche Informationen besuche: http://offenesparlament.de.
 
+
 Installation
 ------------
 
@@ -24,7 +25,7 @@ Die Installation sollte immer innerhalb eines ``virtualenv`` erfolgen::
   source pyenv/bin/activate
   git clone git@github.com:pudo/offenesparlament.git
   pip install -r offenesparlament/pip-requirements.txt
-  
+
 Alle Einstellungen werden in einer Python-Datei abgelegt. Die Datei 
 kann aus den Standard-Einstellungen abgeleitet werden und wird per 
 Umgebungsvariable gesetzt::
@@ -39,6 +40,7 @@ ist die Staging-Datenbank (ETL_URL), in der Daten aus den Scrapern
 deponiert und transformiert werden. Die andere ist die
 Produktivdatenbank, aus der sich das Frontend der Webseite speist. Beide
 Datenbanken sollten mit dem Encoding "UTF-8" angelegt werden.
+
 
 Datenextraktion
 ---------------
@@ -79,15 +81,15 @@ Alle Stufen verfügen über einige Parameter:
 
 Der ``-u``-Paramter kann wie folgt verwendet werden::
 
-  python [..]/manage.py person -f -u http://www.bundestag.de/xml/mdb/A/ackermann_jens.xml
+  python [..]/manage.py persons -f -u http://www.bundestag.de/xml/mdb/A/ackermann_jens.xml
 
 Oder::
 
   python [..]/manage.py ablaeufe -f -u http://dipbt.bundestag.de/extrakt/ba/WP17/242/24215.html
-  
+
 Alle Stufen können gemeinsam durch dem ``update``-Befehl ausgeführt 
 werden::
-  
+
   python [..]/manage.py update
 
 Einige andere Befehle stehen ebenfalls zur Verfügung. 
@@ -97,6 +99,7 @@ Einige andere Befehle stehen ebenfalls zur Verfügung.
   Daten-Update ausgeführt werden. 
 * ``notify`` liest die Abonnenten-Listen aus und verschickt E-Mails
   an alle zutreffenden Empfänger.
+
 
 Webseite
 --------
@@ -108,10 +111,35 @@ Um die Webseite auszuführen, kann das folgende Kommando genutzt werden::
 Um einen Produktiv-Server zu betreiben sollte allerding eine andere
 Umgebung genutzt werden, z.B. ``gunicorn``.
 
+
+Stapeljobs
+----------
+
+Damit die Daten auf der Webseite aktuell bleiben, müssen folgende
+Kommandos in regelmäßigen Intervallen ausgeführt werden. Während bei
+einigen Scrapern (Personen, Gremien) eine wöchtentliche Aktualisierung
+ausreicht, sollten die Scraper für Plenarprotokolle und Vorgänge im
+Parlament täglich aktualisiert werden.
+
+::
+  # Basis-Infos (wöchtentlich)
+  python offenesparlament/manage.py gremien -f
+  python offenesparlament/manage.py persons -f
+  python offenesparlament/manage.py abstimmungen
+
+  # tagesaktuelle Angaben
+  python offenesparlament/manage.py ablaeufe
+  python offenesparlament/manage.py transcripts
+
+  # nach jedem Update:
+  python offenesparlament/manage.py aggregate
+  python offenesparlament/manage.py notify
+
+
 Kontakt
 -------
 
-* Friedrich Lindenberg <friedrich.lindenberg@okfn.org>
+* Friedrich Lindenberg <friedrich@pudo.org>
 * http://lists.okfn.org/mailman/listinfo/offenes-parlament
 
 Der Code von OffenesParlament steht unter der Affero GPL v3-Lizenz. Der Text
