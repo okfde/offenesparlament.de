@@ -80,7 +80,7 @@ def update(force=False, threaded=False, preload=False):
     indexer = get_indexer()
     try:
         for stage in [GREMIUM, PERSON, ABSTIMMUNG, ABLAUF, TRANSCRIPT]:
-            process(engine, indexer, proc, force=force,
+            process(engine, indexer, stage, force=force,
                     threaded=threaded)
     finally:
         indexer.flush()
