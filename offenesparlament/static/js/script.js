@@ -1,6 +1,3 @@
-/* Author: 
-
-*/
 
 $(document).ready(function() {
   $(".bio-teaser").click(function(e) {
