@@ -1,0 +1,20 @@
+db:
+  image: postgres
+  ports:
+      - "5432"
+stagingdb:
+  image: postgres
+  ports:
+      - "5432"
+solr:
+  image: milafrerichs/solr-op
+  ports:
+    - "8983"
+web:
+  build: .
+  links:
+      - db
+      - stagingdb
+      - solr
+  ports:
+    - "5000:5000"
