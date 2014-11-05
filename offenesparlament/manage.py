@@ -10,6 +10,8 @@ from offenesparlament.data.gremien import GREMIUM
 from offenesparlament.data.abstimmungen import ABSTIMMUNG
 from offenesparlament.data.transcripts import TRANSCRIPT
 from offenesparlament.data.ablaeufe import ABLAUF
+import logging
+log = logging.getLogger(__name__)
 
 manager = Manager(app)
 
@@ -76,12 +78,12 @@ def ablaeufe(url=None, force=False, threaded=False, preload=False):
 def update(force=False, threaded=False, preload=False):
     """ Update the entire database. """
     app.config['NOMENKLATURA_PRELOAD'] = not preload
-    engine = etl_engine()
     indexer = get_indexer()
     try:
         for stage in [GREMIUM, PERSON, ABSTIMMUNG, ABLAUF, TRANSCRIPT]:
-            process(engine, indexer, stage, force=force,
+            process(indexer, stage, force=force,
                     threaded=threaded)
+            log.debug("Finish updating: %s" % stage)
     finally:
         indexer.flush()
 
