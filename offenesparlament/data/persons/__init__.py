@@ -13,7 +13,11 @@ def process_person(engine, indexer, url, force=False):
     try:
         data = scrape_mdb(engine, url, force=force)
         make_fingerprint(engine, data)
-        parse_angaben(engine, data)
+        try:
+            parse_angaben(engine, data)
+        except:
+            log.warn("Angaben parse did not work")
+            pass
 
         data = fetch_row(engine, 'person', mdb_id=data['mdb_id'])
         person = load_person(engine, data)
