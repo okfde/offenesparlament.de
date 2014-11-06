@@ -12,8 +12,13 @@ log = logging.getLogger(__name__)
 def make_fingerprint(engine, person):
     try:
         long_name = make_long_name(person)
-        long_name = resolve_person(long_name)
-        log.info(" -> %s" % long_name.strip())
+        try:
+            long_name = resolve_person(long_name)
+            log.info(" -> %s" % long_name.strip())
+        except:
+            log.error("Resolve did not work")
+            pass
+
         Person = sl.get_table(engine, 'person')
         sl.upsert(engine, Person, {
             'fingerprint': long_name,
@@ -27,5 +32,6 @@ def make_fingerprint(engine, person):
             }, unique=['mdb_id'])
         person['fingerprint'] = long_name
     except BadReference:
+        log.error("Bad Reference %s", person)
         pass
 

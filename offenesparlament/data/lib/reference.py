@@ -47,10 +47,15 @@ def resolve(dataset_name, key):
             ENTITIES[cache_tpl] = obj
         obj = ENTITIES[cache_tpl]
         if isinstance(obj, Dataset.Invalid):
+            log.error("InvalidReference (Invalid) for %s", obj)
             raise InvalidReference()
         if isinstance(obj, Dataset.NoMatch):
+            log.error("BedReference (NoMatch) for %s", obj)
             raise BadReference()
         return obj.name
+    except:
+        log.error("Resolve did not work for %s" % key)
+        pass
     finally:
         LOCK.release()
 
