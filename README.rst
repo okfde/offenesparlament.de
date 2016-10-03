@@ -9,6 +9,9 @@ Abstimmungsverhalten einzelner Abgeordneter oder dem Inhalt der Dokumente.
 Dieses README befasst sich nur mit den technischen Aspekten der Seite, für 
 weitere inhaltliche Informationen besuche: http://offenesparlament.de.
 
+**Hinweis: die Anwendung ist veraltet und wird mittlerweile durch die
+einzelnen Scraper unter http://github.com/bundestag ersetzt. Maintainer für das 
+OffeneParlament werden weiterhin (händeringend) gesucht!.**
 
 Installation
 ------------
