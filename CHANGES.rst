@@ -1,6 +1,0 @@
-
-
-11.8.2012: 
-
-ALTER TABLE position ADD COLUMN debatte_id INTEGER;
-ALTER TABLE zitat ADD COLUMN redner VARCHAR;
