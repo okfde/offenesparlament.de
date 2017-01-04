@@ -1,0 +1,48 @@
+---
+layout: default
+sections:
+- id: why
+  title: Warum?
+- id: data
+  title: Daten
+- id: contact
+  title: Kontakt
+- id: archive
+  title: Wo ist das alte OffenesParlament hin?
+
+---
+
+<header>
+  <div class="container">
+    <h1 class="site-heading">
+      Offenes Parlament
+    </h1>
+  </div>
+
+  <nav>
+    <ul class="container">
+    {% for section in page.sections %}
+      <li><a href="#{{ section.id }}">{{ section.title }}</a></li>
+    {% endfor %}
+    </ul>
+  </nav>
+</header>
+
+<main>
+  {% for section in page.sections %}
+  <section id="{{ section.id }}">
+    <div class="container">
+      <h1>{{ section.title }}</h1>
+      {% capture content %}{% include {{ section.id }}.md %}{% endcapture %}
+      {{ content | markdownify }}
+    </div>
+  </section>
+  {% endfor %}
+</main>
+
+<footer>
+  <div class="container">
+    {% capture footer %}{% include footer.md %}{% endcapture %}
+    {{ footer | markdownify }}
+  </div>
+</footer>

@@ -1,11 +1,5 @@
-*.pyc
-*.egg-info
-offenesparlament/extract/xmlapi.py
-*.DS_Store
-*.db
-*.env
-dumps/*
-*.db-journal
-settings.py
-deploy/settings.py
-deploy/htpasswd
+_site/
+.sass-cache/
+.jekyll-metadata
+.ruby-version
+node_modules

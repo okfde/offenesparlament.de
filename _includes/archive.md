@@ -1,0 +1,2 @@
+![OffenesParlament.de (2012-2016)]({{ site.baseurl }}/img/offenesparlament-old.jpg){: .archive-image }
+Das alte OffenesParlament.de ist leider über mehrere Jahre hinweg eingeschlafen. Nicht alle der Scraper haben noch funktioniert und da Scraper immer wieder Anpassungen benötigen, haben wir uns entschieden OffenesParlament durch diese Webseite zu ersetzen.
