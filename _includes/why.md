@@ -1,4 +1,4 @@
-Offnes Parlament ist eine [Sammlung verschiedener Daten](#data) über Landesparlamente und den Bundestag in Deutschland.
+Offenes Parlament ist eine [Sammlung verschiedener Daten](#data) über Landesparlamente und den Bundestag in Deutschland.
 
 Daten über unsere Parlamente sollten als Open Data öffentlich zugänglich sein - leider ist das bislang in den seltensten Fällen so.
 
