@@ -617,3 +617,13 @@ footer {
     }
   }
 }
+
+.deprecation-banner {
+  background-color: $green;
+  color: black;
+  padding: 10px;
+
+  a {
+    color: black;
+  }
+}
